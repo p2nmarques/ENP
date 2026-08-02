@@ -8,8 +8,9 @@
  #ifndef PACKETS_H
  #define PACKETS_H
 
- #include <stdint.h>
  #include <stdbool.h>
+ #include <stddef.h>
+ #include <stdint.h>
 
  #define ESPNOW_MAGIC              0x45534E57UL
  #define ESPNOW_PROTOCOL_VERSION   1
@@ -21,43 +22,70 @@
 
  } espnow_packet_type_t;
 
+ /*------------------------------------------------------------------
+  * Common Header
+  *-----------------------------------------------------------------*/
+
  typedef struct __attribute__((packed))
  {
      uint32_t magic;
-     uint8_t  version;
-     uint8_t  type;
+
+     uint8_t version;
+
+     uint8_t type;
+
      uint16_t length;
+
      uint32_t sequence;
+
  } espnow_header_t;
+
+ /*------------------------------------------------------------------
+  * Sensor Packet
+  *-----------------------------------------------------------------*/
 
  typedef struct __attribute__((packed))
  {
      espnow_header_t header;
 
      float temperature;
+
      float humidity;
 
      uint16_t crc;
 
  } sensor_packet_t;
 
+ /*------------------------------------------------------------------
+  * ACK Packet
+  *-----------------------------------------------------------------*/
+
  typedef struct __attribute__((packed))
  {
      espnow_header_t header;
 
      uint32_t acknowledged_sequence;
+
      uint8_t status;
 
      uint16_t crc;
 
  } ack_packet_t;
 
- void sensor_packet_init(sensor_packet_t *pkt);
+ /*------------------------------------------------------------------
+  * Generic helpers
+  *-----------------------------------------------------------------*/
 
- void ack_packet_init(ack_packet_t *pkt);
+ void espnow_packet_finalize(void *packet, size_t packet_size);
 
- bool sensor_packet_verify(const sensor_packet_t *pkt);
+ bool espnow_packet_verify(const void *packet, size_t packet_size);
 
- bool ack_packet_verify(const ack_packet_t *pkt);
+ /*------------------------------------------------------------------
+  * Packet initialization
+  *-----------------------------------------------------------------*/
+
+ void sensor_packet_init(sensor_packet_t *packet);
+
+ void ack_packet_init(ack_packet_t *packet);
 
  #endif

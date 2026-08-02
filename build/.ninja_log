@@ -3,12 +3,12 @@
 4384	6119	8074084955445259	esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/port/os_xtensa.c.obj	14ac9ec607b6941f
 16333	17986	8074085074942710	esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/core/ipv6/ip6.c.obj	22f77e38b894e955
 82	204	8074084913584733	esp-idf/esp_system/ld/sections.ld.in	ee0769cae9871bfd
-54188	55369	8074085453482523	esp-idf/esp_mm/CMakeFiles/__idf_esp_mm.dir/esp_cache_msync.c.obj	dd9070cd05d127ed
-3521	3904	8074084946820573	esp-idf/tcp_transport/libtcp_transport.a	56998fd63e7e2ed7
 44071	45571	8074085352321449	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/psa_crypto_pake.c.obj	6c8b3c95fe5f068b
-63586	64490	8074085547470123	esp-idf/wear_levelling/CMakeFiles/__idf_wear_levelling.dir/WL_Ext_Safe.cpp.obj	fd5fe1f65140a025
-41816	43512	8074085329775058	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/aes.c.obj	e071dff013433f10
+3521	3904	8074084946820573	esp-idf/tcp_transport/libtcp_transport.a	56998fd63e7e2ed7
+54188	55369	8074085453482523	esp-idf/esp_mm/CMakeFiles/__idf_esp_mm.dir/esp_cache_msync.c.obj	dd9070cd05d127ed
 82	204	8074084913584733	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/esp-idf/esp_system/ld/sections.ld.in	ee0769cae9871bfd
+41816	43512	8074085329775058	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/aes.c.obj	e071dff013433f10
+63586	64490	8074085547470123	esp-idf/wear_levelling/CMakeFiles/__idf_wear_levelling.dir/WL_Ext_Safe.cpp.obj	fd5fe1f65140a025
 101	142	8074084912976423	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/project_elf_src_esp32.c	52ac1ff5501b2f90
 35910	37130	8074085270703539	esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/ubsan.c.obj	302bcb78b898de20
 2262	3871	8074084934230819	esp-idf/esp-tls/CMakeFiles/__idf_esp-tls.dir/esp-tls-crypto/esp_tls_crypto.c.obj	d8de70932846bf6c
@@ -116,7 +116,7 @@
 63335	64569	8074085544957248	esp-idf/protocomm/CMakeFiles/__idf_protocomm.dir/src/crypto/srp6a/esp_srp_mpi.c.obj	f83e87462a389429
 13104	14751	8074085042658301	esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/api/api_msg.c.obj	563c900ace680d1e
 23796	24896	8074085149563223	esp-idf/esp_psram/CMakeFiles/__idf_esp_psram.dir/system_layer/esp_psram_mspi.c.obj	3d79857ce79078fa
-87682	87775	8074085788423524	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/app_check_size	78dc976c86656a05
+11556	11648	8074097647888937	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/app_check_size	78dc976c86656a05
 55155	56221	8074085463150548	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_utility.c.obj	3c1a0c30cf46d4e2
 10225	11939	8074085013862004	esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa_main.c.obj	286d32458ba563a4
 4246	4944	8074084954072900	esp-idf/esp_coex/CMakeFiles/__idf_esp_coex.dir/src/coexist_debug_diagram.c.obj	732fd71ea826af07
@@ -162,7 +162,7 @@
 3398	4655	8074084945590590	esp-idf/esp_gdbstub/CMakeFiles/__idf_esp_gdbstub.dir/src/port/xtensa/gdbstub_xtensa.c.obj	8dd58eb21c3a6989
 39001	40540	8074085301619904	esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_ops.c.obj	dbc0004d0d72ab05
 3923	5746	8074084950842921	esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/esp32/esp_adapter.c.obj	556374115459738d
-76572	81800	8074085677323839	bootloader/bootloader.map	e95a8e5052cbbaff
+105	272	8074097533371207	bootloader/bootloader.map	e95a8e5052cbbaff
 3603	4770	8074084947640554	esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj	516dc6799f85997b
 40318	41677	8074085314786451	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/flash_qio_mode.c.obj	bfed0fa9fbd6498b
 32610	33307	8074085237705381	esp-idf/soc/CMakeFiles/__idf_soc.dir/dport_access_common.c.obj	f76bfcd8bef47c08
@@ -242,7 +242,7 @@
 43522	44541	8074085346829865	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/md5.c.obj	abb39f45da1d6e55
 6646	8112	8074084978074081	esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/ms_funcs.c.obj	2692e363cfaeabcc
 6659	8143	8074084978204083	esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-tlsprf.c.obj	570c58a3b1e6df71
-81808	81848	8074085729684104	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
+272	310	8074097535045884	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
 6830	8198	8074084979914060	esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/sha1-prf.c.obj	fc92c8b9b0f4eb86
 33308	34219	8074085244691057	esp-idf/heap/CMakeFiles/__idf_heap.dir/port/esp32/memory_layout.c.obj	6a1afbb776182b40
 61765	62245	8074085529249245	esp-idf/esp_hal_clock/libesp_hal_clock.a	6f6bbf0571376f73
@@ -446,7 +446,7 @@
 17688	19047	8074085088483691	esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ecp.c.obj	8b5ddb6b95d47621
 17809	19087	8074085089693680	esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/fsm.c.obj	7aa39ac75d7d3f1f
 25890	27060	8074085170505311	esp-idf/pthread/CMakeFiles/__idf_pthread.dir/pthread_semaphore.c.obj	58af3b37a13da2a8
-76572	81800	8074085677323839	bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
+105	272	8074097533371207	bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
 54204	54983	8074085453647517	esp-idf/esp_mm/CMakeFiles/__idf_esp_mm.dir/cache_esp32.c.obj	4b363337f0b1f9ed
 50150	51429	8074085413103466	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.obj	b90d2d883af7996c
 17977	19188	8074085091373686	esp-idf/lwip/CMakeFiles/__idf_lwip.dir/lwip/src/netif/ppp/ipv6cp.c.obj	25b8e71dc1e52f96
@@ -495,7 +495,7 @@
 42459	43522	8074085336201736	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/chacha20_neon.c.obj	8d0e3ecff12adc81
 20452	21824	8074085116123117	esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_eventfd.c.obj	28540b0ad73603e0
 21242	25939	8074085124024993	esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_storage.cpp.obj	7d0a4b308b61d9c0
-87682	87775	8074085788423524	CMakeFiles/app_check_size	78dc976c86656a05
+11556	11648	8074097647888937	CMakeFiles/app_check_size	78dc976c86656a05
 20477	21880	8074085116373111	esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj	e6f6efb140b44a14
 28186	29411	8074085193473426	esp-idf/freertos/CMakeFiles/__idf_freertos.dir/FreeRTOS-Kernel/stream_buffer.c.obj	293b94d6f594ef7d
 20154	21891	8074085113153123	esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_calls.c.obj	966aa3c469e20331
@@ -518,7 +518,7 @@
 23242	24674	8074085144033257	esp-idf/esp_event/CMakeFiles/__idf_esp_event.dir/esp_event.c.obj	84fa68bd18bcffeb
 55259	56411	8074085464200565	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj	ade2fcbd0cf923f8
 21091	25110	8074085122525023	esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj	f0aae729d062be0b
-81848	81933	8074085730876374	CMakeFiles/bootloader-complete	ce37b4e3a89181dd
+310	388	8074097536151088	CMakeFiles/bootloader-complete	ce37b4e3a89181dd
 21044	25293	8074085122055052	esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_cxx_api.cpp.obj	fd5fe389ba06b07
 60621	61622	8074085517817483	esp-idf/esp_hal_twai/CMakeFiles/__idf_esp_hal_twai.dir/esp32/twai_periph.c.obj	cf717cf1488efae
 23764	25474	8074085149253228	esp-idf/esp_driver_uart/CMakeFiles/__idf_esp_driver_uart.dir/src/uart_vfs.c.obj	ec6f2e1d4b9d4627
@@ -539,7 +539,7 @@
 45515	46689	8074085366763261	esp-idf/mbedtls/mbedtls/tf-psa-crypto/extras/CMakeFiles/extras.dir/pk_rsa.c.obj	3309ff22a4c2f197
 21880	26121	8074085130414957	esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_types.cpp.obj	2f087496d3bd3cc4
 56201	57094	8074085473617330	esp-idf/esp_hal_security/CMakeFiles/__idf_esp_hal_security.dir/mpu_hal.c.obj	f39cb90be3164ff0
-76572	81800	8074085677323839	bootloader/bootloader.elf	e95a8e5052cbbaff
+105	272	8074097533371207	bootloader/bootloader.elf	e95a8e5052cbbaff
 32724	33524	8074085238855378	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/emac_periph.c.obj	6b8b48be936b8155
 21869	26141	8074085130304990	esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.obj	5f1e953e08ae72c5
 24967	26170	8074085161277316	esp-idf/esp_timer/CMakeFiles/__idf_esp_timer.dir/src/system_time.c.obj	e86c363e85e56e08
@@ -597,7 +597,7 @@
 54254	55050	8074085454150978	esp-idf/esp_hal_uart/CMakeFiles/__idf_esp_hal_uart.dir/esp32/uart_periph.c.obj	78836ce667a1a279
 64223	64627	8074085553834431	esp-idf/protobuf-c/libprotobuf-c.a	bef2b57d849d8d2a
 27925	29038	8074085190853441	esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port_common.c.obj	28131c8488c14008
-60425	60867	8074085515853453	esp-idf/esp_app_format/libesp_app_format.a	d323a09d5f8d7bb
+432	529	8074097536640723	esp-idf/esp_app_format/libesp_app_format.a	d323a09d5f8d7bb
 70171	71373	8074085613313133	esp-idf/fatfs/CMakeFiles/__idf_fatfs.dir/port/freertos/ffsystem.c.obj	89a075cc57c5094
 32520	33192	8074085236815387	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/esp32/sdm_periph.c.obj	3cc003f74d461ebc
 27955	29071	8074085191153433	esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port_systick.c.obj	41c8f678d19a369d
@@ -746,7 +746,7 @@
 39925	41146	8074085310861181	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.obj	8a84f27e888c70f8
 40541	41600	8074085317016867	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_partitions.c.obj	c9a514ade1f331f0
 65329	65863	8074085564894827	esp-idf/esp_hal_ledc/libesp_hal_ledc.a	66249e307ddb8676
-81848	81933	8074085730876374	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/bootloader-complete	ce37b4e3a89181dd
+310	388	8074097536151088	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/bootloader-complete	ce37b4e3a89181dd
 39892	41202	8074085310531184	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.obj	1afc96cfdddcae6a
 61503	62545	8074085526645778	esp-idf/esp_hal_pcnt/CMakeFiles/__idf_esp_hal_pcnt.dir/pcnt_hal.c.obj	77f105b24b9fe894
 40823	41335	8074085319836822	esp-idf/spi_flash/libspi_flash.a	148b80a20985357e
@@ -795,7 +795,7 @@
 70442	72248	8074085616027801	esp-idf/fatfs/CMakeFiles/__idf_fatfs.dir/vfs/vfs_fat_sdmmc.c.obj	f0a783320f0fb1f4
 43938	45515	8074085350989816	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/psa_crypto_cipher.c.obj	cdc809c2601d7afe
 48684	50149	8074085398448562	esp-idf/mbedtls/mbedtls/tf-psa-crypto/core/CMakeFiles/tfpsacrypto.dir/C_/esp/v6.0.2/esp-idf/components/mbedtls/port/psa_driver/esp_aes/psa_crypto_driver_esp_aes_gcm.c.obj	8c9a7b58c4c33f99
-87432	87682	8074085788371912	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/.bin_timestamp	763694856714449d
+11306	11556	8074097647837702	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/.bin_timestamp	763694856714449d
 44649	45580	8074085358101415	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/sha1.c.obj	73da0fd901851e69
 44112	45591	8074085352731433	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/psa_crypto_rsa.c.obj	abf29d067c673568
 44541	45672	8074085357021431	esp-idf/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/CMakeFiles/builtin.dir/src/rsa_alt_helpers.c.obj	9608482f647544b7
@@ -905,7 +905,7 @@
 56041	57059	8074085472017352	esp-idf/esp_hal_security/CMakeFiles/__idf_esp_hal_security.dir/mpi_hal.c.obj	d74c37f5f493492d
 55639	57069	8074085468000651	esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_ota_ops.c.obj	d238c8a2b3cb86f3
 59005	59956	8074085501660889	esp-idf/console/CMakeFiles/__idf_console.dir/argtable3/arg_dbl.c.obj	262ce951eab58449
-55998	57135	8074085471587342	esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj	7bbcf54e74da12fe
+98	431	8074097533311193	esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj	360d9c3c3d8f7bb3
 56316	57255	8074085474767312	esp-idf/esp_hal_mspi/CMakeFiles/__idf_esp_hal_mspi.dir/spi_flash_encrypt_hal_iram.c.obj	72d7efbd21c28c50
 56411	57264	8074085475717302	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/esp32/spi_periph.c.obj	29a9640d3f6ab285
 56256	57309	8074085474167317	esp-idf/esp_hal_mspi/CMakeFiles/__idf_esp_hal_mspi.dir/spi_flash_hal_iram.c.obj	bd4d33304b4fa5ba
@@ -1028,32 +1028,18 @@
 72541	72814	8074085637019178	esp-idf/rt/librt.a	64aeef99b8408171
 72563	73233	8074085637239176	esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj	274c6c2102ced354
 52943	76572	8074085677269402	bootloader-prefix/src/bootloader-stamp/bootloader-configure	2ece090198e4ff9a
-76572	81800	8074085677323839	bootloader/bootloader.bin	e95a8e5052cbbaff
-76572	81800	8074085677323839	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
-76572	81800	8074085677323839	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.elf	e95a8e5052cbbaff
-76572	81800	8074085677323839	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.bin	e95a8e5052cbbaff
-76572	81800	8074085677323839	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.map	e95a8e5052cbbaff
-81808	81848	8074085729684104	bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
-81848	81933	8074085730876374	bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
-81848	81933	8074085730876374	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
-73328	86247	8074085773262161	esp-idf/esp_system/ld/sections.ld	beb7149cecb8ed4
-73328	86247	8074085773262161	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/esp-idf/esp_system/ld/sections.ld	beb7149cecb8ed4
+105	272	8074097533371207	bootloader/bootloader.bin	e95a8e5052cbbaff
+105	272	8074097533371207	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
+105	272	8074097533371207	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.elf	e95a8e5052cbbaff
+105	272	8074097533371207	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.bin	e95a8e5052cbbaff
+105	272	8074097533371207	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.map	e95a8e5052cbbaff
+272	310	8074097535045884	bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
+310	388	8074097536151088	bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
+310	388	8074097536151088	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
+529	10369	8074097635232887	esp-idf/esp_system/ld/sections.ld	beb7149cecb8ed4
+529	10369	8074097635232887	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/esp-idf/esp_system/ld/sections.ld	beb7149cecb8ed4
 86247	86445	8074085774072157	CMakeFiles/app-template.elf.dir/project_elf_src_esp32.c.obj	209fac562aaf1b10
-86447	87432	8074085776070645	app-template.elf	c239e4b71dd62539
-87432	87682	8074085788371912	.bin_timestamp	763694856714449d
-112	206	8074092800101276	CMakeFiles/app_check_size	78dc976c86656a05
-112	206	8074092800101276	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/app_check_size	78dc976c86656a05
-103	270	8074092800005560	bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
-103	270	8074092800005560	bootloader/bootloader.elf	e95a8e5052cbbaff
-103	270	8074092800005560	bootloader/bootloader.bin	e95a8e5052cbbaff
-103	270	8074092800005560	bootloader/bootloader.map	e95a8e5052cbbaff
-103	270	8074092800005560	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-build	e95a8e5052cbbaff
-103	270	8074092800005560	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.elf	e95a8e5052cbbaff
-103	270	8074092800005560	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.bin	e95a8e5052cbbaff
-103	270	8074092800005560	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/bootloader.map	e95a8e5052cbbaff
-270	307	8074092801683196	bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
-270	307	8074092801683196	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-install	490ab95b8e0a63b0
-307	386	8074092802771422	CMakeFiles/bootloader-complete	ce37b4e3a89181dd
-307	386	8074092802771422	bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
-307	386	8074092802771422	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/bootloader-complete	ce37b4e3a89181dd
-307	386	8074092802771422	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader-prefix/src/bootloader-stamp/bootloader-done	ce37b4e3a89181dd
+10369	11305	8074097636004518	app-template.elf	c239e4b71dd62539
+11306	11556	8074097647837702	.bin_timestamp	763694856714449d
+44	116251	8074106194690186	CMakeFiles/menuconfig	4720ed1edc18026a
+44	116251	8074106194690186	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/CMakeFiles/menuconfig	4720ed1edc18026a

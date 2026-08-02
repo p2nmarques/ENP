@@ -15,7 +15,7 @@
 ########################
 
 //No help, variable specified on the command line.
-CCACHE_ENABLE:UNINITIALIZED=1
+CCACHE_ENABLE:UNINITIALIZED=True
 
 //Path to a program.
 CCACHE_FOUND:FILEPATH=C:/esp/v6.0.2/tools/ccache/4.12.1/ccache-4.12.1-windows-x86_64/ccache.exe
