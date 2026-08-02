@@ -5,12 +5,8 @@
  *      Author: Pedro Marques
  */
 
- #ifndef ESPNOW_PACKETS_H
- #define ESPNOW_PACKETS_H
-
- #ifdef __cplusplus
- extern "C" {
- #endif
+ #ifndef PACKETS_H
+ #define PACKETS_H
 
  #include <stdint.h>
  #include <stdbool.h>
@@ -20,73 +16,48 @@
 
  typedef enum
  {
-     ESPNOW_PACKET_INVALID = 0,
-     ESPNOW_PACKET_SENSOR  = 1,
-     ESPNOW_PACKET_ACK     = 2,
+     ESPNOW_PACKET_SENSOR = 1,
+     ESPNOW_PACKET_ACK    = 2
 
  } espnow_packet_type_t;
 
  typedef struct __attribute__((packed))
  {
      uint32_t magic;
-
-     uint8_t version;
-
-     uint8_t type;
-
+     uint8_t  version;
+     uint8_t  type;
      uint16_t length;
-
      uint32_t sequence;
-
  } espnow_header_t;
-
- typedef struct __attribute__((packed))
- {
-     float temperature;
-
-     float humidity;
-
- } sensor_payload_t;
-
- typedef struct __attribute__((packed))
- {
-     uint32_t acknowledged_sequence;
-
-     uint8_t status;
-
- } ack_payload_t;
 
  typedef struct __attribute__((packed))
  {
      espnow_header_t header;
 
-     union
-     {
-         sensor_payload_t sensor;
-
-         ack_payload_t ack;
-
-     } payload;
+     float temperature;
+     float humidity;
 
      uint16_t crc;
 
- } espnow_packet_t;
+ } sensor_packet_t;
 
- /* API */
+ typedef struct __attribute__((packed))
+ {
+     espnow_header_t header;
 
- void espnow_packet_init(
-         espnow_packet_t *packet,
-         espnow_packet_type_t type,
-         uint32_t sequence);
+     uint32_t acknowledged_sequence;
+     uint8_t status;
 
- void espnow_packet_finalize(
-         espnow_packet_t *packet);
+     uint16_t crc;
 
- bool espnow_packet_verify(
-         const espnow_packet_t *packet);
+ } ack_packet_t;
 
- #ifdef __cplusplus
- }
- #endif
+ void sensor_packet_init(sensor_packet_t *pkt);
+
+ void ack_packet_init(ack_packet_t *pkt);
+
+ bool sensor_packet_verify(const sensor_packet_t *pkt);
+
+ bool ack_packet_verify(const ack_packet_t *pkt);
 
  #endif

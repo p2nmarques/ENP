@@ -1,7 +1,7 @@
 {
     "version":            "1.3",
     "project_name":       "app-template",
-    "project_version":    "1",
+    "project_version":    "e41ea5d-dirty",
     "project_path":       "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway",
     "idf_path":           "C:/esp/v6.0.2/esp-idf",
     "build_dir":          "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build",

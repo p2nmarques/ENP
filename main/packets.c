@@ -11,48 +11,69 @@
  #include "packets.h"
  #include "crc16.h"
 
- void espnow_packet_init(
-         espnow_packet_t *packet,
-         espnow_packet_type_t type,
-         uint32_t sequence)
+ static uint16_t packet_crc(const void *packet, size_t len)
  {
-     memset(packet, 0, sizeof(*packet));
-
-     packet->header.magic = ESPNOW_MAGIC;
-
-     packet->header.version = ESPNOW_PROTOCOL_VERSION;
-
-     packet->header.type = type;
-
-     packet->header.length = sizeof(*packet);
-
-     packet->header.sequence = sequence;
+     return crc16_ccitt(packet, len);
  }
 
- void espnow_packet_finalize(
-         espnow_packet_t *packet)
+ void sensor_packet_init(sensor_packet_t *pkt)
  {
-     packet->crc = 0;
+     memset(pkt, 0, sizeof(*pkt));
 
-     packet->crc = crc16_ccitt(
-             packet,
-             sizeof(*packet) - sizeof(packet->crc));
+     pkt->header.magic = ESPNOW_MAGIC;
+     pkt->header.version = ESPNOW_PROTOCOL_VERSION;
+     pkt->header.type = ESPNOW_PACKET_SENSOR;
+     pkt->header.length = sizeof(sensor_packet_t);
  }
 
- bool espnow_packet_verify(
-         const espnow_packet_t *packet)
+ void ack_packet_init(ack_packet_t *pkt)
  {
-     espnow_packet_t tmp = *packet;
+     memset(pkt, 0, sizeof(*pkt));
 
-     uint16_t received = tmp.crc;
-
-     tmp.crc = 0;
-
-     uint16_t calculated =
-         crc16_ccitt(
-             &tmp,
-             sizeof(tmp) - sizeof(tmp.crc));
-
-     return received == calculated;
+     pkt->header.magic = ESPNOW_MAGIC;
+     pkt->header.version = ESPNOW_PROTOCOL_VERSION;
+     pkt->header.type = ESPNOW_PACKET_ACK;
+     pkt->header.length = sizeof(ack_packet_t);
  }
 
+ bool sensor_packet_verify(const sensor_packet_t *pkt)
+ {
+     sensor_packet_t copy = *pkt;
+
+     uint16_t crc = copy.crc;
+
+     copy.crc = 0;
+
+     return crc ==
+            packet_crc(&copy,
+                       sizeof(copy));
+ }
+
+ bool ack_packet_verify(const ack_packet_t *pkt)
+ {
+     ack_packet_t copy = *pkt;
+
+     uint16_t crc = copy.crc;
+
+     copy.crc = 0;
+
+     return crc ==
+            packet_crc(&copy,
+                       sizeof(copy));
+ }
+
+
+ void sensor_packet_finalize(sensor_packet_t *pkt)
+ {
+     pkt->crc = 0;
+
+     pkt->crc = crc16_ccitt(pkt, sizeof(*pkt));
+ }
+
+ 
+ void ack_packet_finalize(ack_packet_t *pkt)
+ {
+     pkt->crc = 0;
+
+     pkt->crc = crc16_ccitt(pkt, sizeof(*pkt));
+ }

@@ -5,6 +5,7 @@
  *      Author: Pedro Marques
  */
 
+
  #include "crc16.h"
 
  uint16_t crc16_ccitt(
@@ -34,3 +35,4 @@
 
      return crc;
  }
+
