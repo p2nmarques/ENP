@@ -1,7 +1,7 @@
 {
     "version":            "1.3",
     "project_name":       "app-template",
-    "project_version":    "5ceb19c-dirty",
+    "project_version":    "9827817-dirty",
     "project_path":       "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway",
     "idf_path":           "C:/esp/v6.0.2/esp-idf",
     "build_dir":          "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build",
@@ -1760,13 +1760,13 @@
             "dir": "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main",
             "type": "LIBRARY",
             "lib": "__idf_main",
-            "reqs": [],
+            "reqs": [ "esp_wifi", "esp_event", "esp_netif", "nvs_flash" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/esp-idf/main/libmain.a",
-            "sources": [ "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/main.c" ],
-            "include_dirs": []
+            "sources": [ "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/main.c", "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/wifi.c", "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/espnow.c", "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/gateway.c", "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/packets.c", "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main/crc16.c" ],
+            "include_dirs": [ "." ]
         },
         "mbedtls": {
             "alias": "idf::mbedtls",
@@ -3899,11 +3899,11 @@
             "dir": "D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/main",
             "source": "project_components",
             "lib": "__idf_main",
-            "reqs": [],
+            "reqs": [ "esp_wifi", "esp_event", "esp_netif", "nvs_flash" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": []
+            "include_dirs": [ "." ]
         }
     },
     "gdbinit_files": {

@@ -1,78 +1,93 @@
 # ninja log v6
 42	176	8074085678187134	esp-idf/log/CMakeFiles/__idf_log.dir/src/noos/util.c.obj	224c421fc02d5f77
+57	315	8074085678337120	esp-idf/log/CMakeFiles/__idf_log.dir/src/log_format_text.c.obj	c21d275c94287c32
 29	230	8074085678053734	esp-idf/log/CMakeFiles/__idf_log.dir/src/noos/log_lock.c.obj	fd315da66bde5dfb
+4019	4127	8074085717960281	esp-idf/esp_hal_gpio/libesp_hal_gpio.a	74eba07dbda81641
+137	337	8074085679132736	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_longjmp.S.obj	7fa08a4137a321fe
+1266	1629	8074085690427733	esp-idf/esp_hal_security/CMakeFiles/__idf_esp_hal_security.dir/mpu_hal.c.obj	434e37350fd5f7d5
 49	241	8074085678257104	esp-idf/log/CMakeFiles/__idf_log.dir/src/util.c.obj	7001a674284efaf5
+80	372	8074085678562754	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_sys.c.obj	bafe3289645fc79a
 15	251	8074085677915575	esp-idf/log/CMakeFiles/__idf_log.dir/src/noos/log_timestamp.c.obj	6712a15f8d56bbab
 23	260	8074085677991122	esp-idf/log/CMakeFiles/__idf_log.dir/src/log_timestamp_common.c.obj	8e528763e23505a
-57	315	8074085678337120	esp-idf/log/CMakeFiles/__idf_log.dir/src/log_format_text.c.obj	c21d275c94287c32
-137	337	8074085679132736	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_longjmp.S.obj	7fa08a4137a321fe
 64	345	8074085678407748	esp-idf/log/CMakeFiles/__idf_log.dir/src/log_print.c.obj	da9d824c361ed634
 97	354	8074085678742739	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_crc.c.obj	ccbc17e9bef5bbbb
 35	363	8074085678123734	esp-idf/log/CMakeFiles/__idf_log.dir/src/buffer/log_buffers.c.obj	155ee6774e7f996f
-80	372	8074085678562754	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_sys.c.obj	bafe3289645fc79a
+251	1096	8074085680277248	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/cpu_region_protect.c.obj	2bbc6a95c385085f
+354	856	8074085681307233	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_time.c.obj	f8c8ea3504d7eaa2
 71	381	8074085678482745	esp-idf/log/CMakeFiles/__idf_log.dir/src/log.c.obj	95f810d36222ec17
 121	417	8074085678972741	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_efuse.c.obj	640e5c93db634743
+1414	1645	8074085691907723	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/esp32/adc_periph.c.obj	5d5cb42f9f715a2b
 129	453	8074085679062736	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_gpio.c.obj	d26dc9c3719a5d21
+146	532	8074085679227260	esp-idf/esp_common/CMakeFiles/__idf_esp_common.dir/src/esp_err_to_name.c.obj	c926cdd072f1566b
+689	1127	8074085684663714	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_init.c.obj	708f8de8efbff826
+9	32892	8074170383689421	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/log/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383502682	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/cmake_install.cmake	2ab9b37a521624ee
+453	805	8074085682303728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_fields.c.obj	b70bdca3f8e08f43
 105	463	8074085678822726	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_serial_output.c.obj	6100c03af6a63986
 88	523	8074085678652722	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_print.c.obj	ed709595783e6ce5
-146	532	8074085679227260	esp-idf/esp_common/CMakeFiles/__idf_esp_common.dir/src/esp_err_to_name.c.obj	c926cdd072f1566b
+1645	1973	8074085694220285	esp-idf/esp_hal_timg/CMakeFiles/__idf_esp_hal_timg.dir/timer_hal.c.obj	bbcb262b69b497fe
+532	920	8074085683083728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj	c9859ac41c56a712
+418	752	8074085681943728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_table.c.obj	c7417d132538868f
 230	569	8074085680067245	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/esp_cpu_intr.c.obj	5214148d88f6da6c
+3135	3232	8074085709113271	esp-idf/esp_hal_uart/libesp_hal_uart.a	8f2c6e0b47a86876
 242	578	8074085680187255	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/esp_memory_utils.c.obj	3f961da865e03b3
 177	626	8074085679537251	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/cpu.c.obj	6d4b24989202e0ca
+261	1025	8074085680367248	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_clk.c.obj	8432d9054d8d9cd9
+626	1207	8074085684023722	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common.c.obj	a5ffc7f1868f911f
+569	1118	8074085683463725	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj	8d88736aebb1d15
 363	680	8074085681397235	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/chip_info.c.obj	bbb3d7bc6b0977b6
+2199	2403	8074085699756029	esp-idf/soc/CMakeFiles/__idf_soc.dir/dport_access_common.c.obj	4521ef060b8c0369
+920	1449	8074085686965471	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/flash_qio_mode.c.obj	c539827d8cc7e8f9
+1128	1431	8074085689040441	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_console_loader.c.obj	b7df3f278548e12d
 113	689	8074085678902747	esp-idf/esp_rom/CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_spiflash.c.obj	bac8d52dec200e9b
 315	723	8074085680917235	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_clk_init.c.obj	fc11ff0fa2bcd69
-372	732	8074085681487237	esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/esp_err.c.obj	8be700b1c5e1bcab
-418	752	8074085681943728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_table.c.obj	c7417d132538868f
-381	781	8074085681577250	esp-idf/log/liblog.a	381d80903e779358
-337	795	8074085681137236	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_init.c.obj	369c7f1599dba6b3
-453	805	8074085682303728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_fields.c.obj	b70bdca3f8e08f43
+9	32892	8074170383133905	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_rtc_timer/cmake_install.cmake	2ab9b37a521624ee
+2191	2452	8074085699676015	esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.obj	f0678d628c344029
+1423	1745	8074085691997735	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/adc_hal_common.c.obj	9e5970c0daa757ad
+795	1257	8074085685717689	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_encrypt.c.obj	1e25203a0d945c5d
 345	814	8074085681217248	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_sleep.c.obj	fba3435e3c5f581e
-354	856	8074085681307233	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_time.c.obj	f8c8ea3504d7eaa2
-532	920	8074085683083728	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj	c9859ac41c56a712
+372	732	8074085681487237	esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/esp_err.c.obj	8be700b1c5e1bcab
+381	781	8074085681577250	esp-idf/log/liblog.a	381d80903e779358
+1852	2250	8074085696292327	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/spi_slave_hal.c.obj	36094f470ecd3d1f
+1916	2219	8074085696932325	esp-idf/esp_hal_pmu/CMakeFiles/__idf_esp_hal_pmu.dir/brownout_hal.c.obj	33f8bcda7622581b
+337	795	8074085681137236	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_init.c.obj	369c7f1599dba6b3
 463	959	8074085682393725	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/esp32/esp_efuse_utility.c.obj	773d0dc4d90dd5c3
-261	1025	8074085680367248	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/rtc_clk.c.obj	8432d9054d8d9cd9
+805	1149	8074085685817677	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.obj	825bccd29a9e20ea
+9	32892	8074170383231509	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_security/cmake_install.cmake	2ab9b37a521624ee
 523	1036	8074085682993715	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_api.c.obj	99167b763e3f0bf7
 752	1053	8074085685295661	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_efuse.c.obj	3881ccf8758d81d3
 578	1062	8074085683543729	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/efuse_controller/keys/without_key_purposes/three_key_blocks/esp_efuse_api_key.c.obj	db3ba2852054f42c
-251	1096	8074085680277248	esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir/port/esp32/cpu_region_protect.c.obj	2bbc6a95c385085f
 723	1105	8074085684993703	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_mem.c.obj	b31c0824947efba5
-569	1118	8074085683463725	esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj	8d88736aebb1d15
-689	1127	8074085684663714	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_init.c.obj	708f8de8efbff826
-805	1149	8074085685817677	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/secure_boot.c.obj	825bccd29a9e20ea
+857	1563	8074085686331974	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/bootloader_flash.c.obj	43d95f7a5d9a3b06
+1232	1598	8074085690083150	esp-idf/esp_common/libesp_common.a	32efc2f84a4785eb
 732	1178	8074085685095659	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random.c.obj	3beecc5590725237
-626	1207	8074085684023722	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common.c.obj	a5ffc7f1868f911f
+1754	2109	8074085695310261	esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_wrap.c.obj	d2822fddb821d823
 680	1224	8074085684563719	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_common_loader.c.obj	a41d3025470330b3
 781	1232	8074085685575659	esp-idf/esp_rom/libesp_rom.a	77b8590ac6cdd542
-795	1257	8074085685717689	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_encrypt.c.obj	1e25203a0d945c5d
-814	1266	8074085685907683	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.obj	50e7fa2e37486cb3
 1036	1414	8074085688125467	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/flash_partitions.c.obj	15ee4a7681afb568
-1105	1423	8074085688820428	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_loader.c.obj	43dcd1b86a1461b3
-1128	1431	8074085689040441	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_console_loader.c.obj	b7df3f278548e12d
-1149	1441	8074085689250424	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp32/bootloader_soc.c.obj	17d57ef4c5b635bb
-920	1449	8074085686965471	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/flash_qio_mode.c.obj	c539827d8cc7e8f9
-1062	1475	8074085688385471	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_sha.c.obj	63c7fa4ee22ca377
-1118	1488	8074085688950420	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_console.c.obj	47c310c1f9bcb6e7
-959	1511	8074085687355474	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/bootloader_flash_config_esp32.c.obj	fd821c0094a607c0
-857	1563	8074085686331974	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/bootloader_flash.c.obj	43d95f7a5d9a3b06
-1224	1571	8074085690003133	esp-idf/esp_security/CMakeFiles/__idf_esp_security.dir/src/esp_crypto_lock.c.obj	b51d6a162d7b881
-1232	1598	8074085690083150	esp-idf/esp_common/libesp_common.a	32efc2f84a4785eb
+814	1266	8074085685907683	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_random_esp32.c.obj	50e7fa2e37486cb3
 1257	1620	8074085690337744	esp-idf/esp_security/CMakeFiles/__idf_esp_security.dir/src/esp_crypto_periph_clk.c.obj	1ebfa52486bfa151
-1266	1629	8074085690427733	esp-idf/esp_hal_security/CMakeFiles/__idf_esp_hal_security.dir/mpu_hal.c.obj	434e37350fd5f7d5
-1414	1645	8074085691907723	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/esp32/adc_periph.c.obj	5d5cb42f9f715a2b
-1208	1654	8074085689840896	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_panic.c.obj	25a281eaec6ff9c3
+9	32892	8074170382715878	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_clock/cmake_install.cmake	2ab9b37a521624ee
 1096	1718	8074085688730445	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_init.c.obj	e5edbf1ecad8d2d6
-1423	1745	8074085691997735	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/adc_hal_common.c.obj	9e5970c0daa757ad
+1105	1423	8074085688820428	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_clock_loader.c.obj	43dcd1b86a1461b3
+1149	1441	8074085689250424	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp32/bootloader_soc.c.obj	17d57ef4c5b635bb
+1062	1475	8074085688385471	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_sha.c.obj	63c7fa4ee22ca377
+1224	1571	8074085690003133	esp-idf/esp_security/CMakeFiles/__idf_esp_security.dir/src/esp_crypto_lock.c.obj	b51d6a162d7b881
+9	32892	8074170382667687	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_gpspi/cmake_install.cmake	2ab9b37a521624ee
+1118	1488	8074085688950420	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_console.c.obj	47c310c1f9bcb6e7
+1208	1654	8074085689840896	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_panic.c.obj	25a281eaec6ff9c3
+959	1511	8074085687355474	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/bootloader_flash/src/bootloader_flash_config_esp32.c.obj	fd821c0094a607c0
 1449	1754	8074085692257722	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/esp32/dac_periph.c.obj	fba27f57f009c866
 1025	1774	8074085688015452	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/bootloader_utility.c.obj	54ef665d165ca6be
 1178	1784	8074085689540890	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp32/bootloader_esp32.c.obj	83217b6f8e565397
 1488	1822	8074085692650298	esp-idf/esp_hal_i2s/CMakeFiles/__idf_esp_hal_i2s.dir/esp32/i2s_periph.c.obj	696f1999e910f3c5
+9	32892	8074170383627745	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_rom/cmake_install.cmake	2ab9b37a521624ee
 1432	1831	8074085692077728	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/adc_oneshot_hal.c.obj	dc8111922d3ca3a2
 1053	1852	8074085688295449	esp-idf/bootloader_support/CMakeFiles/__idf_bootloader_support.dir/src/esp_image_format.c.obj	47c0f10fe567d78c
+9	32892	8074170383311505	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/bootloader_support/cmake_install.cmake	2ab9b37a521624ee
 1571	1872	8074085693480293	esp-idf/esp_hal_uart/CMakeFiles/__idf_esp_hal_uart.dir/esp32/uart_periph.c.obj	8d2f3cc7d9fffd38
 1620	1916	8074085693970292	esp-idf/esp_hal_wdt/CMakeFiles/__idf_esp_hal_wdt.dir/esp32/mwdt_periph.c.obj	ede512c9a5890ac5
 1563	1925	8074085693400288	esp-idf/esp_hal_uart/CMakeFiles/__idf_esp_hal_uart.dir/uart_hal_iram.c.obj	b9019cf530dc0dd5
-1645	1973	8074085694220285	esp-idf/esp_hal_timg/CMakeFiles/__idf_esp_hal_timg.dir/timer_hal.c.obj	bbcb262b69b497fe
 1441	1983	8074085692177731	esp-idf/esp_hal_ana_conv/CMakeFiles/__idf_esp_hal_ana_conv.dir/adc_hal.c.obj	1fe6c67e67ef8b1a
 1511	1991	8074085692880290	esp-idf/esp_hal_uart/CMakeFiles/__idf_esp_hal_uart.dir/uart_hal.c.obj	a451a7cf9b474f53
 1475	2003	8074085692517728	esp-idf/esp_hal_i2s/CMakeFiles/__idf_esp_hal_i2s.dir/i2s_hal.c.obj	f3adf6b358fbe27b
@@ -80,12 +95,9 @@
 1784	2024	8074085695612332	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/esp32/spi_periph.c.obj	98a3f5a838d3b415
 1598	2041	8074085693750281	esp-idf/esp_hw_support/libesp_hw_support.a	348eacd5a357acbf
 1746	2062	8074085695220276	esp-idf/esp_bootloader_format/CMakeFiles/__idf_esp_bootloader_format.dir/esp_bootloader_desc.c.obj	48bd281b1ccb47a5
-1754	2109	8074085695310261	esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/spi_flash_wrap.c.obj	d2822fddb821d823
 1630	2120	8074085694060303	esp-idf/esp_hal_wdt/CMakeFiles/__idf_esp_hal_wdt.dir/wdt_hal_iram.c.obj	41541b1e682b045f
 1823	2190	8074085695992334	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/spi_hal.c.obj	d82074345d705cd2
 1774	2199	8074085695512336	esp-idf/esp_hal_clock/CMakeFiles/__idf_esp_hal_clock.dir/esp32/clk_tree_hal.c.obj	b4d2b61ac3b51377
-1916	2219	8074085696932325	esp-idf/esp_hal_pmu/CMakeFiles/__idf_esp_hal_pmu.dir/brownout_hal.c.obj	33f8bcda7622581b
-1852	2250	8074085696292327	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/spi_slave_hal.c.obj	36094f470ecd3d1f
 1925	2258	8074085697012325	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/gpio_hal.c.obj	bac605442646bc30
 1983	2267	8074085697592323	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/esp32/rtc_io_periph.c.obj	ccd5bec5367f76b4
 2003	2283	8074085697792312	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/esp32/sdm_periph.c.obj	7188240da85ec071
@@ -93,14 +105,14 @@
 1992	2299	8074085697682317	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/sdm_hal.c.obj	49bd38ccbc3a6889
 2015	2344	8074085697912322	esp-idf/hal/CMakeFiles/__idf_hal.dir/hal_utils.c.obj	3c53a8a349c96b85
 1831	2357	8074085696072334	esp-idf/esp_hal_gpspi/CMakeFiles/__idf_esp_hal_gpspi.dir/spi_hal_iram.c.obj	1fd7d25189368e14
+9	32892	8074170382847954	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esptool_py/cmake_install.cmake	2ab9b37a521624ee
 1973	2365	8074085697492307	esp-idf/esp_hal_gpio/CMakeFiles/__idf_esp_hal_gpio.dir/rtc_io_hal.c.obj	8d0f5bffdbdae7b9
 2024	2374	8074085698002348	esp-idf/hal/CMakeFiles/__idf_hal.dir/efuse_hal.c.obj	7460875ac0595851
 2041	2386	8074085698182336	esp-idf/esp_system/libesp_system.a	e5ffe3b7493290d6
-2199	2403	8074085699756029	esp-idf/soc/CMakeFiles/__idf_soc.dir/dport_access_common.c.obj	4521ef060b8c0369
 2219	2415	8074085699956014	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/interrupts.c.obj	efd509e681e73413
 2120	2438	8074085698966030	esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/cache_hal_esp32.c.obj	2b58a0cc8bdbdf63
 2063	2451	8074085698392303	esp-idf/hal/CMakeFiles/__idf_hal.dir/esp32/efuse_hal.c.obj	a57158332be3b5e3
-2191	2452	8074085699676015	esp-idf/soc/CMakeFiles/__idf_soc.dir/lldesc.c.obj	f0678d628c344029
+9	32892	8074170382369874	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/xtensa/cmake_install.cmake	2ab9b37a521624ee
 2291	2483	8074085700675995	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/power_supply_periph.c.obj	e89a8a8341cb2b5e
 2267	2487	8074085700436012	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/emac_periph.c.obj	c1bdfa06f5ca940f
 2250	2491	8074085700266009	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/gpio_periph.c.obj	b6795387fd0ca30c
@@ -108,23 +120,23 @@
 2374	2494	8074085702415271	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/project_elf_src_esp32.c	7a5e731c282ba7bf
 2283	2506	8074085700596020	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/mpi_periph.c.obj	25a99b567d6a3207
 2258	2514	8074085700346015	esp-idf/soc/CMakeFiles/__idf_soc.dir/esp32/dport_access.c.obj	9b03a2385be47f00
+9	32892	8074170382730221	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_blockdev/cmake_install.cmake	2ab9b37a521624ee
 2357	2518	8074085701335289	esp-idf/xtensa/CMakeFiles/__idf_xtensa.dir/eri.c.obj	a89b0081f67935cd
 2109	2522	8074085698856013	esp-idf/hal/CMakeFiles/__idf_hal.dir/mmu_hal.c.obj	bc3fb730f20204b9
 2299	2527	8074085702949551	ld/bootloader.memory.ld	15be612ce6f2b257
 2299	2527	8074085702949551	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/ld/bootloader.memory.ld	15be612ce6f2b257
 2366	2562	8074085701425293	esp-idf/xtensa/CMakeFiles/__idf_xtensa.dir/xt_trax.c.obj	76a3a1ee60bb6979
+2580	2749	8074085703569351	esp-idf/bootloader_support/libbootloader_support.a	209e7821b5256441
 2344	2563	8074085703316335	ld/bootloader.sections.ld	83850915364bc518
 2344	2563	8074085703316335	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/ld/bootloader.sections.ld	83850915364bc518
 2386	2580	8074085701625296	esp-idf/efuse/libefuse.a	3aadc01daa6578c2
 2569	2646	8074085703449016	CMakeFiles/bootloader.elf.dir/project_elf_src_esp32.c.obj	2b20f971bea4d68f
 2563	2722	8074085703394837	esp-idf/main/CMakeFiles/__idf_main.dir/bootloader_start.c.obj	1ed6618a8e79b532
-2580	2749	8074085703569351	esp-idf/bootloader_support/libbootloader_support.a	209e7821b5256441
 1718	2777	8074085694950265	esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.obj	9717171b5ce38aba
 2750	2845	8074085705261986	esp-idf/esp_security/libesp_security.a	984ed3935b6d9de8
 2845	2939	8074085706211675	esp-idf/esp_hal_security/libesp_hal_security.a	e415a1f9c8077bfd
 2939	3039	8074085707157026	esp-idf/esp_hal_ana_conv/libesp_hal_ana_conv.a	6c7241fbd08481d8
 3039	3135	8074085708161780	esp-idf/esp_hal_i2s/libesp_hal_i2s.a	e749396cf955fcf9
-3135	3232	8074085709113271	esp-idf/esp_hal_uart/libesp_hal_uart.a	8f2c6e0b47a86876
 3233	3334	8074085710094243	esp-idf/esp_hal_wdt/libesp_hal_wdt.a	fc7bbe0dae3b6359
 3334	3432	8074085711105350	esp-idf/esp_hal_timg/libesp_hal_timg.a	876a39029711fdec
 3432	3528	8074085712089909	esp-idf/micro-ecc/libmicro-ecc.a	f07415fefb97c2a4
@@ -133,7 +145,6 @@
 3716	3820	8074085714927447	esp-idf/esp_hal_clock/libesp_hal_clock.a	6f6bbf0571376f73
 3820	3926	8074085715964218	esp-idf/esp_hal_gpspi/libesp_hal_gpspi.a	9ec3f42f0d55ca33
 3926	4019	8074085717028667	esp-idf/esp_hal_pmu/libesp_hal_pmu.a	1ec0934d25cf6c3f
-4019	4127	8074085717960281	esp-idf/esp_hal_gpio/libesp_hal_gpio.a	74eba07dbda81641
 4127	4231	8074085719030609	esp-idf/hal/libhal.a	747b103a766d9950
 4231	4343	8074085720073500	esp-idf/soc/libsoc.a	b6723c889cbe3faa
 4343	4440	8074085721199553	esp-idf/xtensa/libxtensa.a	408e0cb167899925
@@ -141,9 +152,94 @@
 4533	4807	8074085723098030	bootloader.elf	534d564635ca2a16
 4807	5066	8074085728369718	.bin_timestamp	e94ea2306171cb7a
 4807	5066	8074085728369718	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/.bin_timestamp	e94ea2306171cb7a
-5066	5176	8074085728423626	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
-5066	5176	8074085728423626	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
-21	115	8074092800659441	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
-21	115	8074092800659441	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
-21	116	8074097534015256	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
-21	116	8074097534015256	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	294	8074166203672648	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	294	8074166203672648	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+9	32892	8074170383846777	build.ninja	2ab9b37a521624ee
+9	32892	8074170382309881	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382319882	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382379878	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_libc/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382439876	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/soc/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382499873	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/hal/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382552649	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_gpio/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382836740	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_app_format/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382552649	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_usb/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382607382	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_pmu/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382618548	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_dma/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382715878	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_mspi/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383512675	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382776733	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/spi_flash/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382826739	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_bootloader_format/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382836740	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/partition_table/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382884786	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/micro-ecc/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382936363	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_timg/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170382984829	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_wdt/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383031764	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_uart/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383072747	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_i2s/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383122861	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_ana_conv/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383174387	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_security/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383376608	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/efuse/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383436585	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_system/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383512675	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/lowpower/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383564100	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_common/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383699396	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/bootloader/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383709386	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_stdio/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383709386	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/freertos/cmake_install.cmake	2ab9b37a521624ee
+9	32892	8074170383754496	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/main/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	build.ninja	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/xtensa/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_libc/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/soc/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/hal/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_gpio/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_usb/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_pmu/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_dma/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_gpspi/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_clock/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_mspi/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_blockdev/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/spi_flash/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_bootloader_format/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_app_format/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/partition_table/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esptool_py/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/micro-ecc/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_timg/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_wdt/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_uart/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_i2s/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_ana_conv/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_rtc_timer/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hal_security/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_security/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/bootloader_support/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/efuse/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_system/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_hw_support/lowpower/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_common/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_rom/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/log/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/bootloader/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/esp_stdio/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/freertos/cmake_install.cmake	2ab9b37a521624ee
+8	15011	8074170383846777	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/esp-idf/main/cmake_install.cmake	2ab9b37a521624ee
+21	124	8074170384402290	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+21	124	8074170384402290	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	109	8074170926655561	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	109	8074170926655561	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	110	8074171125387360	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	110	8074171125387360	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	108	8074171129536635	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+19	108	8074171129536635	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	117	8074176092724124	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	117	8074176092724124	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+21	117	8074176700641393	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+21	117	8074176700641393	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	112	8074176906411037	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	112	8074176906411037	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	110	8074176910701743	CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd
+20	110	8074176910701743	D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/bootloader/CMakeFiles/bootloader_check_size	1f12e6b7bfe227fd

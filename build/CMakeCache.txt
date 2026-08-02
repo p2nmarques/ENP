@@ -371,6 +371,9 @@ PYTHON:UNINITIALIZED=C:\esp\v6.0.2\tools\python\v6.0.2\venv\Scripts\python.exe
 //No help, variable specified on the command line.
 PYTHON_DEPS_CHECKED:UNINITIALIZED=1
 
+//No help, variable specified on the command line.
+SDKCONFIG:UNINITIALIZED=sdkconfig
+
 //Value Computed by CMake
 TF-PSA-Crypto_BINARY_DIR:STATIC=D:/Users/Pedro Marques/eclipse-workspace/cplusplus/espnow_gateway/build/esp-idf/mbedtls/mbedtls/tf-psa-crypto
 
