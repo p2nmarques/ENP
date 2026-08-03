@@ -103,8 +103,10 @@ void app_main(void)
      * Idle
      *---------------------------------------------------------*/
 
-    while (true)
-    {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+	 while (true)
+	 {
+	     gateway_print_stats();
+
+	     vTaskDelay(pdMS_TO_TICKS(10000));
+	 }
 }

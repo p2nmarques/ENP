@@ -22,6 +22,18 @@
  #include "packets.h"
 
  static const char *TAG = "GATEWAY";
+ 
+ typedef struct
+ {
+     uint32_t packets_received;
+     uint32_t sensor_packets;
+     uint32_t ack_packets;
+     uint32_t ack_sent;
+     uint32_t crc_errors;
+     uint32_t unknown_packets;
+ } gateway_stats_t;
+
+ static gateway_stats_t s_stats = {0};
 
  /*----------------------------------------------------------------------------
   * Receive Callback
@@ -32,6 +44,8 @@
          const void *data,
          size_t len)
  {
+	 s_stats.packets_received++;
+	 
      /* Packet must at least contain a header */
      if (len < sizeof(espnow_header_t))
      {
@@ -81,8 +95,11 @@
 			        sizeof(packet)))
 			{
 			    ESP_LOGW(TAG, "CRC failed");
+				s_stats.crc_errors++;
 			    return;
 			}
+			
+			s_stats.sensor_packets++;
 
              ESP_LOGI(TAG,
                       "Sensor Packet");
@@ -121,12 +138,16 @@
                              &ack,
                              sizeof(ack));
 
-             if (err != ESP_OK)
-             {
-                 ESP_LOGE(TAG,
-                          "ACK send failed (%s)",
-                          esp_err_to_name(err));
-             }
+			 if (err == ESP_OK)
+			 {
+			     s_stats.ack_sent++;
+			 }
+			 else
+			 {
+			     ESP_LOGE(TAG,
+			              "ACK send failed (%s)",
+			              esp_err_to_name(err));
+			 }
 
              break;
          }
@@ -145,6 +166,8 @@
              }
 
              ack_packet_t ack;
+			 
+			 s_stats.ack_packets++;
 
              memcpy(&ack,
                     data,
@@ -177,6 +200,7 @@
              ESP_LOGW(TAG,
                       "Unknown packet type %u",
                       header->type);
+			 s_stats.unknown_packets++;
 
              break;
      }
@@ -195,4 +219,38 @@
               "Gateway initialized");
 
      return ESP_OK;
+ }
+ 
+ 
+ void gateway_print_stats(void)
+ {
+     ESP_LOGI(TAG,
+              "================ Gateway Statistics ================");
+
+     ESP_LOGI(TAG,
+              "Packets Received : %" PRIu32,
+              s_stats.packets_received);
+
+     ESP_LOGI(TAG,
+              "Sensor Packets   : %" PRIu32,
+              s_stats.sensor_packets);
+
+     ESP_LOGI(TAG,
+              "ACK Packets      : %" PRIu32,
+              s_stats.ack_packets);
+
+     ESP_LOGI(TAG,
+              "ACK Sent         : %" PRIu32,
+              s_stats.ack_sent);
+
+     ESP_LOGI(TAG,
+              "CRC Errors       : %" PRIu32,
+              s_stats.crc_errors);
+
+     ESP_LOGI(TAG,
+              "Unknown Packets  : %" PRIu32,
+              s_stats.unknown_packets);
+
+     ESP_LOGI(TAG,
+              "====================================================");
  }

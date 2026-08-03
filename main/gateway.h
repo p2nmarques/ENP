@@ -15,6 +15,8 @@
  #endif
 
  esp_err_t gateway_init(void);
+ 
+ void gateway_print_stats(void);
 
  #ifdef __cplusplus
  }
