@@ -26,11 +26,17 @@
  typedef struct
  {
      uint32_t packets_received;
+     uint32_t packets_sent;
+
      uint32_t sensor_packets;
-     uint32_t ack_packets;
      uint32_t ack_sent;
+
      uint32_t crc_errors;
      uint32_t unknown_packets;
+
+     uint32_t peers_added;
+     uint32_t send_failures;
+     uint32_t queue_overflows;
  } gateway_stats_t;
 
  static gateway_stats_t s_stats = {0};
@@ -167,7 +173,7 @@
 
              ack_packet_t ack;
 			 
-			 s_stats.ack_packets++;
+			 s_stats.ack_sent++;
 
              memcpy(&ack,
                     data,
@@ -237,7 +243,7 @@
 
      ESP_LOGI(TAG,
               "ACK Packets      : %" PRIu32,
-              s_stats.ack_packets);
+              s_stats.packets_sent);
 
      ESP_LOGI(TAG,
               "ACK Sent         : %" PRIu32,
@@ -250,6 +256,18 @@
      ESP_LOGI(TAG,
               "Unknown Packets  : %" PRIu32,
               s_stats.unknown_packets);
+			  
+	 ESP_LOGI(TAG,
+	          "Peers Added      : %" PRIu32,
+	          s_stats.peers_added);
+			  
+  	 ESP_LOGI(TAG,
+  	          "Send failures    : %" PRIu32,
+  	          s_stats.send_failures);
+			  
+  	 ESP_LOGI(TAG,
+	          "Queue Overflows  : %" PRIu32,
+	          s_stats.queue_overflows);	  
 
      ESP_LOGI(TAG,
               "====================================================");
