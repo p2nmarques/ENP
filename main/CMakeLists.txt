@@ -10,7 +10,8 @@ idf_component_register(
         "sensor.c"
         "packets.c"
         "crc16.c"
-        "utils.c"     # list the source files of this component
+        "utils.c"
+        "stats.c"     # list the source files of this component
     INCLUDE_DIRS  "."      # optional, add here public include directories
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES 

@@ -18,6 +18,7 @@
 #include "wifi.h"
 #include "espnow.h"
 #include "gateway.h"
+#include "sensor.h"
 
 static const char *TAG = "MAIN";
 

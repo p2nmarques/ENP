@@ -20,6 +20,8 @@
 
  #include "espnow.h"
  #include "packets.h"
+ 
+ #include "stats.h"
 
  static const char *TAG = "GATEWAY";
  
@@ -39,8 +41,8 @@
      uint32_t queue_overflows;
  } gateway_stats_t;
 
- static gateway_stats_t s_stats = {0};
-
+ static node_stats_t s_stats;
+ 
  /*----------------------------------------------------------------------------
   * Receive Callback
   *---------------------------------------------------------------------------*/
@@ -50,7 +52,7 @@
          const void *data,
          size_t len)
  {
-	 s_stats.packets_received++;
+	 stats_inc_rx(&s_stats);
 	 
      /* Packet must at least contain a header */
      if (len < sizeof(espnow_header_t))
@@ -101,11 +103,11 @@
 			        sizeof(packet)))
 			{
 			    ESP_LOGW(TAG, "CRC failed");
-				s_stats.crc_errors++;
+				stats_inc_crc_error(&s_stats);
 			    return;
 			}
 			
-			s_stats.sensor_packets++;
+			stats_inc_rx_sensor(&s_stats);
 
              ESP_LOGI(TAG,
                       "Sensor Packet");
@@ -146,7 +148,7 @@
 
 			 if (err == ESP_OK)
 			 {
-			     s_stats.ack_sent++;
+				stats_inc_tx(&s_stats);
 			 }
 			 else
 			 {
@@ -173,7 +175,7 @@
 
              ack_packet_t ack;
 			 
-			 s_stats.ack_sent++;
+			 stats_inc_tx_ack(&s_stats);
 
              memcpy(&ack,
                     data,
@@ -230,45 +232,5 @@
  
  void gateway_print_stats(void)
  {
-     ESP_LOGI(TAG,
-              "================ Gateway Statistics ================");
-
-     ESP_LOGI(TAG,
-              "Packets Received : %" PRIu32,
-              s_stats.packets_received);
-
-     ESP_LOGI(TAG,
-              "Sensor Packets   : %" PRIu32,
-              s_stats.sensor_packets);
-
-     ESP_LOGI(TAG,
-              "ACK Packets      : %" PRIu32,
-              s_stats.packets_sent);
-
-     ESP_LOGI(TAG,
-              "ACK Sent         : %" PRIu32,
-              s_stats.ack_sent);
-
-     ESP_LOGI(TAG,
-              "CRC Errors       : %" PRIu32,
-              s_stats.crc_errors);
-
-     ESP_LOGI(TAG,
-              "Unknown Packets  : %" PRIu32,
-              s_stats.unknown_packets);
-			  
-	 ESP_LOGI(TAG,
-	          "Peers Added      : %" PRIu32,
-	          s_stats.peers_added);
-			  
-  	 ESP_LOGI(TAG,
-  	          "Send failures    : %" PRIu32,
-  	          s_stats.send_failures);
-			  
-  	 ESP_LOGI(TAG,
-	          "Queue Overflows  : %" PRIu32,
-	          s_stats.queue_overflows);	  
-
-     ESP_LOGI(TAG,
-              "====================================================");
+     stats_print(TAG, &s_stats);
  }
