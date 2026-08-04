@@ -87,7 +87,9 @@
  {
      (void)arg;
 	 
-	 TickType_t last_stats = xTaskGetTickCount();
+	 TickType_t next_stats =
+	         xTaskGetTickCount() +
+	         pdMS_TO_TICKS(10000);
 
      while (true)
      {
@@ -95,7 +97,7 @@
 
          sensor_packet_init(&packet);
 
-         packet.header.sequence = s_sequence++;
+         packet.header.sequence = ++s_sequence;
 
          /*
           * Dummy sensor values
@@ -118,33 +120,34 @@
                  s_gateway_mac,
                  &packet,
                  sizeof(packet));
-				 
-		 if ((xTaskGetTickCount() - last_stats) >= pdMS_TO_TICKS(10000))
+
+		  if (err == ESP_OK)
+          {
+ 			 stats_inc_tx(&s_stats);
+ 			 stats_inc_tx_sensor(&s_stats);
+ 			 
+              ESP_LOGI(TAG,
+                       "TX seq=%" PRIu32
+                       " temp=%.1f"
+                       " hum=%.1f",
+                       packet.header.sequence,
+                       packet.temperature,
+                       packet.humidity);
+          } else {
+ 		     stats_inc_send_error(&s_stats);
+
+ 		     ESP_LOGE(TAG,
+ 		              "Send failed (%s)",
+ 		              esp_err_to_name(err));
+ 		 }		 
+				 				 
+		 if (xTaskGetTickCount() >= next_stats)
 		 {
 		     stats_print(TAG, &s_stats);
 
-		     last_stats = xTaskGetTickCount();
+		     next_stats += pdMS_TO_TICKS(10000);
 		 }
 
-         if (err == ESP_OK)
-         {
-			 stats_inc_tx(&s_stats);
-			 stats_inc_tx_sensor(&s_stats);
-			 
-             ESP_LOGI(TAG,
-                      "TX seq=%" PRIu32
-                      " temp=%.1f"
-                      " hum=%.1f",
-                      packet.header.sequence,
-                      packet.temperature,
-                      packet.humidity);
-         }
-         else
-         {
-             ESP_LOGE(TAG,
-                      "Send failed (%s)",
-                      esp_err_to_name(err));
-         }
 
          vTaskDelay(
              pdMS_TO_TICKS(
@@ -177,9 +180,15 @@
               s_gateway_mac[4],
               s_gateway_mac[5]);
 
-     ESP_ERROR_CHECK(
-         espnow_add_peer(
-             s_gateway_mac));
+	 esp_err_t err = espnow_add_peer(s_gateway_mac);
+	
+	 if (err != ESP_OK)
+	 {
+	     ESP_LOGE(TAG,
+	              "Failed to add Gateway peer (%s)",
+	              esp_err_to_name(err));
+	      return err;
+	 }
 
      espnow_register_receive_callback(
              sensor_receive);
