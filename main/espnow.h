@@ -32,6 +32,9 @@
          const void *data,
          size_t len);
 
+ esp_err_t espnow_add_peer(
+         const uint8_t *mac);
+		 
  #ifdef __cplusplus
  }
  #endif

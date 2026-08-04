@@ -70,7 +70,7 @@
  /* Helper                                                                   */
  /*-------------------------------------------------------------------------*/
 
- static esp_err_t add_peer(const uint8_t *mac)
+ esp_err_t espnow_add_peer(const uint8_t *mac)
  {
      if (esp_now_is_peer_exist(mac))
      {
@@ -85,7 +85,8 @@
 
      peer.ifidx = WIFI_IF_STA;
 
-     peer.channel = 0;          /* Current WiFi channel */
+     /* Follow current WiFi channel */
+     peer.channel = 0;
 
      peer.encrypt = false;
 
@@ -106,7 +107,7 @@
                            &event,
                            portMAX_DELAY) == pdTRUE)
          {
-             add_peer(event.mac);
+             espnow_add_peer(event.mac);
 
              if (s_callback != NULL)
              {
