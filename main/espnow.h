@@ -21,6 +21,9 @@
          const uint8_t *mac,
          const void *data,
          size_t len);
+		 
+ void espnow_register_receive_callback(
+          espnow_receive_callback_t callback);
 
  esp_err_t espnow_init(void);
 
@@ -28,9 +31,6 @@
          const uint8_t *mac,
          const void *data,
          size_t len);
-
- void espnow_register_receive_callback(
-         espnow_receive_callback_t callback);
 
  #ifdef __cplusplus
  }

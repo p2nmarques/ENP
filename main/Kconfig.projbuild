@@ -1,14 +1,27 @@
-# put here your custom config value
-menu "Example Configuration"
+menu "ESP-NOW Demo"
+
+choice DEVICE_ROLE
+
+    prompt "Device Role"
+
+    default DEVICE_ROLE_GATEWAY
+
+config DEVICE_ROLE_GATEWAY
+    bool "Gateway"
+
+config DEVICE_ROLE_SENSOR
+    bool "Sensor"
+
+endchoice
+
 config ESP_WIFI_SSID
     string "WiFi SSID"
-    default "YOUR_WIFI_SSID"
-    help
-	SSID (network name) for the example to connect to.
 
 config ESP_WIFI_PASSWORD
     string "WiFi Password"
-    default "YOUR_WIFI_PASSWORD"
-    help
-	WiFi password (WPA or WPA2) for the example to use.
+
+config GATEWAY_MAC
+    string "Gateway MAC Address"
+    default "24:6F:28:12:34:56"
+
 endmenu
