@@ -44,69 +44,55 @@ static void nvs_init(void)
  * app_main
  *-----------------------------------------------------------------*/
 
-void app_main(void)
-{
-    ESP_LOGI(TAG, "==================================");
-    ESP_LOGI(TAG, "ESP-NOW Gateway Demo");
-    ESP_LOGI(TAG, "ESP-IDF 6.0.2");
-    ESP_LOGI(TAG, "==================================");
+ void app_main(void)
+ {
+     ESP_LOGI(TAG, "======================================");
+     ESP_LOGI(TAG, "ESP-NOW Demo");
+     ESP_LOGI(TAG, "ESP-IDF 6.0.2");
+     ESP_LOGI(TAG, "======================================");
 
-    /*----------------------------------------------------------
-     * NVS
-     *---------------------------------------------------------*/
+ #if CONFIG_DEVICE_ROLE_GATEWAY
+     ESP_LOGI(TAG, "Device Role : Gateway");
+ #else
+     ESP_LOGI(TAG, "Device Role : Sensor");
+ #endif
 
-    nvs_init();
-	
-	/*----------------------------------------------------------
-     * TCP
-     *---------------------------------------------------------*/
-	
-	ESP_ERROR_CHECK(esp_netif_init());
+     nvs_init();
 
-    /*----------------------------------------------------------
-     * WiFi
-     *---------------------------------------------------------*/
+     ESP_ERROR_CHECK(esp_netif_init());
 
-	 ESP_ERROR_CHECK(esp_event_loop_create_default());
+     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-	ESP_ERROR_CHECK(wifi_init());
+     ESP_ERROR_CHECK(wifi_init());
 
-    ESP_LOGI(TAG, "Waiting for WiFi...");
+     ESP_LOGI(TAG, "Waiting for WiFi...");
 
-    while (!wifi_is_connected())
-    {
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
+     while (!wifi_is_connected())
+     {
+         vTaskDelay(pdMS_TO_TICKS(100));
+     }
 
-    ESP_LOGI(TAG,
-             "WiFi connected (Channel %u)",
-             wifi_get_channel());
+     ESP_LOGI(TAG,
+              "Connected on channel %u",
+              wifi_get_channel());
 
-    /*----------------------------------------------------------
-     * ESP-NOW
-     *---------------------------------------------------------*/
+     ESP_ERROR_CHECK(
+             espnow_init());
 
-    ESP_ERROR_CHECK(
-        espnow_init());
+ #if CONFIG_DEVICE_ROLE_GATEWAY
 
-    /*----------------------------------------------------------
-     * Gateway
-     *---------------------------------------------------------*/
+     ESP_ERROR_CHECK(
+             gateway_init());
 
-    ESP_ERROR_CHECK(
-        gateway_init());
+ #else
 
-    ESP_LOGI(TAG,
-             "Gateway Ready");
+     ESP_ERROR_CHECK(
+             sensor_init());
 
-    /*----------------------------------------------------------
-     * Idle
-     *---------------------------------------------------------*/
+ #endif
 
-	 while (true)
-	 {
-	     gateway_print_stats();
+     ESP_LOGI(TAG,
+              "Application started");
 
-	     vTaskDelay(pdMS_TO_TICKS(10000));
-	 }
-}
+     vTaskDelete(NULL);
+ }
