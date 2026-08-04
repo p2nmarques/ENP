@@ -18,10 +18,10 @@
 
  #include "esp_log.h"
 
- #include "espnow.h"
- #include "packets.h"
+ #include "network/espnow.h"
+ #include "core/protocol/packets.h"
  
- #include "stats.h"
+ #include "core/stats/stats.h"
 
  static const char *TAG = "GATEWAY";
  

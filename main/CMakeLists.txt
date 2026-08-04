@@ -4,14 +4,14 @@
 idf_component_register(
     SRCS
     	"main.c"
-        "wifi.c"
-        "espnow.c"
-        "gateway.c"
-        "sensor.c"
-        "packets.c"
-        "crc16.c"
-        "utils.c"
-        "stats.c"     # list the source files of this component
+        "network/wifi.c"
+        "network/espnow.c"
+        "application/gateway.c"
+        "application/sensor.c"
+        "core/protocol/packets.c"
+        "core/protocol/crc16.c"
+        "core/utils/utils.c"
+        "core/stats/stats.c"     # list the source files of this component
     INCLUDE_DIRS  "."      # optional, add here public include directories
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES 

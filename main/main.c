@@ -8,17 +8,15 @@
 
 #include "esp_event.h"
 #include "esp_netif.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include "esp_err.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 
-#include "wifi.h"
-#include "espnow.h"
-#include "gateway.h"
-#include "sensor.h"
+#include "network/wifi.h"
+#include "network/espnow.h"
+#include "application/gateway.h"
 
 static const char *TAG = "MAIN";
 

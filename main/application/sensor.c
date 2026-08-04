@@ -18,10 +18,10 @@
  #include "esp_log.h"
  #include "esp_err.h"
 
- #include "espnow.h"
- #include "packets.h"
- #include "utils.h"
- #include "stats.h"
+ #include "network/espnow.h"
+ #include "core/protocol/packets.h"
+ #include "core/utils/utils.h"
+ #include "core/stats/stats.h"
 
  static const char *TAG = "SENSOR";
 
