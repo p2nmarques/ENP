@@ -706,11 +706,14 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# Example Configuration
+# ESP-NOW Demo
 #
+CONFIG_DEVICE_ROLE_GATEWAY=y
+# CONFIG_DEVICE_ROLE_SENSOR is not set
 CONFIG_ESP_WIFI_SSID="YOUR_WIFI_SSID"
 CONFIG_ESP_WIFI_PASSWORD="YOUR_WIFI_PASSWORD"
-# end of Example Configuration
+CONFIG_GATEWAY_MAC="94:e6:86:0d:11:8c"
+# end of ESP-NOW Demo
 
 #
 # Compiler options

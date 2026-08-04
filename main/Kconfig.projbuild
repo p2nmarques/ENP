@@ -15,13 +15,13 @@ config DEVICE_ROLE_SENSOR
 endchoice
 
 config ESP_WIFI_SSID
-    string "WiFi SSID"
+    string "YOUR_WIFI_SSID"
 
 config ESP_WIFI_PASSWORD
-    string "WiFi Password"
+    string "YOUR_WIFI_PASSWORD"
 
 config GATEWAY_MAC
     string "Gateway MAC Address"
-    default "24:6F:28:12:34:56"
+    default "94:e6:86:0d:11:8c"
 
 endmenu
