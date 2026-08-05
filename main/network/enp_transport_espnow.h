@@ -25,14 +25,14 @@
   void espnow_register_receive_callback(
            espnow_receive_callback_t callback);
 
-  esp_err_t espnow_init(void);
+  esp_err_t enp_transport_init(void);
 
-  esp_err_t espnow_send(
+  esp_err_t enp_transport_send(
           const uint8_t *mac,
           const void *data,
           size_t len);
 
-  esp_err_t espnow_add_peer(
+  esp_err_t enp_transport_add_peer(
           const uint8_t *mac);
  		 
   #ifdef __cplusplus

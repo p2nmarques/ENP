@@ -5,9 +5,9 @@
  *      Author: Pedro Marques
  */
 
- #include "wifi.h"
+ #include "enp_transport_wifi.h"
 
- #include <string.h>
+#include <string.h>
 
  #include "esp_event.h"
  #include "esp_wifi.h"

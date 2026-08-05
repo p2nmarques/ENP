@@ -16,9 +16,9 @@
  #include <inttypes.h>
  #include <string.h>
 
+#include "../network/enp_transport_espnow.h"
  #include "esp_log.h"
 
- #include "network/espnow.h"
  #include "core/protocol/packets.h"
  
  #include "core/stats/stats.h"
@@ -142,7 +142,7 @@
 			         sizeof(ack));
 
              esp_err_t err =
-                 espnow_send(mac,
+                 enp_transport_send(mac,
                              &ack,
                              sizeof(ack));
 

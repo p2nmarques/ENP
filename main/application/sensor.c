@@ -12,13 +12,13 @@
  #include <inttypes.h>
  #include <string.h>
 
+#include "../network/enp_transport_espnow.h"
  #include "freertos/FreeRTOS.h"
  #include "freertos/task.h"
 
  #include "esp_log.h"
  #include "esp_err.h"
 
- #include "network/espnow.h"
  #include "core/protocol/packets.h"
  #include "core/utils/utils.h"
  #include "core/stats/stats.h"
@@ -116,7 +116,7 @@
                  sizeof(packet));
 
          esp_err_t err =
-             espnow_send(
+             enp_transport_send(
                  s_gateway_mac,
                  &packet,
                  sizeof(packet));
@@ -180,7 +180,7 @@
               s_gateway_mac[4],
               s_gateway_mac[5]);
 
-	 esp_err_t err = espnow_add_peer(s_gateway_mac);
+	 esp_err_t err = enp_transport_add_peer(s_gateway_mac);
 	
 	 if (err != ESP_OK)
 	 {

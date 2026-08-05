@@ -1,7 +1,6 @@
-#include "espnow.h"
-
 #include <string.h>
 
+#include "enp_transport_espnow.h"
 #include "esp_log.h"
 #include "esp_now.h"
 #include "esp_wifi.h"
@@ -57,7 +56,7 @@ static espnow_receive_callback_t s_callback = NULL;
 /* Helper                                                                   */
 /*-------------------------------------------------------------------------*/
 
-esp_err_t espnow_add_peer(const uint8_t *mac)
+esp_err_t enp_transport_add_peer(const uint8_t *mac)
 {
     if (esp_now_is_peer_exist(mac))
     {
@@ -94,7 +93,7 @@ static void espnow_task(void *arg)
                           &event,
                           portMAX_DELAY) == pdTRUE)
         {
-            espnow_add_peer(event.mac);
+            enp_transport_add_peer(event.mac);
 
             if (s_callback != NULL)
             {
@@ -168,7 +167,7 @@ void espnow_register_receive_callback(
     s_callback = callback;
 }
 
-esp_err_t espnow_send(
+esp_err_t enp_transport_send(
         const uint8_t *mac,
         const void *data,
         size_t len)
@@ -179,7 +178,7 @@ esp_err_t espnow_send(
 }
 
 
-esp_err_t espnow_init(void)
+esp_err_t enp_transport_init(void)
 {
     esp_err_t err;
 

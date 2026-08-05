@@ -14,9 +14,9 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 
-#include "network/wifi.h"
-#include "network/espnow.h"
 #include "application/gateway.h"
+#include "network/enp_transport_espnow.h"
+#include "network/enp_transport_wifi.h"
 
 static const char *TAG = "MAIN";
 
@@ -76,7 +76,7 @@ static void nvs_init(void)
               enp_wifi_get_channel());
 
      ESP_ERROR_CHECK(
-             espnow_init());
+             enp_transport_init());
 
  #if CONFIG_DEVICE_ROLE_GATEWAY
 

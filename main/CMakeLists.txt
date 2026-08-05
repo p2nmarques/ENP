@@ -4,8 +4,8 @@
 idf_component_register(
     SRCS
     	"main.c"
-        "network/wifi.c"
-        "network/espnow.c"
+        "network/enp_transport_wifi.c"
+        "network/enp_transport_espnow.c"
         "application/gateway.c"
         "application/sensor.c"
         "core/protocol/packets.c"
