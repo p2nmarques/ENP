@@ -23,7 +23,7 @@
   * Event Handler
   *-----------------------------------------------------------------*/
 
- static void wifi_event_handler(
+ static void enp_wifi_event_handler(
          void *arg,
          esp_event_base_t event_base,
          int32_t event_id,
@@ -91,7 +91,7 @@
   * Public
   *-----------------------------------------------------------------*/
 
- esp_err_t wifi_init(void)
+ esp_err_t enp_wifi_init(void)
  {
 	
      wifi_init_config_t cfg =
@@ -106,14 +106,14 @@
 	     esp_event_handler_register(
 	         WIFI_EVENT,
 	         ESP_EVENT_ANY_ID,
-	         wifi_event_handler,
+	         enp_wifi_event_handler,
 	         NULL));
 
 	 ESP_ERROR_CHECK(
 	     esp_event_handler_register(
 	         IP_EVENT,
 	         IP_EVENT_STA_GOT_IP,
-	         wifi_event_handler,
+	         enp_wifi_event_handler,
 	         NULL));
 
      wifi_config_t wifi_cfg = {0};
@@ -151,12 +151,12 @@
      return ESP_OK;
  }
 
- bool wifi_is_connected(void)
+ bool enp_wifi_is_connected(void)
  {
      return s_connected;
  }
 
- uint8_t wifi_get_channel(void)
+ uint8_t enp_wifi_get_channel(void)
  {
      return s_channel;
  }

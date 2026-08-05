@@ -37,39 +37,39 @@
   * Lifecycle
   *-----------------------------------------------------------------*/
 
- void stats_init(
+ void enp_stats_init(
          node_stats_t *stats);
 
- void stats_reset(
+ void enp_stats_reset(
          node_stats_t *stats);
 
  /*------------------------------------------------------------------
   * Increment helpers
   *-----------------------------------------------------------------*/
 
- void stats_inc_tx(node_stats_t *stats);
+ void enp_stats_inc_tx(node_stats_t *stats);
 
- void stats_inc_rx(node_stats_t *stats);
+ void enp_stats_inc_rx(node_stats_t *stats);
 
- void stats_inc_tx_sensor(node_stats_t *stats);
+ void enp_stats_inc_tx_sensor(node_stats_t *stats);
 
- void stats_inc_rx_sensor(node_stats_t *stats);
+ void enp_stats_inc_rx_sensor(node_stats_t *stats);
 
- void stats_inc_tx_ack(node_stats_t *stats);
+ void enp_stats_inc_tx_ack(node_stats_t *stats);
 
- void stats_inc_rx_ack(node_stats_t *stats);
+ void enp_stats_inc_rx_ack(node_stats_t *stats);
 
- void stats_inc_crc_error(node_stats_t *stats);
+ void enp_stats_inc_crc_error(node_stats_t *stats);
 
- void stats_inc_send_error(node_stats_t *stats);
+ void enp_stats_inc_send_error(node_stats_t *stats);
 
- void stats_inc_unknown(node_stats_t *stats);
+ void enp_stats_inc_unknown(node_stats_t *stats);
 
  /*------------------------------------------------------------------
   * Display
   *-----------------------------------------------------------------*/
 
- void stats_print(
+ void enp_stats_print(
          const char *tag,
          const node_stats_t *stats);
 

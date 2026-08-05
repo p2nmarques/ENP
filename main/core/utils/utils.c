@@ -9,7 +9,7 @@
 
  #include <stdio.h>
 
- bool parse_mac_address(
+ bool enp_parse_mac_address(
          const char *text,
          uint8_t mac[6])
  {

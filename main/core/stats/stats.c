@@ -12,62 +12,62 @@
 
  #include "esp_log.h"
 
- void stats_init(node_stats_t *stats)
+ void enp_stats_init(node_stats_t *stats)
  {
      memset(stats, 0, sizeof(*stats));
  }
 
- void stats_reset(node_stats_t *stats)
+ void enp_stats_reset(node_stats_t *stats)
  {
      memset(stats, 0, sizeof(*stats));
  }
 
- void stats_inc_tx(node_stats_t *stats)
+ void enp_stats_inc_tx(node_stats_t *stats)
  {
      stats->tx_packets++;
  }
 
- void stats_inc_rx(node_stats_t *stats)
+ void enp_stats_inc_rx(node_stats_t *stats)
  {
      stats->rx_packets++;
  }
 
- void stats_inc_tx_sensor(node_stats_t *stats)
+ void enp_stats_inc_tx_sensor(node_stats_t *stats)
  {
      stats->tx_sensor++;
  }
 
- void stats_inc_rx_sensor(node_stats_t *stats)
+ void enp_stats_inc_rx_sensor(node_stats_t *stats)
  {
      stats->rx_sensor++;
  }
 
- void stats_inc_tx_ack(node_stats_t *stats)
+ void enp_stats_inc_tx_ack(node_stats_t *stats)
  {
      stats->tx_ack++;
  }
 
- void stats_inc_rx_ack(node_stats_t *stats)
+ void enp_stats_inc_rx_ack(node_stats_t *stats)
  {
      stats->rx_ack++;
  }
 
- void stats_inc_crc_error(node_stats_t *stats)
+ void enp_stats_inc_crc_error(node_stats_t *stats)
  {
      stats->crc_errors++;
  }
 
- void stats_inc_send_error(node_stats_t *stats)
+ void enp_stats_inc_send_error(node_stats_t *stats)
  {
      stats->send_errors++;
  }
 
- void stats_inc_unknown(node_stats_t *stats)
+ void enp_stats_inc_unknown(node_stats_t *stats)
  {
      stats->unknown_packets++;
  }
 
- void stats_print(
+ void enp_stats_print(
          const char *tag,
          const node_stats_t *stats)
  {

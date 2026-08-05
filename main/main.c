@@ -62,18 +62,18 @@ static void nvs_init(void)
 
      ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-     ESP_ERROR_CHECK(wifi_init());
+     ESP_ERROR_CHECK(enp_wifi_init());
 
      ESP_LOGI(TAG, "Waiting for WiFi...");
 
-     while (!wifi_is_connected())
+     while (!enp_wifi_is_connected())
      {
          vTaskDelay(pdMS_TO_TICKS(100));
      }
 
      ESP_LOGI(TAG,
               "Connected on channel %u",
-              wifi_get_channel());
+              enp_wifi_get_channel());
 
      ESP_ERROR_CHECK(
              espnow_init());
@@ -81,12 +81,12 @@ static void nvs_init(void)
  #if CONFIG_DEVICE_ROLE_GATEWAY
 
      ESP_ERROR_CHECK(
-             gateway_init());
+             enp_gateway_init());
 
  #else
 
      ESP_ERROR_CHECK(
-             sensor_init());
+             esp_sensor_init());
 
  #endif
 

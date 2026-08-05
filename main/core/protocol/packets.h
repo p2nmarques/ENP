@@ -12,15 +12,15 @@
  #include <stddef.h>
  #include <stdint.h>
 
- #define ESPNOW_MAGIC              0x45534E57UL
- #define ESPNOW_PROTOCOL_VERSION   1
+ #define ENP_MAGIC              0x45534E57UL
+ #define ENP_PROTOCOL_VERSION   1
 
  typedef enum
  {
-     ESPNOW_PACKET_SENSOR = 1,
-     ESPNOW_PACKET_ACK    = 2
+     ENP_PACKET_SENSOR = 1,
+     ENP_PACKET_ACK    = 2
 
- } espnow_packet_type_t;
+ } enp_packet_type_t;
 
  /*------------------------------------------------------------------
   * Common Header
@@ -76,16 +76,16 @@
   * Generic helpers
   *-----------------------------------------------------------------*/
 
- void espnow_packet_finalize(void *packet, size_t packet_size);
+ void enp_packet_finalize(void *packet, size_t packet_size);
 
- bool espnow_packet_verify(const void *packet, size_t packet_size);
+ bool enp_packet_verify(const void *packet, size_t packet_size);
 
  /*------------------------------------------------------------------
   * Packet initialization
   *-----------------------------------------------------------------*/
 
- void sensor_packet_init(sensor_packet_t *packet);
+ void enp_sensor_packet_init(sensor_packet_t *packet);
 
- void ack_packet_init(ack_packet_t *packet);
+ void enp_ack_packet_init(ack_packet_t *packet);
 
  #endif

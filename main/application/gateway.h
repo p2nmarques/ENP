@@ -14,9 +14,9 @@
  extern "C" {
  #endif
 
- esp_err_t gateway_init(void);
+ esp_err_t enp_gateway_init(void);
  
- void gateway_print_stats(void);
+ void enp_gateway_print_stats(void);
 
  #ifdef __cplusplus
  }

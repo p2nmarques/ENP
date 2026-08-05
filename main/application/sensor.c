@@ -63,16 +63,16 @@
 
      memcpy(&ack, data, sizeof(ack));
 
-     if (!espnow_packet_verify(&ack, sizeof(ack)))
+     if (!enp_packet_verify(&ack, sizeof(ack)))
      {
-		 stats_inc_crc_error(&s_stats);
+		 enp_stats_inc_crc_error(&s_stats);
 		 
 		 ESP_LOGW(TAG, "Invalid ACK CRC");
          return;
      }
 	 
-	 stats_inc_rx(&s_stats);
-	 stats_inc_rx_ack(&s_stats);
+	 enp_stats_inc_rx(&s_stats);
+	 enp_stats_inc_rx_ack(&s_stats);
 
      ESP_LOGI(TAG,
               "ACK received for sequence %" PRIu32,
@@ -95,7 +95,7 @@
      {
          sensor_packet_t packet;
 
-         sensor_packet_init(&packet);
+         enp_sensor_packet_init(&packet);
 
          packet.header.sequence = ++s_sequence;
 
@@ -111,7 +111,7 @@
                  50.0f +
                  (float)(packet.header.sequence % 20);
 
-         espnow_packet_finalize(
+         enp_packet_finalize(
                  &packet,
                  sizeof(packet));
 
@@ -123,8 +123,8 @@
 
 		  if (err == ESP_OK)
           {
- 			 stats_inc_tx(&s_stats);
- 			 stats_inc_tx_sensor(&s_stats);
+ 			 enp_stats_inc_tx(&s_stats);
+ 			 enp_stats_inc_tx_sensor(&s_stats);
  			 
               ESP_LOGI(TAG,
                        "TX seq=%" PRIu32
@@ -134,7 +134,7 @@
                        packet.temperature,
                        packet.humidity);
           } else {
- 		     stats_inc_send_error(&s_stats);
+ 		     enp_stats_inc_send_error(&s_stats);
 
  		     ESP_LOGE(TAG,
  		              "Send failed (%s)",
@@ -143,7 +143,7 @@
 				 				 
 		 if (xTaskGetTickCount() >= next_stats)
 		 {
-		     stats_print(TAG, &s_stats);
+		     enp_stats_print(TAG, &s_stats);
 
 		     next_stats += pdMS_TO_TICKS(10000);
 		 }
@@ -159,9 +159,9 @@
   * Public
   *-----------------------------------------------------------------*/
 
- esp_err_t sensor_init(void)
+ esp_err_t enp_sensor_init(void)
  {
-     if (!parse_mac_address(
+     if (!enp_parse_mac_address(
              CONFIG_GATEWAY_MAC,
              s_gateway_mac))
      {
@@ -193,7 +193,7 @@
      espnow_register_receive_callback(
              sensor_receive);
 			 
-	 stats_init(&s_stats);
+	 enp_stats_init(&s_stats);
 			 
      if (xTaskCreate(
              sensor_task,

@@ -14,7 +14,7 @@
  extern "C" {
  #endif
 
- esp_err_t sensor_init(void);
+ esp_err_t enp_sensor_init(void);
 
  #ifdef __cplusplus
  }

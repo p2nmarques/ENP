@@ -8,7 +8,7 @@
 
  #include "crc16.h"
 
- uint16_t crc16_ccitt(
+ uint16_t enp_crc16_ccitt(
          const void *data,
          size_t length)
  {

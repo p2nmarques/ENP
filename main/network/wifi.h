@@ -17,11 +17,11 @@
  extern "C" {
  #endif
 
- esp_err_t wifi_init(void);
+ esp_err_t enp_wifi_init(void);
 
- bool wifi_is_connected(void);
+ bool enp_wifi_is_connected(void);
 
- uint8_t wifi_get_channel(void);
+ uint8_t enp_wifi_get_channel(void);
 
  #ifdef __cplusplus
  }

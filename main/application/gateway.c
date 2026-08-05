@@ -52,7 +52,7 @@
          const void *data,
          size_t len)
  {
-	 stats_inc_rx(&s_stats);
+	 enp_stats_inc_rx(&s_stats);
 	 
      /* Packet must at least contain a header */
      if (len < sizeof(espnow_header_t))
@@ -65,25 +65,25 @@
              (const espnow_header_t *)data;
 
      /* Basic protocol validation */
-     if (header->magic != ESPNOW_MAGIC)
+     if (header->magic != ENP_MAGIC)
      {
          ESP_LOGW(TAG, "Invalid magic");
          return;
      }
 
-     if (header->version != ESPNOW_PROTOCOL_VERSION)
+     if (header->version != ENP_PROTOCOL_VERSION)
      {
          ESP_LOGW(TAG, "Unsupported protocol version");
          return;
      }
 
-     switch ((espnow_packet_type_t)header->type)
+     switch ((enp_packet_type_t)header->type)
      {
          /*--------------------------------------------------------------
           * SENSOR
           *-------------------------------------------------------------*/
 
-         case ESPNOW_PACKET_SENSOR:
+         case ENP_PACKET_SENSOR:
          {
              if (len != sizeof(sensor_packet_t))
              {
@@ -98,16 +98,16 @@
                     data,
                     sizeof(packet));
 
-			if (!espnow_packet_verify(
+			if (!enp_packet_verify(
 			        &packet,
 			        sizeof(packet)))
 			{
 			    ESP_LOGW(TAG, "CRC failed");
-				stats_inc_crc_error(&s_stats);
+				enp_stats_inc_crc_error(&s_stats);
 			    return;
 			}
 			
-			stats_inc_rx_sensor(&s_stats);
+			enp_stats_inc_rx_sensor(&s_stats);
 
              ESP_LOGI(TAG,
                       "Sensor Packet");
@@ -128,7 +128,7 @@
 
              ack_packet_t ack;
 
-             ack_packet_init(&ack);
+             enp_ack_packet_init(&ack);
 
              ack.header.sequence = packet.header.sequence;
 
@@ -137,7 +137,7 @@
 
              ack.status = 0;
 
-			 espnow_packet_finalize(
+			 enp_packet_finalize(
 			         &ack,
 			         sizeof(ack));
 
@@ -148,7 +148,7 @@
 
 			 if (err == ESP_OK)
 			 {
-				stats_inc_tx(&s_stats);
+				enp_stats_inc_tx(&s_stats);
 			 }
 			 else
 			 {
@@ -164,7 +164,7 @@
           * ACK
           *-------------------------------------------------------------*/
 
-         case ESPNOW_PACKET_ACK:
+         case ENP_PACKET_ACK:
          {
              if (len != sizeof(ack_packet_t))
              {
@@ -175,13 +175,13 @@
 
              ack_packet_t ack;
 			 
-			 stats_inc_tx_ack(&s_stats);
+			 enp_stats_inc_tx_ack(&s_stats);
 
              memcpy(&ack,
                     data,
                     sizeof(ack));
 
-			if (!espnow_packet_verify(
+			if (!enp_packet_verify(
 			        &ack,
 			        sizeof(ack)))
 			{
@@ -218,7 +218,7 @@
   * Public
   *---------------------------------------------------------------------------*/
 
- esp_err_t gateway_init(void)
+ esp_err_t enp_gateway_init(void)
  {
      espnow_register_receive_callback(
              gateway_receive);
@@ -230,7 +230,7 @@
  }
  
  
- void gateway_print_stats(void)
+ void enp_gateway_print_stats(void)
  {
-     stats_print(TAG, &s_stats);
+     enp_stats_print(TAG, &s_stats);
  }
