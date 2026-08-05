@@ -4,7 +4,7 @@
 
 ![Status](https://img.shields.io/badge/status-v0.2.0--draft-blue)
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.x-red)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-GPLv3-green)
 
 ---
 
@@ -303,24 +303,6 @@ Hardware
 ```
 
 This allows applications to remain independent of the underlying transport technology.
-
----
-
-# Contributing
-
-Contributions are welcome.
-
-Areas of interest include:
-
-- Discovery
-- Routing
-- Mesh algorithms
-- Reliability
-- Power optimization
-- Documentation
-- Testing
-
-Please open an issue before submitting major changes.
 
 ---
 
