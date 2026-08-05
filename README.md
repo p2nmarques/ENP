@@ -4,7 +4,7 @@
 
 ![Status](https://img.shields.io/badge/status-v0.2.0--draft-blue)
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.x-red)
-![License](https://img.shields.io/badge/license-GPLv3-green)
+![License](https://img.shields.io/badge/license-GPLv3.0-green)
 
 ---
 
@@ -308,7 +308,7 @@ This allows applications to remain independent of the underlying transport techn
 
 # License
 
-This project is released under the MIT License.
+This project is released under the GPL-3.0 license.
 
 ---
 
