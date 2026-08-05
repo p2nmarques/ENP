@@ -16,12 +16,12 @@
  #include <inttypes.h>
  #include <string.h>
 
+#include "../core/protocol/enp_packets.h"
  #include "network/enp_transport_espnow.h"
  #include "esp_log.h"
 
- #include "core/protocol/packets.h"
- 
  #include "core/stats/stats.h"
+ #include "../core/enp.h"
 
  static const char *TAG = "GATEWAY";
  

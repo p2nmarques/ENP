@@ -12,6 +12,7 @@
  #include <inttypes.h>
  #include <string.h>
 
+#include "../core/protocol/enp_packets.h"
 #include "../network/enp_transport_espnow.h"
  #include "freertos/FreeRTOS.h"
  #include "freertos/task.h"
@@ -19,7 +20,6 @@
  #include "esp_log.h"
  #include "esp_err.h"
 
- #include "core/protocol/packets.h"
  #include "core/utils/utils.h"
  #include "core/stats/stats.h"
 

@@ -6,14 +6,13 @@
  */
 
 
- #include "packets.h"
-
  #include <stddef.h>
  #include <stdint.h>
  #include <stdlib.h>
  #include <string.h>
 
- #include "crc16.h"
+ #include "enp_crc16.h"
+ #include "enp_packets.h"
 
  /*------------------------------------------------------------------
   * Internal CRC helper

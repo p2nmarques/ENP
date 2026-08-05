@@ -8,14 +8,19 @@
 #ifndef MAIN_CORE_ENP_H_
 #define MAIN_CORE_ENP_H_
 
-#include "protocol/packets.h"
-
-#include "stats/stats.h"
-
-#include "utils/utils.h"
-
 #include "config/enp_config.h"
 
+#include "enp_types.h"
 
+#include "enp_node.h"
 
-#endif /* MAIN_CORE_ENP_H_ */
+#include "enp_network.h"
+
+#include "enp_transport.h"
+
+#include "enp_context.h"
+
+#include "protocol/enp_packets.h"
+
+#endif
+

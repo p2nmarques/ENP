@@ -6,7 +6,7 @@
  */
 
 
- #include "crc16.h"
+ #include "enp_crc16.h"
 
  uint16_t enp_crc16_ccitt(
          const void *data,
