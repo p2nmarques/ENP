@@ -49,6 +49,7 @@ static void nvs_init(void)
      ESP_LOGI(TAG, "ENP");
 	 ESP_LOGI(TAG, "ESP Network Protocol");
      ESP_LOGI(TAG, "Version 0.2.0");
+	 ESP_LOGI(TAG, "Transport: ESP-NOW");
      ESP_LOGI(TAG, "======================================");
 
  #if CONFIG_DEVICE_ROLE_GATEWAY
