@@ -11,6 +11,7 @@ https://github.com/pmarques-fullstack/ESP-NOW_gateway_demo
 
 v0.2.0 ENP - ESP Network Protocol
 
+✅ Object model
 Discovery protocol
 Dynamic peer registration
 Remove CONFIG_GATEWAY_MAC

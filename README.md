@@ -104,6 +104,7 @@ Implemented:
 - ACK packets
 - Statistics module
 - Modular architecture
+- Object model
 
 Currently in development:
 
