@@ -1,0 +1,39 @@
+Roadmap
+
+v0.1.1 - ESP-NOW_gateway_demo
+
+https://github.com/pmarques-fullstack/ESP-NOW_gateway_demo
+
+✅ New architecture
+✅ Statistics
+✅ Gateway
+✅ Sensor
+
+v0.2.0 ENP - ESP Network Protocol
+
+Discovery protocol
+Dynamic peer registration
+Remove CONFIG_GATEWAY_MAC
+
+v0.3.0
+
+Heartbeat
+Neighbor table
+Link quality (RSSI)
+Node information
+
+v0.4.0
+
+Routing
+Multi-hop forwarding
+Duplicate suppression
+TTL
+
+v1.0
+
+ESP-NOW Mesh
+OTA
+Encryption
+Diagnostics
+CLI
+Web dashboard
