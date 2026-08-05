@@ -162,25 +162,40 @@ Currently in development:
 
 ---
 
-# Repository Structure
+## Repository Structure
 
-```
+```text
 ENP/
-
+│
 ├── docs/
+│   ├── ENP_PROTOCOL_v0.2.md
+│   └── ROADMAP.md
 │
-├── firmware/
-│   └── main/
+├── main/
+│   ├── application/
+│   │   ├── gateway.c
+│   │   ├── gateway.h
+│   │   ├── sensor.c
+│   │   └── sensor.h
+│   │
+│   ├── network/
+│   │   ├── wifi.c
+│   │   ├── wifi.h
+│   │   ├── espnow.c
+│   │   └── espnow.h
+│   │
+│   ├── core/
+│   │   ├── protocol/
+│   │   ├── stats/
+│   │   └── utils/
+│   │
+│   ├── main.c
+│   └── CMakeLists.txt
 │
-│       ├── application/
-│       │
-│       ├── network/
-│       │
-│       └── core/
-│
-├── tools/
-│
-└── examples/
+├── Kconfig.projbuild
+├── CMakeLists.txt
+├── LICENSE
+└── README.md
 ```
 
 ---
