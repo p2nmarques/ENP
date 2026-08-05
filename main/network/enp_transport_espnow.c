@@ -24,7 +24,7 @@ typedef struct
 
     uint8_t data[ESPNOW_MAX_DATA_LEN];
 
-} espnow_event_t;
+} enp_transport_event_t;
 
 /*-------------------------------------------------------------------------*/
 /* Static Queue                                                            */
@@ -34,7 +34,7 @@ static StaticQueue_t s_queue_buffer;
 
 static uint8_t s_queue_storage[
         ESPNOW_QUEUE_LENGTH *
-        sizeof(espnow_event_t)];
+        sizeof(enp_transport_event_t)];
 
 static QueueHandle_t s_queue;
 
@@ -50,7 +50,7 @@ static StaticTask_t s_task_buffer;
 /* Application Callback                                                    */
 /*-------------------------------------------------------------------------*/
 
-static espnow_receive_callback_t s_callback = NULL;
+static enp_transport_receive_callback_t s_callback = NULL;
 
 /*-------------------------------------------------------------------------*/
 /* Helper                                                                   */
@@ -83,9 +83,9 @@ esp_err_t enp_transport_add_peer(const uint8_t *mac)
 /* Worker Task                                                             */
 /*-------------------------------------------------------------------------*/
 
-static void espnow_task(void *arg)
+static void enp_transport_task(void *arg)
 {
-    espnow_event_t event;
+    enp_transport_event_t event;
 
     while (1)
     {
@@ -126,7 +126,7 @@ static void espnow_recv_cb(
         return;
     }
 
-    espnow_event_t event;
+    enp_transport_event_t event;
 
     memcpy(event.mac,
            info->src_addr,
@@ -147,7 +147,7 @@ static void espnow_recv_cb(
 /* Send Callback                                                           */
 /*-------------------------------------------------------------------------*/
 
-static void espnow_send_cb(
+static void enp_transport_send_cb(
         const esp_now_send_info_t *tx_info,
         esp_now_send_status_t status)
 {
@@ -161,8 +161,8 @@ static void espnow_send_cb(
 /* Public API                                                              */
 /*-------------------------------------------------------------------------*/
 
-void espnow_register_receive_callback(
-        espnow_receive_callback_t callback)
+void enp_transport_register_receive_callback(
+        enp_transport_receive_callback_t callback)
 {
     s_callback = callback;
 }
@@ -184,7 +184,7 @@ esp_err_t enp_transport_init(void)
 
     s_queue = xQueueCreateStatic(
                     ESPNOW_QUEUE_LENGTH,
-                    sizeof(espnow_event_t),
+                    sizeof(enp_transport_event_t),
                     s_queue_storage,
                     &s_queue_buffer);
 
@@ -194,7 +194,7 @@ esp_err_t enp_transport_init(void)
     }
 
     if (xTaskCreateStatic(
-            espnow_task,
+            enp_transport_task,
             "espnow",
             ESPNOW_TASK_STACK,
             NULL,
@@ -218,7 +218,7 @@ esp_err_t enp_transport_init(void)
 
     ESP_ERROR_CHECK(
         esp_now_register_send_cb(
-            espnow_send_cb));
+            enp_transport_send_cb));
 
     ESP_LOGI(TAG, "ESP-NOW initialized");
 

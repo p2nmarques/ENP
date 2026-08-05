@@ -69,26 +69,26 @@
   * Sensor
   *-----------------------------------------------------------------*/
 
- void enp_sensor_packet_init(sensor_packet_t *packet)
+ void enp_sensor_packet_init(enp_sensor_packet_t *packet)
  {
      memset(packet, 0, sizeof(*packet));
 
      packet->header.magic = ENP_MAGIC;
      packet->header.version = ENP_PROTOCOL_VERSION;
      packet->header.type = ENP_PACKET_SENSOR;
-     packet->header.length = sizeof(sensor_packet_t);
+     packet->header.length = sizeof(enp_sensor_packet_t);
  }
 
  /*------------------------------------------------------------------
   * ACK
   *-----------------------------------------------------------------*/
 
- void enp_ack_packet_init(ack_packet_t *packet)
+ void enp_ack_packet_init(enp_ack_packet_t *packet)
  {
      memset(packet, 0, sizeof(*packet));
 
      packet->header.magic = ENP_MAGIC;
      packet->header.version = ENP_PROTOCOL_VERSION;
      packet->header.type = ENP_PACKET_ACK;
-     packet->header.length = sizeof(ack_packet_t);
+     packet->header.length = sizeof(enp_ack_packet_t);
  }

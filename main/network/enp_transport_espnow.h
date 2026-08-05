@@ -17,13 +17,13 @@
   extern "C" {
   #endif
 
-  typedef void (*espnow_receive_callback_t)(
+  typedef void (*enp_transport_receive_callback_t)(
           const uint8_t *mac,
           const void *data,
           size_t len);
  		 
-  void espnow_register_receive_callback(
-           espnow_receive_callback_t callback);
+  void enp_transport_register_receive_callback(
+           enp_transport_receive_callback_t callback);
 
   esp_err_t enp_transport_init(void);
 

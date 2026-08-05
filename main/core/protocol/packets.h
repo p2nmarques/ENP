@@ -38,7 +38,7 @@
 
      uint32_t sequence;
 
- } espnow_header_t;
+ } enp_header_t;
 
  /*------------------------------------------------------------------
   * Sensor Packet
@@ -46,7 +46,7 @@
 
  typedef struct __attribute__((packed))
  {
-     espnow_header_t header;
+     enp_header_t header;
 
      float temperature;
 
@@ -54,7 +54,7 @@
 
      uint16_t crc;
 
- } sensor_packet_t;
+ } enp_sensor_packet_t;
 
  /*------------------------------------------------------------------
   * ACK Packet
@@ -62,7 +62,7 @@
 
  typedef struct __attribute__((packed))
  {
-     espnow_header_t header;
+     enp_header_t header;
 
      uint32_t acknowledged_sequence;
 
@@ -70,7 +70,7 @@
 
      uint16_t crc;
 
- } ack_packet_t;
+ } enp_ack_packet_t;
 
  /*------------------------------------------------------------------
   * Generic helpers
@@ -84,8 +84,8 @@
   * Packet initialization
   *-----------------------------------------------------------------*/
 
- void enp_sensor_packet_init(sensor_packet_t *packet);
+ void enp_sensor_packet_init(enp_sensor_packet_t *packet);
 
- void enp_ack_packet_init(ack_packet_t *packet);
+ void enp_ack_packet_init(enp_ack_packet_t *packet);
 
  #endif

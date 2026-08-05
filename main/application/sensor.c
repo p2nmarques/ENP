@@ -54,12 +54,12 @@
  {
      (void)mac;
 
-     if (len != sizeof(ack_packet_t))
+     if (len != sizeof(enp_ack_packet_t))
      {
          return;
      }
 
-     ack_packet_t ack;
+     enp_ack_packet_t ack;
 
      memcpy(&ack, data, sizeof(ack));
 
@@ -93,7 +93,7 @@
 
      while (true)
      {
-         sensor_packet_t packet;
+         enp_sensor_packet_t packet;
 
          enp_sensor_packet_init(&packet);
 
@@ -190,7 +190,7 @@
 	      return err;
 	 }
 
-     espnow_register_receive_callback(
+     enp_transport_register_receive_callback(
              sensor_receive);
 			 
 	 enp_stats_init(&s_stats);

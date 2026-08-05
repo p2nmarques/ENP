@@ -16,7 +16,7 @@
  #include <inttypes.h>
  #include <string.h>
 
-#include "../network/enp_transport_espnow.h"
+ #include "network/enp_transport_espnow.h"
  #include "esp_log.h"
 
  #include "core/protocol/packets.h"
@@ -47,7 +47,7 @@
   * Receive Callback
   *---------------------------------------------------------------------------*/
 
- static void gateway_receive(
+ static void enp_gateway_receive(
          const uint8_t *mac,
          const void *data,
          size_t len)
@@ -55,14 +55,14 @@
 	 enp_stats_inc_rx(&s_stats);
 	 
      /* Packet must at least contain a header */
-     if (len < sizeof(espnow_header_t))
+     if (len < sizeof(enp_header_t))
      {
          ESP_LOGW(TAG, "Packet too small");
          return;
      }
 
-     const espnow_header_t *header =
-             (const espnow_header_t *)data;
+     const enp_header_t *header =
+             (const enp_header_t *)data;
 
      /* Basic protocol validation */
      if (header->magic != ENP_MAGIC)
@@ -85,14 +85,14 @@
 
          case ENP_PACKET_SENSOR:
          {
-             if (len != sizeof(sensor_packet_t))
+             if (len != sizeof(enp_sensor_packet_t))
              {
                  ESP_LOGW(TAG,
                           "Invalid sensor packet length");
                  return;
              }
 
-             sensor_packet_t packet;
+             enp_sensor_packet_t packet;
 
              memcpy(&packet,
                     data,
@@ -126,7 +126,7 @@
 
              /* Build ACK */
 
-             ack_packet_t ack;
+             enp_ack_packet_t ack;
 
              enp_ack_packet_init(&ack);
 
@@ -166,14 +166,14 @@
 
          case ENP_PACKET_ACK:
          {
-             if (len != sizeof(ack_packet_t))
+             if (len != sizeof(enp_ack_packet_t))
              {
                  ESP_LOGW(TAG,
                           "Invalid ACK length");
                  return;
              }
 
-             ack_packet_t ack;
+             enp_ack_packet_t ack;
 			 
 			 enp_stats_inc_tx_ack(&s_stats);
 
@@ -220,8 +220,8 @@
 
  esp_err_t enp_gateway_init(void)
  {
-     espnow_register_receive_callback(
-             gateway_receive);
+     enp_transport_register_receive_callback(
+             enp_gateway_receive);
 
      ESP_LOGI(TAG,
               "Gateway initialized");
