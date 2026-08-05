@@ -11,7 +11,8 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
-		<pathentry excluding="application/|main/application" kind="src" path=""/>
 		<pathentry excluding="**/CMakeFiles/**" kind="out" path="build"/>
+		<pathentry excluding="docs/" kind="src" path=""/>
+		<pathentry kind="src" path="docs"/>
 	</storageModule>
 </cproject>

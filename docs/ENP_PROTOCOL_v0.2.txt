@@ -1,0 +1,37 @@
+ENP Protocol Specification v0.2.0
+
+ENP
+ESP Network Protocol
+
+Version 0.2.0
+
+Status:
+Draft
+
+Transport:
+ESP-NOW
+
+Authors:
+Pedro Marques
+
+Copyright ©Pedro Marques 2026
+
+1. Introduction
+
+1.1 Purpose
+
+The ESP Network Protocol (ENP) is a lightweight networking protocol designed for ESP32 devices.
+
+ENP provides a transport-independent communication layer for embedded systems by abstracting the underlying radio technology.
+
+The first implementation of ENP uses ESP-NOW as its transport layer.
+
+Future transports may include:
+
+Wi-Fi
+Ethernet
+BLE
+LoRa
+Serial
+
+without requiring changes to the application layer.
