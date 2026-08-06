@@ -19,7 +19,7 @@
 
  #include "esp_err.h"
 
- #include "config/enp_config.h"
+ #include "/config/enp_config.h"
 
  #ifdef __cplusplus
  extern "C"
