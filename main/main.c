@@ -6,6 +6,7 @@
  * ESP-IDF 6.0.2
  ******************************************************************************/
 
+#include "core/enp_context.h"
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "freertos/task.h"
@@ -15,10 +16,11 @@
 #include "nvs_flash.h"
 
 #include "application/gateway.h"
-#include "network/enp_transport_espnow.h"
-#include "network/enp_transport_wifi.h"
+#include "link/enp_transport_espnow.h"
+#include "link/enp_transport_wifi.h"
 
 static const char *TAG = "MAIN";
+static enp_context_t g_context;
 
 /*------------------------------------------------------------------
  * NVS
@@ -39,6 +41,7 @@ static void nvs_init(void)
     ESP_ERROR_CHECK(err);
 }
 
+ 
 /*------------------------------------------------------------------
  * app_main
  *-----------------------------------------------------------------*/

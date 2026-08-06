@@ -1,6 +1,7 @@
+#include "../link/enp_transport_espnow.h"
+
 #include <string.h>
 
-#include "enp_transport_espnow.h"
 #include "esp_log.h"
 #include "esp_now.h"
 #include "esp_wifi.h"

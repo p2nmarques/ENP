@@ -12,9 +12,9 @@
  #include <inttypes.h>
  #include <string.h>
 
-#include "../core/protocol/enp_packets.h"
-#include "../network/enp_transport_espnow.h"
- #include "freertos/FreeRTOS.h"
+#include "../core/protocol/enp_packet.h"
+#include "../link/enp_transport_espnow.h"
+#include "freertos/FreeRTOS.h"
  #include "freertos/task.h"
 
  #include "esp_log.h"

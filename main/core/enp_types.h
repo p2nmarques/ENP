@@ -5,36 +5,74 @@
  *      Author: Pedro Marques
  */
 
-#ifndef MAIN_CORE_ENP_TYPES_H_
-#define MAIN_CORE_ENP_TYPES_H_
+ /**
+  * @file enp_types.h
+  *
+  * @brief Fundamental ENP type definitions.
+  *
+  * This file defines the primitive types used throughout
+  * the ENP Core and Protocol.
+  */
 
-typedef enum
-{
-    ENP_ROLE_UNKNOWN = 0,
+ #ifndef ENP_TYPES_H
+ #define ENP_TYPES_H
 
-    ENP_ROLE_GATEWAY,
+ #include <stdint.h>
 
-    ENP_ROLE_SENSOR,
+ #ifdef __cplusplus
+ extern "C"
+ {
+ #endif
 
-    ENP_ROLE_RELAY,
+ /*----------------------------------------------------------
+  * Primitive Types
+  *---------------------------------------------------------*/
 
-    ENP_ROLE_ROOT,
+ /**
+  * @brief ENP node identifier.
+  */
+ typedef uint32_t enp_node_id_t;
 
-    ENP_ROLE_MONITOR
+ /**
+  * @brief ENP network identifier.
+  */
+ typedef uint16_t enp_network_id_t;
 
-} enp_role_t;
+ /**
+  * @brief ENP packet sequence number.
+  */
+ typedef uint32_t enp_sequence_t;
 
+ /**
+  * @brief ENP capability bitmap.
+  */
+ typedef uint32_t enp_capability_t;
 
-typedef enum
-{
-    ENP_OK = 0,
+ /*----------------------------------------------------------
+  * Common Enumerations
+  *---------------------------------------------------------*/
 
-    ENP_ERROR,
+ /**
+  * @brief ENP node role.
+  */
+ typedef enum
+ {
+     ENP_ROLE_UNKNOWN = 0,
 
-    ENP_TIMEOUT,
+     ENP_ROLE_GATEWAY,
 
-    ENP_BUSY
+     ENP_ROLE_SENSOR,
 
-} enp_result_t;
+     ENP_ROLE_RELAY,
 
-#endif /* MAIN_CORE_ENP_TYPES_H_ */
+     ENP_ROLE_ROOT,
+
+     ENP_ROLE_MONITOR
+
+ } enp_role_t;
+
+ #ifdef __cplusplus
+ }
+ #endif
+
+ #endif /* ENP_TYPES_H */

@@ -8,7 +8,7 @@ idf_component_register(
         "network/enp_transport_espnow.c"
         "application/gateway.c"
         "application/sensor.c"
-        "core/protocol/enp_packets.c"
+        "core/protocol/enp_packet.c"
         "core/protocol/enp_crc16.c"
         "core/utils/utils.c"
         "core/stats/stats.c"     # list the source files of this component

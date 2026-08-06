@@ -5,22 +5,82 @@
  *      Author: Pedro Marques
  */
 
-#ifndef MAIN_CORE_ENP_H_
-#define MAIN_CORE_ENP_H_
+ /**
+  * @file enp.h
+  *
+  * @brief ESP Network Protocol (ENP) Core API.
+  *
+  * This is the public entry point to the ENP library.
+  *
+  * Applications should normally include only this header.
+  *
+  * The ENP Core provides:
+  *  - Configuration
+  *  - Core types
+  *  - Object model
+  *  - Runtime context
+  *  - Transport abstraction
+  *  - Protocol definitions
+  *  - Generic packet API
+  *
+  * The following modules are intentionally NOT exposed:
+  *  - Link implementations (ESP-NOW, Wi-Fi, BLE, ...)
+  *  - Dispatcher
+  *  - Services
+  *  - Internal utilities
+  */
 
-#include "config/enp_config.h"
+ #ifndef ENP_H
+ #define ENP_H
 
-#include "enp_types.h"
+ #ifdef __cplusplus
+ extern "C"
+ {
+ #endif
 
-#include "enp_node.h"
+ /*----------------------------------------------------------
+  * ENP Library Version
+  *---------------------------------------------------------*/
 
-#include "enp_network.h"
+ #define ENP_VERSION_MAJOR        0U
+ #define ENP_VERSION_MINOR        2U
+ #define ENP_VERSION_PATCH        0U
 
-#include "enp_transport.h"
+ /*----------------------------------------------------------
+  * Configuration
+  *---------------------------------------------------------*/
 
-#include "enp_context.h"
+ #include "config/enp_config.h"
 
-#include "protocol/enp_packets.h"
+ /*----------------------------------------------------------
+  * Core Types
+  *---------------------------------------------------------*/
 
-#endif
+ #include "enp_types.h"
 
+ /*----------------------------------------------------------
+  * Object Model
+  *---------------------------------------------------------*/
+
+ #include "enp_node.h"
+ #include "enp_network.h"
+
+ /*----------------------------------------------------------
+  * Runtime
+  *---------------------------------------------------------*/
+
+ #include "enp_context.h"
+ #include "enp_transport.h"
+
+ /*----------------------------------------------------------
+  * Protocol
+  *---------------------------------------------------------*/
+
+ #include "protocol/enp_protocol.h"
+ #include "protocol/enp_packet.h"
+
+ #ifdef __cplusplus
+ }
+ #endif
+
+ #endif /* ENP_H */

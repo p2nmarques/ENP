@@ -5,7 +5,7 @@
  *      Author: Pedro Marques
  */
 
- #include "enp_transport_wifi.h"
+ #include "../link/enp_transport_wifi.h"
 
 #include <string.h>
 
