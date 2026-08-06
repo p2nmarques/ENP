@@ -39,7 +39,7 @@
      /**
       * Unique node identifier.
       */
-     enp_node_id_t id;
+     enp_node_id_t address;
 
      /**
       * Node role.

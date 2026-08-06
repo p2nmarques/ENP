@@ -16,77 +16,63 @@
 
  #include "esp_err.h"
 
- #include "/config/enp_config.h"
-#include "./protocol/enp_protocol.h"
+ #include "config/enp_config.h"
+
+ #include "enp_network.h"
  #include "enp_transport.h"
 
  #ifdef __cplusplus
- extern "C" {
+ extern "C"
+ {
  #endif
 
+ /*----------------------------------------------------------
+  * ENP Runtime Context
+  *---------------------------------------------------------*/
+
  /**
-  * @brief Runtime instance of ENP.
+  * @brief Runtime instance of an ENP protocol stack.
   *
-  * Every ENP application owns exactly one context.
-  *
-  * The context owns:
-  *   - Runtime network state
-  *   - Local node
-  *   - Active link transport
-  *
-  * The context does NOT own:
-  *   - Dispatcher
-  *   - Services
-  *   - Tasks
-  *   - Timers
+  * The context owns the runtime state of one ENP instance.
   */
  typedef struct
  {
      /**
-      * Runtime network state.
+      * Local network.
       */
      enp_network_t network;
 
      /**
-      * Active link implementation.
+      * Active transport.
       */
-     const enp_transport_t *transport;
+     enp_transport_t transport;
 
  } enp_context_t;
 
+ /*----------------------------------------------------------
+  * Lifecycle
+  *---------------------------------------------------------*/
+
  /**
-  * @brief Create and initialize an ENP instance.
-  *
-  * This function initializes:
-  *  - Runtime context
-  *  - Selected link transport
-  *  - Local node
-  *  - Network state
+  * @brief Initialize an ENP runtime context.
   *
   * @param context Runtime context.
-  * @param transport Link implementation.
   * @param config ENP configuration.
+  * @param transport Transport implementation.
   *
-  * @return
-  *      - ESP_OK
-  *      - ESP_ERR_INVALID_ARG
-  *      - Transport specific errors
+  * @return ESP_OK on success.
   */
  esp_err_t enp_context_init(
          enp_context_t *context,
-         const enp_transport_t *transport,
-         const enp_config_t *config);
+         const enp_config_t *config,
+         const enp_transport_t *transport);
 
  /**
-  * @brief Shutdown an ENP instance.
-  *
-  * Releases any resources owned by the active transport.
+  * @brief Deinitialize an ENP runtime context.
   *
   * @param context Runtime context.
   *
-  * @return
-  *      - ESP_OK
-  *      - ESP_ERR_INVALID_ARG
+  * @return ESP_OK on success.
   */
  esp_err_t enp_context_deinit(
          enp_context_t *context);
