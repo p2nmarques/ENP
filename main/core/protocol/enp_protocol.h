@@ -105,6 +105,14 @@
   * @brief Packet payload is encrypted.
   */
  #define ENP_FLAG_ENCRYPTED        ((uint8_t)(1U << 3))
+ 
+ /**
+  * @brief ENP wire byte order.
+  *
+  * Multi-byte integer fields in the ENP wire format are
+  * encoded using little-endian byte order.
+  */
+ #define ENP_PROTOCOL_LITTLE_ENDIAN  1U
 
  #ifdef __cplusplus
  }
