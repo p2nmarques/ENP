@@ -4,7 +4,10 @@
  * @brief ENP runtime context implementation.
  */
 
-#include "enp_context.h"
+ #include "freertos/FreeRTOS.h"
+ #include "freertos/task.h"
+ 
+ #include "enp_context.h"
 
 #include <string.h>
 
@@ -63,7 +66,16 @@ esp_err_t enp_context_init(
 
     context->network.local.next_sequence =
             1U;
+			
+	esp_err_t err =
+	        enp_neighbor_table_init(
+	                &context->neighbors);
 
+	if (err != ESP_OK)
+	{
+	    return err;
+	}
+	
     /*------------------------------------------------------
      * Initialize transport
      *-----------------------------------------------------*/
@@ -113,4 +125,18 @@ static esp_err_t enp_context_initialize_transport(
     return enp_transport_init(
             context->transport,
             config);
+}
+
+
+uint32_t enp_context_time_ms(
+        const enp_context_t *context)
+{
+    (void)context;
+
+    const TickType_t ticks =
+            xTaskGetTickCount();
+
+    return (uint32_t)(
+            ticks *
+            portTICK_PERIOD_MS);
 }

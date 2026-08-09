@@ -13,10 +13,13 @@
 
  #ifndef ENP_CONTEXT_H
  #define ENP_CONTEXT_H
+ 
+ #include <stdint.h>
 
  #include "esp_err.h"
 
  #include "config/enp_config.h"
+ #include "core/dispatcher/enp_neighbor.h"
  #include "enp_network.h"
  #include "enp_transport.h"
 
@@ -45,6 +48,8 @@
       * Runtime network state.
       */
      enp_network_t network;
+	 
+	 enp_neighbor_table_t neighbors;
 
      /**
       * Active transport interface.
@@ -92,6 +97,19 @@
   */
  esp_err_t enp_context_deinit(
          enp_context_t *context);
+		 
+		 
+ /**
+  * @brief Get the current ENP time in milliseconds.
+  *
+  * The returned value is a monotonic 32-bit millisecond counter.
+  *
+  * @param context ENP context.
+  *
+  * @return Current ENP time in milliseconds.
+  */
+ uint32_t enp_context_time_ms(
+         const enp_context_t *context);
 
  #ifdef __cplusplus
  }

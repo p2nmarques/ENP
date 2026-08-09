@@ -18,7 +18,7 @@
 
  #define ENP_STATS_INTERVAL_MS           10000
 
- #define ENP_MAX_NEIGHBORS               32
+ #define ENP_MAX_NEIGHBORS               32U
 
  #define ENP_MAX_ROUTES                  64
 

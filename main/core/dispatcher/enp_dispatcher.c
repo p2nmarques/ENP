@@ -200,63 +200,66 @@
   * Packet Dispatch
   *---------------------------------------------------------*/
 
- esp_err_t enp_dispatcher_dispatch(
-         const enp_packet_t *packet)
- {
-     if (packet == NULL)
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+  esp_err_t enp_dispatcher_dispatch(
+          const enp_packet_t *packet,
+          const enp_transport_address_t *source)
+  {
+      if ((packet == NULL) ||
+          (source == NULL))
+      {
+          return ESP_ERR_INVALID_ARG;
+      }
 
-     if (!s_initialized)
-     {
-         return ESP_ERR_INVALID_STATE;
-     }
+      if (!s_initialized)
+      {
+          return ESP_ERR_INVALID_STATE;
+      }
 
-     /*
-      * A packet must pass complete ENP validation before
-      * reaching any service.
-      */
-     if (!enp_packet_verify(packet))
-     {
-         ESP_LOGW(
-                 TAG,
-                 "Rejected invalid ENP packet");
+      /*
+       * Validate the complete ENP frame before exposing it
+       * to any service.
+       */
+      if (!enp_packet_verify(packet))
+      {
+          ESP_LOGW(
+                  TAG,
+                  "Rejected invalid ENP packet");
 
-         return ESP_ERR_INVALID_ARG;
-     }
+          return ESP_ERR_INVALID_ARG;
+      }
 
-     const enp_header_t *header =
-             enp_packet_header_const(packet);
+      const enp_header_t *header =
+              enp_packet_header_const(packet);
 
-     if (header == NULL)
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+      if (header == NULL)
+      {
+          return ESP_ERR_INVALID_ARG;
+      }
 
-     /*
-      * Find the service responsible for the packet type.
-      */
-     for (size_t index = 0U;
-          index < s_service_count;
-          ++index)
-     {
-         const enp_service_t *service =
-                 s_services[index];
+      /*
+       * Locate the service responsible for the packet type.
+       */
+      for (size_t index = 0U;
+           index < s_service_count;
+           ++index)
+      {
+          const enp_service_t *service =
+                  s_services[index];
 
-         if (service->packet_type ==
-             (enp_packet_type_t)header->type)
-         {
-             return service->process(
-                     s_context,
-                     packet);
-         }
-     }
+          if (service->packet_type ==
+              (enp_packet_type_t)header->type)
+          {
+              return service->process(
+                      s_context,
+                      packet,
+                      source);
+          }
+      }
 
-     ESP_LOGW(
-             TAG,
-             "No service registered for packet type %u",
-             (unsigned)header->type);
+      ESP_LOGW(
+              TAG,
+              "No service registered for packet type %u",
+              (unsigned)header->type);
 
-     return ESP_ERR_NOT_FOUND;
- }
+      return ESP_ERR_NOT_FOUND;
+  }

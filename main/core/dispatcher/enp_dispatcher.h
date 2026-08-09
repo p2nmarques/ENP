@@ -92,36 +92,26 @@
   * Packet Dispatch
   *---------------------------------------------------------*/
 
- /**
-  * @brief Dispatch an ENP packet.
-  *
-  * The packet is validated before it is passed to a service.
-  *
-  * Processing flow:
-  *
-  *     packet
-  *       |
-  *       +-- enp_packet_verify()
-  *       |
-  *       +-- obtain header
-  *       |
-  *       +-- identify packet type
-  *       |
-  *       +-- locate service
-  *       |
-  *       +-- service->process()
-  *
-  * @param packet Complete ENP packet.
-  *
-  * @return ESP_OK if the packet was processed successfully.
-  * @return ESP_ERR_INVALID_ARG if the packet is invalid.
-  * @return ESP_ERR_INVALID_STATE if the dispatcher is not
-  *         initialized.
-  * @return ESP_ERR_NOT_FOUND if no service handles the packet.
-  * @return Service-specific error otherwise.
-  */
- esp_err_t enp_dispatcher_dispatch(
-         const enp_packet_t *packet);
+  /**
+   * @brief Dispatch an ENP packet.
+   *
+   * The packet is validated before it is passed to a service.
+   *
+   * @param packet Complete ENP packet.
+   * @param source Transport address from which the packet
+   *        was received.
+   *
+   * @return ESP_OK if the packet was processed successfully.
+   * @return ESP_ERR_INVALID_ARG if arguments or the packet
+   *         are invalid.
+   * @return ESP_ERR_INVALID_STATE if the dispatcher is not
+   *         initialized.
+   * @return ESP_ERR_NOT_FOUND if no service handles the packet.
+   * @return Service-specific error otherwise.
+   */
+  esp_err_t enp_dispatcher_dispatch(
+          const enp_packet_t *packet,
+          const enp_transport_address_t *source);
 
  #ifdef __cplusplus
  }
