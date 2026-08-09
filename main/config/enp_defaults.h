@@ -10,8 +10,6 @@
 
  /* Protocol */
 
- // #define ENP_DEFAULT_TTL                 16
-
  #define ENP_MAX_RETRIES                 3
 
  #define ENP_DISCOVERY_TIMEOUT_MS        2000

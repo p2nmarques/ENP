@@ -14,8 +14,8 @@
 - [X] enp_protocol.h
 - [X] enp_packet.h
 - [X] enp_packet.c
-- [ ] enp_crc16.h
-- [ ] enp_crc16.c
+- [X] enp_crc16.h
+- [X] enp_crc16.c
 
 ## Documentation
 - [ ] README.md
