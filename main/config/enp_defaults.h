@@ -10,7 +10,7 @@
 
  /* Protocol */
 
- #define ENP_DEFAULT_TTL                 16
+ // #define ENP_DEFAULT_TTL                 16
 
  #define ENP_MAX_RETRIES                 3
 

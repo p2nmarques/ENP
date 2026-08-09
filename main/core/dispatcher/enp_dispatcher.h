@@ -10,7 +10,7 @@
 
 #include "esp_err.h"
 
-#include "/core/enp_context.h"
+#include "core/enp_context.h"
 #include "core/service/enp_service.h"
 
 #ifdef __cplusplus

@@ -1,7 +1,7 @@
 /**
  * @file enp_context.c
  *
- * @brief ENP runtime context.
+ * @brief ENP runtime context implementation.
  */
 
 #include "enp_context.h"
@@ -9,24 +9,32 @@
 #include <string.h>
 
 /*----------------------------------------------------------
+ * Private Functions
+ *---------------------------------------------------------*/
+
+static esp_err_t enp_context_initialize_transport(
+        enp_context_t *context,
+        const enp_config_t *config);
+
+/*----------------------------------------------------------
  * Public API
  *---------------------------------------------------------*/
 
 esp_err_t enp_context_init(
         enp_context_t *context,
-        const enp_config_t *config,
-        const enp_transport_t *transport)
+        enp_transport_t *transport,
+        const enp_config_t *config)
 {
+    /*------------------------------------------------------
+     * Validate parameters
+     *-----------------------------------------------------*/
+
     if ((context == NULL) ||
-        (config == NULL) ||
-        (transport == NULL))
+        (transport == NULL) ||
+        (config == NULL))
     {
         return ESP_ERR_INVALID_ARG;
     }
-
-    /*------------------------------------------------------
-     * Validate transport
-     *-----------------------------------------------------*/
 
     if ((transport->init == NULL) ||
         (transport->deinit == NULL) ||
@@ -36,36 +44,33 @@ esp_err_t enp_context_init(
         return ESP_ERR_INVALID_ARG;
     }
 
+    /*------------------------------------------------------
+     * Initialize runtime state
+     *-----------------------------------------------------*/
+
     memset(context, 0, sizeof(*context));
 
+    context->transport = transport;
+
+    context->network.id =
+            config->network_id;
+
+    context->network.local.id =
+            config->node_id;
+
+    context->network.local.role =
+            config->role;
+
+    context->network.local.next_sequence =
+            1U;
+
     /*------------------------------------------------------
-     * Network
+     * Initialize transport
      *-----------------------------------------------------*/
 
-    context->network.id = config->network_id;
-
-    context->network.node.id = config->node_id;
-
-    context->network.node.role = config->role;
-
-    context->network.node.next_sequence = 1;
-
-    /*------------------------------------------------------
-     * Transport
-     *-----------------------------------------------------*/
-
-    context->transport = *transport;
-
-    esp_err_t err =
-            enp_transport_init(
-                    &context->transport);
-
-    if (err != ESP_OK)
-    {
-        return err;
-    }
-
-    return ESP_OK;
+    return enp_context_initialize_transport(
+            context,
+            config);
 }
 
 esp_err_t enp_context_deinit(
@@ -76,6 +81,36 @@ esp_err_t enp_context_deinit(
         return ESP_ERR_INVALID_ARG;
     }
 
+    if (context->transport == NULL)
+    {
+        return ESP_OK;
+    }
+
+    if (context->transport->deinit == NULL)
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
+
     return enp_transport_deinit(
-            &context->transport);
+            context->transport);
+}
+
+/*----------------------------------------------------------
+ * Private Functions
+ *---------------------------------------------------------*/
+
+static esp_err_t enp_context_initialize_transport(
+        enp_context_t *context,
+        const enp_config_t *config)
+{
+    if ((context == NULL) ||
+        (context->transport == NULL) ||
+        (config == NULL))
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    return enp_transport_init(
+            context->transport,
+            config);
 }

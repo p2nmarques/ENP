@@ -8,6 +8,7 @@ idf_component_register(
         "link/enp_transport_espnow.c"
         "application/gateway.c"
         "application/sensor.c"
+        "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_transport.c"
         "core/dispatcher/enp_dispatcher.c"

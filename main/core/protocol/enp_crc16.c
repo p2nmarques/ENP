@@ -5,34 +5,74 @@
  *      Author: Pedro Marques
  */
 
+ /**
+  * @file enp_crc16.c
+  *
+  * @brief ENP CRC-16/CCITT-FALSE implementation.
+  */
 
  #include "enp_crc16.h"
 
- uint16_t enp_crc16_ccitt(
+ /*----------------------------------------------------------
+  * Private Constants
+  *---------------------------------------------------------*/
+
+ /**
+  * @brief CRC-16/CCITT-FALSE polynomial.
+  */
+ #define ENP_CRC16_POLYNOMIAL    0x1021U
+
+ /**
+  * @brief CRC-16/CCITT-FALSE initial value.
+  */
+ #define ENP_CRC16_INITIAL       0xFFFFU
+
+ /*----------------------------------------------------------
+  * Public API
+  *---------------------------------------------------------*/
+
+ uint16_t enp_crc16(
          const void *data,
          size_t length)
  {
-     const uint8_t *ptr = data;
-
-     uint16_t crc = 0xFFFF;
-
-     while (length--)
+     if ((data == NULL) &&
+         (length != 0U))
      {
-         crc ^= ((uint16_t)*ptr++) << 8;
+         return 0U;
+     }
 
-         for (int i = 0; i < 8; i++)
+     const uint8_t *bytes =
+             (const uint8_t *)data;
+
+     uint16_t crc =
+             ENP_CRC16_INITIAL;
+
+     for (size_t index = 0U;
+          index < length;
+          ++index)
+     {
+         crc ^=
+                 (uint16_t)bytes[index] << 8U;
+
+         for (uint8_t bit = 0U;
+              bit < 8U;
+              ++bit)
          {
-             if (crc & 0x8000)
+             if ((crc & 0x8000U) != 0U)
              {
-                 crc = (crc << 1) ^ 0x1021;
+                 crc =
+                         (uint16_t)
+                         ((crc << 1U) ^
+                          ENP_CRC16_POLYNOMIAL);
              }
              else
              {
-                 crc <<= 1;
+                 crc =
+                         (uint16_t)
+                         (crc << 1U);
              }
          }
      }
 
      return crc;
  }
-

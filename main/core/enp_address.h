@@ -31,8 +31,7 @@
  /**
   * @brief ENP logical node address.
   *
-  * An ENP address uniquely identifies a node within an
-  * ENP network.
+  * An ENP address identifies a node within an ENP network.
   *
   * Wire representation:
   *
@@ -65,17 +64,12 @@
 
  /**
   * @brief Broadcast node identifier.
-  *
-  * A node identifier of zero represents broadcast.
   */
  #define ENP_NODE_BROADCAST \
      ((enp_node_id_t)0U)
 
  /**
   * @brief Any network identifier.
-  *
-  * A network identifier of zero represents any network
-  * where this value is applicable.
   */
  #define ENP_NETWORK_ANY \
      ((enp_network_id_t)0U)
@@ -102,7 +96,7 @@
   *
   * @param address Address to check.
   *
-  * @return true if the node identifier represents broadcast.
+  * @return true if the address represents broadcast.
   * @return false otherwise.
   */
  bool enp_address_is_broadcast(

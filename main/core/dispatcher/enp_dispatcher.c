@@ -5,7 +5,7 @@
  *      Author: Pedro Marques
  */
 
- #include "dispatcher/enp_dispatcher.h"
+ #include "enp_dispatcher.h"
 
  #include <stddef.h>
 

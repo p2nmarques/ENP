@@ -1,7 +1,7 @@
 /**
  * @file enp_transport.c
  *
- * @brief ENP transport abstraction.
+ * @brief ENP transport abstraction implementation.
  */
 
 #include "enp_transport.h"

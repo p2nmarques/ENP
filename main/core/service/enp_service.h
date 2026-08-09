@@ -12,8 +12,8 @@
 
 #include "esp_err.h"
 
-#include "/core/enp_context.h"
-#include "protocol/enp_packet.h"
+#include "core/enp_context.h"
+#include "core/protocol/enp_packet.h"
 
 #ifdef __cplusplus
 extern "C" {

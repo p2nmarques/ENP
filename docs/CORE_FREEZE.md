@@ -12,8 +12,8 @@
 
 ## Protocol
 - [X] enp_protocol.h
-- [ ] enp_packet.h
-- [ ] enp_packet.c
+- [X] enp_packet.h
+- [X] enp_packet.c
 - [ ] enp_crc16.h
 - [ ] enp_crc16.c
 

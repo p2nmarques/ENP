@@ -9,63 +9,35 @@
  /**
   * @file enp_packet.c
   *
-  * @brief ENP generic packet implementation.
+  * @brief ENP v0.2 frame and packet implementation.
   */
 
  #include "enp_packet.h"
 
  #include <string.h>
 
+ #include "enp_crc16.h"
+
  /*----------------------------------------------------------
   * Private Constants
   *---------------------------------------------------------*/
 
- /**
-  * @brief Serialized ENP header size.
-  */
- #define ENP_HEADER_SIZE \
-     ((size_t)sizeof(enp_header_t))
-
- /**
-  * @brief Serialized CRC16 size.
-  */
- #define ENP_CRC_SIZE \
-     ((size_t)sizeof(uint16_t))
-
- /**
-  * @brief Number of non-payload bytes in an ENP frame.
-  */
  #define ENP_PACKET_OVERHEAD \
-     (ENP_HEADER_SIZE + ENP_CRC_SIZE)
+     ((size_t)ENP_HEADER_SIZE + (size_t)ENP_CRC_SIZE)
 
- /**
-  * @brief Minimum valid ENP frame size.
-  */
  #define ENP_PACKET_MIN_SIZE \
      ENP_PACKET_OVERHEAD
-
- /**
-  * @brief CRC-16/CCITT-FALSE polynomial.
-  */
- #define ENP_CRC16_POLYNOMIAL \
-     0x1021U
-
- /**
-  * @brief CRC-16/CCITT-FALSE initial value.
-  */
- #define ENP_CRC16_INITIAL \
-     0xFFFFU
 
  /*----------------------------------------------------------
   * Compile-Time Validation
   *---------------------------------------------------------*/
 
  _Static_assert(
-         sizeof(enp_address_t) == 6U,
+         sizeof(enp_address_t) == ENP_ADDRESS_SIZE,
          "Unexpected ENP address size");
 
  _Static_assert(
-         sizeof(enp_header_t) == 26U,
+         sizeof(enp_header_t) == ENP_HEADER_SIZE,
          "Unexpected ENP header size");
 
  _Static_assert(
@@ -81,16 +53,13 @@
          "Unexpected ENP network ID size");
 
  _Static_assert(
-         ENP_PACKET_OVERHEAD < ENP_MAX_PACKET_SIZE,
-         "ENP packet overhead exceeds maximum packet size");
+         ENP_HEADER_SIZE + ENP_CRC_SIZE <
+         ENP_MAX_FRAME_SIZE,
+         "ENP frame overhead exceeds maximum frame size");
 
  /*----------------------------------------------------------
   * Private Functions
   *---------------------------------------------------------*/
-
- static uint16_t enp_crc16(
-         const uint8_t *data,
-         size_t length);
 
  static void enp_write_u16_le(
          uint8_t *destination,
@@ -100,7 +69,7 @@
          const uint8_t *source);
 
  /*----------------------------------------------------------
-  * Public API
+  * Packet Initialization
   *---------------------------------------------------------*/
 
  void enp_packet_init(
@@ -118,21 +87,30 @@
      enp_header_t *header =
              enp_packet_header(packet);
 
-     header->magic = ENP_PROTOCOL_MAGIC;
+     header->magic =
+             ENP_PROTOCOL_MAGIC;
 
-     header->version = ENP_PROTOCOL_VERSION;
+     header->version =
+             ENP_PROTOCOL_VERSION;
 
-     header->type = (uint8_t)type;
+     header->type =
+             (uint8_t)type;
 
-     header->flags = ENP_FLAG_NONE;
+     header->flags =
+             ENP_FLAG_NONE;
 
-     header->ttl = ENP_DEFAULT_TTL;
+     header->ttl =
+             ENP_DEFAULT_TTL;
 
      if (source != NULL)
      {
          header->source = *source;
      }
  }
+
+ /*----------------------------------------------------------
+  * Raw Frame Access
+  *---------------------------------------------------------*/
 
  void *enp_packet_data(
          enp_packet_t *packet)
@@ -156,6 +134,10 @@
      return packet->buffer;
  }
 
+ /*----------------------------------------------------------
+  * Header Access
+  *---------------------------------------------------------*/
+
  enp_header_t *enp_packet_header(
          enp_packet_t *packet)
  {
@@ -177,6 +159,10 @@
 
      return (const enp_header_t *)packet->buffer;
  }
+
+ /*----------------------------------------------------------
+  * Payload Access
+  *---------------------------------------------------------*/
 
  void *enp_packet_payload(
          enp_packet_t *packet)
@@ -200,6 +186,10 @@
      return packet->buffer + ENP_HEADER_SIZE;
  }
 
+ /*----------------------------------------------------------
+  * Packet Information
+  *---------------------------------------------------------*/
+
  size_t enp_packet_length(
          const enp_packet_t *packet)
  {
@@ -216,17 +206,21 @@
          return 0U;
      }
 
-     const size_t length =
-             ENP_PACKET_OVERHEAD +
+     const size_t payload_length =
              (size_t)header->payload_length;
 
-     if (length > ENP_MAX_PACKET_SIZE)
+     if (payload_length > ENP_MAX_PAYLOAD_SIZE)
      {
          return 0U;
      }
 
-     return length;
+     return ENP_PACKET_OVERHEAD +
+            payload_length;
  }
+
+ /*----------------------------------------------------------
+  * Packet Sealing
+  *---------------------------------------------------------*/
 
  esp_err_t enp_packet_seal(
          enp_packet_t *packet,
@@ -237,11 +231,8 @@
          return ESP_ERR_INVALID_ARG;
      }
 
-     const size_t frame_length =
-             ENP_PACKET_OVERHEAD +
-             (size_t)payload_length;
-
-     if (frame_length > ENP_MAX_PACKET_SIZE)
+     if ((size_t)payload_length >
+         (size_t)ENP_MAX_PAYLOAD_SIZE)
      {
          return ESP_ERR_INVALID_SIZE;
      }
@@ -268,7 +259,8 @@
          return ESP_ERR_INVALID_STATE;
      }
 
-     if (header->type == ENP_PACKET_INVALID)
+     if ((header->type == ENP_PACKET_INVALID) ||
+         (header->type > ENP_PACKET_APPLICATION))
      {
          return ESP_ERR_INVALID_ARG;
      }
@@ -278,7 +270,12 @@
          return ESP_ERR_INVALID_ARG;
      }
 
-     header->payload_length = payload_length;
+     header->payload_length =
+             payload_length;
+
+     const size_t frame_length =
+             ENP_PACKET_OVERHEAD +
+             (size_t)payload_length;
 
      uint8_t *crc_location =
              packet->buffer +
@@ -297,6 +294,10 @@
      return ESP_OK;
  }
 
+ /*----------------------------------------------------------
+  * Packet Verification
+  *---------------------------------------------------------*/
+
  bool enp_packet_verify(
          const enp_packet_t *packet)
  {
@@ -313,6 +314,9 @@
          return false;
      }
 
+     /*
+      * Protocol identity.
+      */
      if (header->magic != ENP_PROTOCOL_MAGIC)
      {
          return false;
@@ -323,12 +327,28 @@
          return false;
      }
 
-     if (header->type == ENP_PACKET_INVALID)
+     /*
+      * Packet type.
+      */
+     if ((header->type == ENP_PACKET_INVALID) ||
+         (header->type > ENP_PACKET_APPLICATION))
      {
          return false;
      }
 
+     /*
+      * TTL.
+      */
      if (header->ttl > ENP_MAX_TTL)
+     {
+         return false;
+     }
+
+     /*
+      * Payload length.
+      */
+     if ((size_t)header->payload_length >
+         (size_t)ENP_MAX_PAYLOAD_SIZE)
      {
          return false;
      }
@@ -338,18 +358,22 @@
              (size_t)header->payload_length;
 
      if ((frame_length < ENP_PACKET_MIN_SIZE) ||
-         (frame_length > ENP_MAX_PACKET_SIZE))
+         (frame_length > ENP_MAX_FRAME_SIZE))
      {
          return false;
      }
 
+     /*
+      * CRC.
+      */
      const uint8_t *crc_location =
              packet->buffer +
              frame_length -
              ENP_CRC_SIZE;
 
      const uint16_t received_crc =
-             enp_read_u16_le(crc_location);
+             enp_read_u16_le(
+                     crc_location);
 
      const uint16_t calculated_crc =
              enp_crc16(
@@ -360,61 +384,7 @@
  }
 
  /*----------------------------------------------------------
-  * Private CRC Implementation
-  *---------------------------------------------------------*/
-
- /**
-  * @brief Calculate CRC-16/CCITT-FALSE.
-  *
-  * Polynomial : 0x1021
-  * Initial    : 0xFFFF
-  * RefIn      : false
-  * RefOut     : false
-  * XorOut     : 0x0000
-  */
- static uint16_t enp_crc16(
-         const uint8_t *data,
-         size_t length)
- {
-     uint16_t crc = ENP_CRC16_INITIAL;
-
-     if ((data == NULL) && (length != 0U))
-     {
-         return 0U;
-     }
-
-     for (size_t index = 0U;
-          index < length;
-          ++index)
-     {
-         crc ^=
-                 (uint16_t)data[index] << 8U;
-
-         for (uint8_t bit = 0U;
-              bit < 8U;
-              ++bit)
-         {
-             if ((crc & 0x8000U) != 0U)
-             {
-                 crc =
-                         (uint16_t)
-                         ((crc << 1U) ^
-                          ENP_CRC16_POLYNOMIAL);
-             }
-             else
-             {
-                 crc =
-                         (uint16_t)
-                         (crc << 1U);
-             }
-         }
-     }
-
-     return crc;
- }
-
- /*----------------------------------------------------------
-  * Private Serialization Helpers
+  * Little-Endian Helpers
   *---------------------------------------------------------*/
 
  static void enp_write_u16_le(

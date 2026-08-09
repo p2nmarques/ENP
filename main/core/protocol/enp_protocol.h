@@ -8,7 +8,13 @@
  /**
   * @file enp_protocol.h
   *
-  * @brief ENP protocol definitions.
+  * @brief ENP v0.2 wire protocol definitions.
+  *
+  * This file contains constants and enumerations that define
+  * the ENP wire protocol.
+  *
+  * It does not define packet storage or packet manipulation.
+  * Those responsibilities belong to enp_packet.h/.c.
   */
 
  #ifndef ENP_PROTOCOL_H
@@ -22,58 +28,82 @@
  #endif
 
  /*----------------------------------------------------------
-  * Protocol Version
+  * Protocol Identity
   *---------------------------------------------------------*/
+
+ /**
+  * @brief ENP protocol magic value.
+  *
+  * The magic value identifies an ENP frame.
+  */
+ #define ENP_PROTOCOL_MAGIC        0x45534E57UL
 
  /**
   * @brief ENP wire protocol version.
   *
-  * This value identifies the ENP protocol version carried
-  * in every frame header.
+  * This is the wire-format version and is independent from
+  * the ENP software/library version.
   */
- #define ENP_PROTOCOL_VERSION      ((uint8_t)1U)
+ #define ENP_PROTOCOL_VERSION      1U
 
  /*----------------------------------------------------------
-  * Protocol Constants
+  * Frame Limits
   *---------------------------------------------------------*/
 
  /**
-  * @brief ENP protocol magic.
+  * @brief Maximum ENP frame size.
+  *
+  * This includes:
+  *
+  * - Header
+  * - Payload
+  * - CRC16
   */
- #define ENP_PROTOCOL_MAGIC        ((uint32_t)0x454E5001UL)
-
- /**
-  * @brief Maximum packet time-to-live.
-  */
- #define ENP_MAX_TTL               ((uint8_t)16U)
-
- /**
-  * @brief Default packet time-to-live.
-  */
- #define ENP_DEFAULT_TTL           ENP_MAX_TTL
+ #define ENP_MAX_FRAME_SIZE        250U
 
  /*----------------------------------------------------------
   * Packet Types
   *---------------------------------------------------------*/
 
  /**
-  * @brief ENP packet types.
+  * @brief ENP packet type.
   */
  typedef enum
  {
+     /**
+      * Invalid / uninitialized packet type.
+      */
      ENP_PACKET_INVALID = 0,
 
-     ENP_PACKET_DISCOVERY,
+     /**
+      * Network discovery packet.
+      */
+     ENP_PACKET_DISCOVERY = 1,
 
-     ENP_PACKET_HEARTBEAT,
+     /**
+      * Heartbeat packet.
+      */
+     ENP_PACKET_HEARTBEAT = 2,
 
-     ENP_PACKET_SENSOR,
+     /**
+      * Sensor/application telemetry packet.
+      */
+     ENP_PACKET_SENSOR = 3,
 
-     ENP_PACKET_ACK,
+     /**
+      * Acknowledgement packet.
+      */
+     ENP_PACKET_ACK = 4,
 
-     ENP_PACKET_ROUTE,
+     /**
+      * Routing packet.
+      */
+     ENP_PACKET_ROUTE = 5,
 
-     ENP_PACKET_APPLICATION
+     /**
+      * Application-defined packet.
+      */
+     ENP_PACKET_APPLICATION = 6
 
  } enp_packet_type_t;
 
@@ -82,37 +112,104 @@
   *---------------------------------------------------------*/
 
  /**
-  * @brief Packet contains no flags.
+  * @brief ENP packet flags.
   */
- #define ENP_FLAG_NONE             ((uint8_t)0x00U)
+ typedef enum
+ {
+     /**
+      * No flags.
+      */
+     ENP_FLAG_NONE = 0x00,
+
+     /**
+      * Sender requests an acknowledgement.
+      */
+     ENP_FLAG_ACK_REQUIRED = 0x01,
+
+     /**
+      * Packet is broadcast.
+      */
+     ENP_FLAG_BROADCAST = 0x02,
+
+     /**
+      * Payload is encrypted.
+      */
+     ENP_FLAG_ENCRYPTED = 0x04
+
+ } enp_packet_flags_t;
+
+ /*----------------------------------------------------------
+  * TTL
+  *---------------------------------------------------------*/
 
  /**
-  * @brief Packet requires an acknowledgement.
+  * @brief Maximum packet hop limit.
   */
- #define ENP_FLAG_ACK_REQUIRED     ((uint8_t)(1U << 0))
+ #define ENP_MAX_TTL              16U
 
  /**
-  * @brief Packet is an acknowledgement.
+  * @brief Default packet hop limit.
   */
- #define ENP_FLAG_ACK              ((uint8_t)(1U << 1))
+ #define ENP_DEFAULT_TTL          ENP_MAX_TTL
+
+ /*----------------------------------------------------------
+  * CRC
+  *---------------------------------------------------------*/
 
  /**
-  * @brief Packet is a broadcast.
-  */
- #define ENP_FLAG_BROADCAST        ((uint8_t)(1U << 2))
-
- /**
-  * @brief Packet payload is encrypted.
-  */
- #define ENP_FLAG_ENCRYPTED        ((uint8_t)(1U << 3))
- 
- /**
-  * @brief ENP wire byte order.
+  * @brief ENP frame CRC algorithm.
   *
-  * Multi-byte integer fields in the ENP wire format are
-  * encoded using little-endian byte order.
+  * ENP v0.2 uses CRC-16/CCITT-FALSE.
+  *
+  * Polynomial : 0x1021
+  * Initial    : 0xFFFF
+  * RefIn      : false
+  * RefOut     : false
+  * XorOut     : 0x0000
+  *
+  * The resulting 16-bit CRC is serialized in little-endian
+  * byte order.
   */
- #define ENP_PROTOCOL_LITTLE_ENDIAN  1U
+
+ /*----------------------------------------------------------
+  * Protocol Header Sizes
+  *---------------------------------------------------------*/
+
+ /**
+  * @brief ENP logical address size.
+  *
+  * Network ID : 2 bytes
+  * Node ID    : 4 bytes
+  */
+ #define ENP_ADDRESS_SIZE         6U
+
+ /**
+  * @brief ENP v0.2 frame header size.
+  *
+  * Magic            4
+  * Version          1
+  * Type             1
+  * Flags            1
+  * TTL              1
+  * Source           6
+  * Destination      6
+  * Payload length   2
+  * Sequence         4
+  *
+  * Total           26 bytes.
+  */
+ #define ENP_HEADER_SIZE          26U
+
+ /**
+  * @brief ENP CRC size.
+  */
+ #define ENP_CRC_SIZE             2U
+
+ /**
+  * @brief Maximum ENP payload size.
+  */
+ #define ENP_MAX_PAYLOAD_SIZE \
+     (ENP_MAX_FRAME_SIZE - ENP_HEADER_SIZE - ENP_CRC_SIZE)
 
  #ifdef __cplusplus
  }
