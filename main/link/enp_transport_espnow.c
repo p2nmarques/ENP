@@ -398,52 +398,75 @@ static esp_err_t enp_transport_espnow_deinit(void)
  * Send
  *---------------------------------------------------------*/
 
-static esp_err_t enp_transport_espnow_send(
-        const enp_transport_address_t *destination,
-        const void *data,
-        size_t length)
-{
-    if ((destination == NULL) ||
-        (data == NULL) ||
-        (length == 0U))
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+ static esp_err_t enp_transport_espnow_send(
+         const enp_transport_address_t *destination,
+         const void *data,
+         size_t length)
+ {
+     if ((destination == NULL) ||
+         (data == NULL) ||
+         (length == 0U))
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
 
-    if (!s_initialized)
-    {
-        return ESP_ERR_INVALID_STATE;
-    }
+     if (!s_initialized)
+     {
+         return ESP_ERR_INVALID_STATE;
+     }
 
-    if (destination->length !=
-        ENP_ESPNOW_MAC_LENGTH)
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+     if (length > ENP_MAX_FRAME_SIZE)
+     {
+         return ESP_ERR_INVALID_SIZE;
+     }
 
-    /*
-     * ENP v0.2 intentionally uses the ESP-NOW v1-compatible
-     * 250-byte frame limit.
-     */
-    if (length > ENP_MAX_FRAME_SIZE)
-    {
-        return ESP_ERR_INVALID_SIZE;
-    }
+     /*
+      * Transport broadcast.
+      *
+      * A zero-length transport address means broadcast.
+      */
+     if (destination->length == 0U)
+     {
+         static const uint8_t broadcast_mac[
+                 ENP_ESPNOW_MAC_LENGTH] =
+         {
+             0xFFU,
+             0xFFU,
+             0xFFU,
+             0xFFU,
+             0xFFU,
+             0xFFU
+         };
 
-    esp_err_t err =
-            enp_transport_espnow_add_peer(
-                    destination->value);
+         return esp_now_send(
+                 broadcast_mac,
+                 (const uint8_t *)data,
+                 length);
+     }
 
-    if (err != ESP_OK)
-    {
-        return err;
-    }
+     /*
+      * Unicast.
+      */
+     if (destination->length !=
+         ENP_ESPNOW_MAC_LENGTH)
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
 
-    return esp_now_send(
-            destination->value,
-            (const uint8_t *)data,
-            length);
-}
+     esp_err_t err =
+             enp_transport_espnow_add_peer(
+                     destination->value);
+
+     if (err != ESP_OK)
+     {
+         return err;
+     }
+
+     return esp_now_send(
+             destination->value,
+             (const uint8_t *)data,
+             length);
+ }
 
 /*----------------------------------------------------------
  * Receive Callback Registration

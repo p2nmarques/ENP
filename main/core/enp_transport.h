@@ -33,18 +33,22 @@
  {
  #endif
 
- /*----------------------------------------------------------
-  * Transport Address
-  *---------------------------------------------------------*/
-
  /**
   * @brief Transport-specific address.
   *
   * The interpretation of this address is defined by the
   * active transport implementation.
   *
-  * For ESP-NOW this will normally contain a 6-byte MAC
+  * A length of zero represents the transport broadcast
   * address.
+  *
+  * For ESP-NOW:
+  *
+  *     length == 0
+  *         -> FF:FF:FF:FF:FF:FF
+  *
+  *     length == 6
+  *         -> unicast MAC address
   */
  typedef struct
  {
@@ -184,6 +188,9 @@
  esp_err_t enp_transport_set_receive_callback(
          enp_transport_t *transport,
          enp_transport_receive_callback_t callback);
+		 
+		 
+	
 
  #ifdef __cplusplus
  }

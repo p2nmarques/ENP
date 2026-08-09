@@ -12,7 +12,7 @@ idf_component_register(
         "core/enp_context.c"
         "core/enp_transport.c"
         "core/dispatcher/enp_dispatcher.c"
-        "core/dispatcher/enp_neighbor.c"
+        "core/network/enp_neighbor.c"
         "core/protocol/enp_crc16.c"
         "core/protocol/enp_packet.c"
         "core/service/discovery/enp_service_discovery.c"

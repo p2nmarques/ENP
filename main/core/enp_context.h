@@ -19,9 +19,9 @@
  #include "esp_err.h"
 
  #include "config/enp_config.h"
- #include "core/dispatcher/enp_neighbor.h"
  #include "enp_network.h"
  #include "enp_transport.h"
+#include "network/enp_neighbor.h"
 
  #ifdef __cplusplus
  extern "C"

@@ -11,9 +11,9 @@
   * @brief ENP neighbor table implementation.
   */
 
- #include "enp_neighbor.h"
+ #include "../network/enp_neighbor.h"
 
- #include <string.h>
+#include <string.h>
 
  /*----------------------------------------------------------
   * Private Helpers
