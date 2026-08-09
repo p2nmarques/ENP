@@ -15,7 +15,9 @@ idf_component_register(
         "core/protocol/enp_packet.c"
         "core/protocol/enp_crc16.c"
         "core/utils/utils.c"
-        "core/stats/stats.c"     # list the source files of this component
+        "core/stats/stats.c"
+        "link/enp_transport_espnow.c"
+        "link/enp_transport_wifi.c"     # list the source files of this component
     INCLUDE_DIRS  "."      # optional, add here public include directories
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES 

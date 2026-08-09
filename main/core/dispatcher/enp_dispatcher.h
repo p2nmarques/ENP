@@ -5,29 +5,126 @@
  *      Author: Pedro Marques
  */
 
-#ifndef EN_DISPATCHER_H
-#define EN_DISPATCHER_H
+ /**
+  * @file enp_dispatcher.h
+  *
+  * @brief ENP packet dispatcher.
+  *
+  * The dispatcher validates complete ENP frames and routes
+  * them to registered services according to packet type.
+  */
 
-#include "esp_err.h"
+ #ifndef ENP_DISPATCHER_H
+ #define ENP_DISPATCHER_H
 
-#include "core/enp_context.h"
-#include "core/service/enp_service.h"
+ #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ #include "esp_err.h"
 
-esp_err_t enp_dispatcher_init(
-        enp_context_t *context);
+ #include "core/enp_context.h"
+ #include "core/protocol/enp_packet.h"
+ #include "core/service/enp_service.h"
 
-esp_err_t enp_dispatcher_register(
-        const enp_service_t *service);
+ #ifdef __cplusplus
+ extern "C"
+ {
+ #endif
 
-esp_err_t enp_dispatcher_dispatch(
-        const enp_packet_t *packet);
+ /*----------------------------------------------------------
+  * Configuration
+  *---------------------------------------------------------*/
 
-#ifdef __cplusplus
-}
-#endif
+ /**
+  * @brief Maximum number of services that can be registered.
+  */
+ #define ENP_DISPATCHER_MAX_SERVICES 16U
 
-#endif
+ /*----------------------------------------------------------
+  * Lifecycle
+  *---------------------------------------------------------*/
+
+ /**
+  * @brief Initialize the ENP dispatcher.
+  *
+  * @param context ENP runtime context.
+  *
+  * @return ESP_OK on success.
+  * @return ESP_ERR_INVALID_ARG for invalid arguments.
+  */
+ esp_err_t enp_dispatcher_init(
+         enp_context_t *context);
+
+ /**
+  * @brief Deinitialize the ENP dispatcher.
+  *
+  * The dispatcher does not own the registered service
+  * descriptors. Service descriptors must remain valid for
+  * as long as they are registered.
+  *
+  * @return ESP_OK on success.
+  */
+ esp_err_t enp_dispatcher_deinit(void);
+
+ /*----------------------------------------------------------
+  * Service Registration
+  *---------------------------------------------------------*/
+
+ /**
+  * @brief Register an ENP service.
+  *
+  * A service handles one ENP packet type.
+  *
+  * Two services cannot register the same packet type.
+  *
+  * @param service Service descriptor.
+  *
+  * @return ESP_OK on success.
+  * @return ESP_ERR_INVALID_ARG for invalid arguments.
+  * @return ESP_ERR_INVALID_STATE if the packet type is
+  *         already registered or the dispatcher is not
+  *         initialized.
+  * @return ESP_ERR_NO_MEM if the service table is full.
+  */
+ esp_err_t enp_dispatcher_register(
+         const enp_service_t *service);
+
+ /*----------------------------------------------------------
+  * Packet Dispatch
+  *---------------------------------------------------------*/
+
+ /**
+  * @brief Dispatch an ENP packet.
+  *
+  * The packet is validated before it is passed to a service.
+  *
+  * Processing flow:
+  *
+  *     packet
+  *       |
+  *       +-- enp_packet_verify()
+  *       |
+  *       +-- obtain header
+  *       |
+  *       +-- identify packet type
+  *       |
+  *       +-- locate service
+  *       |
+  *       +-- service->process()
+  *
+  * @param packet Complete ENP packet.
+  *
+  * @return ESP_OK if the packet was processed successfully.
+  * @return ESP_ERR_INVALID_ARG if the packet is invalid.
+  * @return ESP_ERR_INVALID_STATE if the dispatcher is not
+  *         initialized.
+  * @return ESP_ERR_NOT_FOUND if no service handles the packet.
+  * @return Service-specific error otherwise.
+  */
+ esp_err_t enp_dispatcher_dispatch(
+         const enp_packet_t *packet);
+
+ #ifdef __cplusplus
+ }
+ #endif
+
+ #endif /* ENP_DISPATCHER_H */
