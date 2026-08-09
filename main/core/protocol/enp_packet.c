@@ -22,21 +22,46 @@
   * Private Constants
   *---------------------------------------------------------*/
 
- #define ENP_HEADER_SIZE        ((size_t)sizeof(enp_header_t))
- #define ENP_CRC_SIZE           ((size_t)sizeof(uint16_t))
+ #define ENP_HEADER_SIZE \
+     ((size_t)sizeof(enp_header_t))
 
- #define ENP_PACKET_OVERHEAD    (ENP_HEADER_SIZE + ENP_CRC_SIZE)
+ #define ENP_CRC_SIZE \
+     ((size_t)sizeof(uint16_t))
 
- #define ENP_PACKET_MIN_SIZE    ENP_PACKET_OVERHEAD
+ #define ENP_PACKET_OVERHEAD \
+     (ENP_HEADER_SIZE + ENP_CRC_SIZE)
+
+ #define ENP_PACKET_MIN_SIZE \
+     ENP_PACKET_OVERHEAD
+
+ /*----------------------------------------------------------
+  * Compile-Time Validation
+  *---------------------------------------------------------*/
+
+ _Static_assert(
+         sizeof(enp_header_t) < ENP_MAX_PACKET_SIZE,
+         "ENP header exceeds maximum packet size");
+
+ _Static_assert(
+         sizeof(enp_sequence_t) == sizeof(uint32_t),
+         "Unexpected ENP sequence number size");
+
+ _Static_assert(
+         sizeof(enp_node_id_t) == sizeof(uint32_t),
+         "Unexpected ENP node ID size");
+
+ _Static_assert(
+         sizeof(enp_network_id_t) == sizeof(uint16_t),
+         "Unexpected ENP network ID size");
 
  /*----------------------------------------------------------
   * Private Functions
   *---------------------------------------------------------*/
 
- static uint16_t *packet_crc(
+ static uint16_t *enp_packet_crc(
          enp_packet_t *packet);
 
- static const uint16_t *packet_crc_const(
+ static const uint16_t *enp_packet_crc_const(
          const enp_packet_t *packet);
 
  /*----------------------------------------------------------
@@ -46,7 +71,7 @@
  void enp_packet_init(
          enp_packet_t *packet,
          enp_packet_type_t type,
-         enp_node_id_t source)
+         const enp_address_t *source)
  {
      if (packet == NULL)
      {
@@ -58,9 +83,9 @@
      enp_header_t *header =
              enp_packet_header(packet);
 
-     header->magic = ENP_PACKET_MAGIC;
+     header->magic = ENP_PROTOCOL_MAGIC;
 
-     header->version = ENP_PROTOCOL_VERSION_MINOR;
+     header->version = ENP_PROTOCOL_VERSION;
 
      header->type = (uint8_t)type;
 
@@ -68,7 +93,10 @@
 
      header->ttl = ENP_DEFAULT_TTL;
 
-     header->source = source;
+     if (source != NULL)
+     {
+         header->source = *source;
+     }
  }
 
  void *enp_packet_data(
@@ -79,7 +107,7 @@
          return NULL;
      }
 
-     return packet->data;
+     return packet->buffer;
  }
 
  const void *enp_packet_data_const(
@@ -90,19 +118,29 @@
          return NULL;
      }
 
-     return packet->data;
+     return packet->buffer;
  }
 
  enp_header_t *enp_packet_header(
          enp_packet_t *packet)
  {
-     return (enp_header_t *)enp_packet_data(packet);
+     if (packet == NULL)
+     {
+         return NULL;
+     }
+
+     return (enp_header_t *)packet->buffer;
  }
 
  const enp_header_t *enp_packet_header_const(
          const enp_packet_t *packet)
  {
-     return (const enp_header_t *)enp_packet_data_const(packet);
+     if (packet == NULL)
+     {
+         return NULL;
+     }
+
+     return (const enp_header_t *)packet->buffer;
  }
 
  void *enp_packet_payload(
@@ -113,8 +151,7 @@
          return NULL;
      }
 
-     return ((uint8_t *)enp_packet_data(packet)) +
-            ENP_HEADER_SIZE;
+     return packet->buffer + ENP_HEADER_SIZE;
  }
 
  const void *enp_packet_payload_const(
@@ -125,8 +162,7 @@
          return NULL;
      }
 
-     return ((const uint8_t *)enp_packet_data_const(packet)) +
-            ENP_HEADER_SIZE;
+     return packet->buffer + ENP_HEADER_SIZE;
  }
 
  size_t enp_packet_length(
@@ -134,14 +170,19 @@
  {
      if (packet == NULL)
      {
-         return 0;
+         return 0U;
      }
 
      const enp_header_t *header =
              enp_packet_header_const(packet);
 
+     if (header == NULL)
+     {
+         return 0U;
+     }
+
      return ENP_PACKET_OVERHEAD +
-            header->payload_length;
+            (size_t)header->payload_length;
  }
 
  esp_err_t enp_packet_seal(
@@ -153,23 +194,36 @@
          return ESP_ERR_INVALID_ARG;
      }
 
-     enp_header_t *header =
-             enp_packet_header(packet);
-
-     header->payload_length = payload_length;
-
      const size_t length =
-             enp_packet_length(packet);
+             ENP_PACKET_OVERHEAD +
+             (size_t)payload_length;
 
      if (length > ENP_MAX_PACKET_SIZE)
      {
          return ESP_ERR_INVALID_SIZE;
      }
 
-     *packet_crc(packet) =
-             enp_crc16(
-                     enp_packet_data_const(packet),
-                     length - ENP_CRC_SIZE);
+     enp_header_t *header =
+             enp_packet_header(packet);
+
+     if (header == NULL)
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     header->payload_length = payload_length;
+
+     uint16_t *crc =
+             enp_packet_crc(packet);
+
+     if (crc == NULL)
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     *crc = enp_crc16(
+             enp_packet_data_const(packet),
+             length - ENP_CRC_SIZE);
 
      return ESP_OK;
  }
@@ -194,43 +248,87 @@
      const enp_header_t *header =
              enp_packet_header_const(packet);
 
-     if ((header->magic != ENP_PACKET_MAGIC) ||
-         (header->version != ENP_PROTOCOL_VERSION_MINOR))
+     if (header == NULL)
      {
          return false;
      }
 
-     const uint16_t calculated =
+     if (header->magic != ENP_PROTOCOL_MAGIC)
+     {
+         return false;
+     }
+
+     if (header->version != ENP_PROTOCOL_VERSION)
+     {
+         return false;
+     }
+
+     if (header->ttl > ENP_MAX_TTL)
+     {
+         return false;
+     }
+
+     const uint16_t calculated_crc =
              enp_crc16(
                      enp_packet_data_const(packet),
                      length - ENP_CRC_SIZE);
 
-     return (calculated ==
-             *packet_crc_const(packet));
+     const uint16_t received_crc =
+             *enp_packet_crc_const(packet);
+
+     return calculated_crc == received_crc;
  }
 
  /*----------------------------------------------------------
   * Private Functions
   *---------------------------------------------------------*/
 
- static uint16_t *packet_crc(
+ static uint16_t *enp_packet_crc(
          enp_packet_t *packet)
  {
+     if (packet == NULL)
+     {
+         return NULL;
+     }
+
+     const size_t length =
+             enp_packet_length(packet);
+
+     if ((length < ENP_PACKET_MIN_SIZE) ||
+         (length > ENP_MAX_PACKET_SIZE))
+     {
+         return NULL;
+     }
+
      return (uint16_t *)
      (
-         ((uint8_t *)enp_packet_data(packet)) +
-         enp_packet_length(packet) -
+         packet->buffer +
+         length -
          ENP_CRC_SIZE
      );
  }
 
- static const uint16_t *packet_crc_const(
+ static const uint16_t *enp_packet_crc_const(
          const enp_packet_t *packet)
  {
+     if (packet == NULL)
+     {
+         return NULL;
+     }
+
+     const size_t length =
+             enp_packet_length(packet);
+
+     if ((length < ENP_PACKET_MIN_SIZE) ||
+         (length > ENP_MAX_PACKET_SIZE))
+     {
+         return NULL;
+     }
+
      return (const uint16_t *)
      (
-         ((const uint8_t *)enp_packet_data_const(packet)) +
-         enp_packet_length(packet) -
+         packet->buffer +
+         length -
          ENP_CRC_SIZE
      );
  }
