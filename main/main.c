@@ -338,50 +338,42 @@ void app_main(void)
             TAG,
             "ENP dispatcher initialized");
 
-    /*------------------------------------------------------
-     * Services
-     *-----------------------------------------------------*/
+			/*------------------------------------------------------
+			 * Services
+			 *-----------------------------------------------------*/
 
-#if ENP_FEATURE_DISCOVERY
+			ESP_ERROR_CHECK(
+			        enp_dispatcher_register(
+			                enp_service_discovery_get()));
 
-    ESP_ERROR_CHECK(
-            enp_dispatcher_register(
-                    enp_service_discovery_get()));
+			ESP_LOGI(
+			        TAG,
+			        "Discovery service registered");
 
-    ESP_LOGI(
-            TAG,
-            "Discovery service registered");
+			/*------------------------------------------------------
+			 * Transport receive path
+			 *-----------------------------------------------------*/
 
-#endif
+			ESP_ERROR_CHECK(
+			        enp_transport_set_receive_callback(
+			                s_context.transport,
+			                enp_receive_callback));
 
-    /*------------------------------------------------------
-     * Transport receive path
-     *-----------------------------------------------------*/
+			ESP_LOGI(
+			        TAG,
+			        "ENP receive path configured");
 
-    ESP_ERROR_CHECK(
-            enp_transport_set_receive_callback(
-                    s_context.transport,
-                    enp_receive_callback));
+			/*------------------------------------------------------
+			 * Initial Discovery
+			 *-----------------------------------------------------*/
 
-    ESP_LOGI(
-            TAG,
-            "ENP receive path configured");
+			ESP_ERROR_CHECK(
+			        enp_service_discovery_send(
+			                &s_context));
 
-    /*------------------------------------------------------
-     * Initial Discovery
-     *-----------------------------------------------------*/
-
-#if ENP_FEATURE_DISCOVERY
-
-    ESP_ERROR_CHECK(
-            enp_service_discovery_send(
-                    &s_context));
-
-    ESP_LOGI(
-            TAG,
-            "Initial discovery announcement sent");
-
-#endif
+			ESP_LOGI(
+			        TAG,
+			        "Initial discovery announcement sent");
 
     /*------------------------------------------------------
      * Startup complete

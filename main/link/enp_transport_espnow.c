@@ -5,9 +5,17 @@
  *
  * Target platform:
  *     ESP-IDF 6.0.2
+ *
+ * Design:
+ *     - ESP-NOW callback performs no blocking work.
+ *     - Received frames are copied into a StaticQueue.
+ *     - A StaticTask processes received frames.
+ *     - The transport is protocol-agnostic.
+ *     - A zero-length transport address represents broadcast.
  */
 
 #include "enp_transport_espnow.h"
+
 #include "core/protocol/enp_protocol.h"
 
 #include <stdbool.h>
@@ -37,6 +45,21 @@
 
 static const char *TAG =
         "enp_espnow";
+
+/*----------------------------------------------------------
+ * Broadcast Address
+ *---------------------------------------------------------*/
+
+static const uint8_t s_broadcast_mac[
+        ENP_ESPNOW_MAC_LENGTH] =
+{
+    0xFFU,
+    0xFFU,
+    0xFFU,
+    0xFFU,
+    0xFFU,
+    0xFFU
+};
 
 /*----------------------------------------------------------
  * Queue Events
@@ -74,7 +97,7 @@ static uint8_t s_queue_storage[
         ENP_ESPNOW_QUEUE_LENGTH *
         sizeof(enp_espnow_event_t)];
 
-static QueueHandle_t s_queue;
+static QueueHandle_t s_queue = NULL;
 
 /*----------------------------------------------------------
  * Static Task
@@ -85,18 +108,18 @@ static StackType_t s_task_stack[
 
 static StaticTask_t s_task_control;
 
-static TaskHandle_t s_task;
+static TaskHandle_t s_task = NULL;
 
 /*----------------------------------------------------------
  * Runtime State
  *---------------------------------------------------------*/
 
-static bool s_initialized;
+static bool s_initialized = false;
 
-static bool s_task_running;
+static bool s_task_running = false;
 
 static enp_transport_receive_callback_t
-        s_receive_callback;
+        s_receive_callback = NULL;
 
 /*----------------------------------------------------------
  * Forward Declarations
@@ -105,7 +128,8 @@ static enp_transport_receive_callback_t
 static esp_err_t enp_transport_espnow_init(
         const enp_config_t *config);
 
-static esp_err_t enp_transport_espnow_deinit(void);
+static esp_err_t enp_transport_espnow_deinit(
+        void);
 
 static esp_err_t enp_transport_espnow_send(
         const enp_transport_address_t *destination,
@@ -117,6 +141,9 @@ static esp_err_t enp_transport_espnow_set_receive_callback(
 
 static esp_err_t enp_transport_espnow_add_peer(
         const uint8_t *mac);
+
+static esp_err_t enp_transport_espnow_add_broadcast_peer(
+        void);
 
 static void enp_transport_espnow_task(
         void *argument);
@@ -177,7 +204,7 @@ static esp_err_t enp_transport_espnow_init(
 
     /*
      * Wi-Fi is expected to have already been initialized
-     * and started by the application.
+     * and connected by the application.
      */
     esp_err_t err =
             esp_now_init();
@@ -188,6 +215,68 @@ static esp_err_t enp_transport_espnow_init(
                 TAG,
                 "esp_now_init failed: %s",
                 esp_err_to_name(err));
+
+        return err;
+    }
+
+    /*
+     * Register ESP-NOW receive callback.
+     */
+    err =
+            esp_now_register_recv_cb(
+                    enp_transport_espnow_receive_callback);
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(
+                TAG,
+                "Receive callback registration failed: %s",
+                esp_err_to_name(err));
+
+        (void)esp_now_deinit();
+
+        return err;
+    }
+
+    /*
+     * Register ESP-NOW send callback.
+     */
+    err =
+            esp_now_register_send_cb(
+                    enp_transport_espnow_send_callback);
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(
+                TAG,
+                "Send callback registration failed: %s",
+                esp_err_to_name(err));
+
+        (void)esp_now_unregister_recv_cb();
+        (void)esp_now_deinit();
+
+        return err;
+    }
+
+    /*
+     * Add the ESP-NOW broadcast peer.
+     *
+     * ESP-NOW requires the broadcast destination to exist
+     * in the peer list before esp_now_send() can use it.
+     */
+    err =
+            enp_transport_espnow_add_broadcast_peer();
+
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(
+                TAG,
+                "Failed to add broadcast peer: %s",
+                esp_err_to_name(err));
+
+        (void)esp_now_unregister_send_cb();
+        (void)esp_now_unregister_recv_cb();
+        (void)esp_now_deinit();
 
         return err;
     }
@@ -206,8 +295,10 @@ static esp_err_t enp_transport_espnow_init(
     {
         ESP_LOGE(
                 TAG,
-                "Failed to create queue");
+                "Failed to create static queue");
 
+        (void)esp_now_unregister_send_cb();
+        (void)esp_now_unregister_recv_cb();
         (void)esp_now_deinit();
 
         return ESP_FAIL;
@@ -230,69 +321,25 @@ static esp_err_t enp_transport_espnow_init(
 
     if (s_task == NULL)
     {
+        ESP_LOGE(
+                TAG,
+                "Failed to create static worker task");
+
         s_task_running = false;
         s_queue = NULL;
 
+        (void)esp_now_unregister_send_cb();
+        (void)esp_now_unregister_recv_cb();
         (void)esp_now_deinit();
 
         return ESP_FAIL;
     }
 
-    /*
-     * Register ESP-NOW receive callback.
-     */
-    err =
-            esp_now_register_recv_cb(
-                    enp_transport_espnow_receive_callback);
-
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(
-                TAG,
-                "Receive callback registration failed: %s",
-                esp_err_to_name(err));
-
-        s_task_running = false;
-
-        vTaskDelete(s_task);
-
-        s_task = NULL;
-        s_queue = NULL;
-
-        (void)esp_now_deinit();
-
-        return err;
-    }
-
-    /*
-     * Register ESP-NOW send callback.
-     */
-    err =
-            esp_now_register_send_cb(
-                    enp_transport_espnow_send_callback);
-
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(
-                TAG,
-                "Send callback registration failed: %s",
-                esp_err_to_name(err));
-
-        (void)esp_now_unregister_recv_cb();
-
-        s_task_running = false;
-
-        vTaskDelete(s_task);
-
-        s_task = NULL;
-        s_queue = NULL;
-
-        (void)esp_now_deinit();
-
-        return err;
-    }
-
     s_initialized = true;
+
+    ESP_LOGI(
+            TAG,
+            "ESP-NOW broadcast peer configured");
 
     ESP_LOGI(
             TAG,
@@ -305,17 +352,21 @@ static esp_err_t enp_transport_espnow_init(
  * Deinitialization
  *---------------------------------------------------------*/
 
-static esp_err_t enp_transport_espnow_deinit(void)
+static esp_err_t enp_transport_espnow_deinit(
+        void)
 {
     if (!s_initialized)
     {
         return ESP_OK;
     }
 
+    /*
+     * Prevent new application-level receive callbacks.
+     */
     s_receive_callback = NULL;
 
     /*
-     * Stop new receive callbacks.
+     * Stop ESP-NOW callbacks.
      */
     esp_err_t err =
             esp_now_unregister_recv_cb();
@@ -356,9 +407,9 @@ static esp_err_t enp_transport_espnow_deinit(void)
                     pdMS_TO_TICKS(100)) != pdTRUE)
         {
             /*
-             * The queue may be full. At this stage the
-             * transport is already shutting down, so the
-             * task can be deleted as a fallback.
+             * Queue may be full. The transport is already
+             * shutting down, so delete the worker task as
+             * a fallback.
              */
             s_task_running = false;
 
@@ -373,6 +424,8 @@ static esp_err_t enp_transport_espnow_deinit(void)
 
     /*
      * Deinitialize ESP-NOW.
+     *
+     * ESP-NOW releases its peer table during deinit.
      */
     err =
             esp_now_deinit();
@@ -398,75 +451,78 @@ static esp_err_t enp_transport_espnow_deinit(void)
  * Send
  *---------------------------------------------------------*/
 
- static esp_err_t enp_transport_espnow_send(
-         const enp_transport_address_t *destination,
-         const void *data,
-         size_t length)
- {
-     if ((destination == NULL) ||
-         (data == NULL) ||
-         (length == 0U))
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+static esp_err_t enp_transport_espnow_send(
+        const enp_transport_address_t *destination,
+        const void *data,
+        size_t length)
+{
+    if ((destination == NULL) ||
+        (data == NULL) ||
+        (length == 0U))
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-     if (!s_initialized)
-     {
-         return ESP_ERR_INVALID_STATE;
-     }
+    if (!s_initialized)
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
 
-     if (length > ENP_MAX_FRAME_SIZE)
-     {
-         return ESP_ERR_INVALID_SIZE;
-     }
+    if (length > ENP_MAX_FRAME_SIZE)
+    {
+        return ESP_ERR_INVALID_SIZE;
+    }
 
-     /*
-      * Transport broadcast.
-      *
-      * A zero-length transport address means broadcast.
-      */
-     if (destination->length == 0U)
-     {
-         static const uint8_t broadcast_mac[
-                 ENP_ESPNOW_MAC_LENGTH] =
-         {
-             0xFFU,
-             0xFFU,
-             0xFFU,
-             0xFFU,
-             0xFFU,
-             0xFFU
-         };
+    /*
+     * Transport-level broadcast.
+     *
+     * ENP defines:
+     *
+     *     destination->length == 0
+     *
+     * as broadcast.
+     *
+     * The ESP-NOW implementation maps this to:
+     *
+     *     FF:FF:FF:FF:FF:FF
+     *
+     * The broadcast peer was already installed during
+     * transport initialization.
+     */
+    if (destination->length == 0U)
+    {
+        return esp_now_send(
+                s_broadcast_mac,
+                (const uint8_t *)data,
+                length);
+    }
 
-         return esp_now_send(
-                 broadcast_mac,
-                 (const uint8_t *)data,
-                 length);
-     }
+    /*
+     * ESP-NOW unicast addresses are six bytes.
+     */
+    if (destination->length !=
+        ENP_ESPNOW_MAC_LENGTH)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-     /*
-      * Unicast.
-      */
-     if (destination->length !=
-         ENP_ESPNOW_MAC_LENGTH)
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+    /*
+     * Add the unicast peer if necessary.
+     */
+    esp_err_t err =
+            enp_transport_espnow_add_peer(
+                    destination->value);
 
-     esp_err_t err =
-             enp_transport_espnow_add_peer(
-                     destination->value);
+    if (err != ESP_OK)
+    {
+        return err;
+    }
 
-     if (err != ESP_OK)
-     {
-         return err;
-     }
-
-     return esp_now_send(
-             destination->value,
-             (const uint8_t *)data,
-             length);
- }
+    return esp_now_send(
+            destination->value,
+            (const uint8_t *)data,
+            length);
+}
 
 /*----------------------------------------------------------
  * Receive Callback Registration
@@ -520,17 +576,88 @@ static esp_err_t enp_transport_espnow_add_peer(
             mac,
             ESP_NOW_ETH_ALEN);
 
-    peer.ifidx =
-            WIFI_IF_STA;
-
+    /*
+     * Channel 0 means the current Wi-Fi channel.
+     *
+     * This is important because ENP is currently running
+     * ESP-NOW over the STA interface.
+     */
     peer.channel =
             0;
+
+    peer.ifidx =
+            WIFI_IF_STA;
 
     peer.encrypt =
             false;
 
-    return esp_now_add_peer(
-            &peer);
+    esp_err_t err =
+            esp_now_add_peer(&peer);
+
+    if (err == ESP_ERR_ESPNOW_EXIST)
+    {
+        return ESP_OK;
+    }
+
+    return err;
+}
+
+/*----------------------------------------------------------
+ * Broadcast Peer
+ *---------------------------------------------------------*/
+
+static esp_err_t enp_transport_espnow_add_broadcast_peer(
+        void)
+{
+    /*
+     * Do not add the broadcast peer twice.
+     */
+    if (esp_now_is_peer_exist(
+                s_broadcast_mac))
+    {
+        return ESP_OK;
+    }
+
+    esp_now_peer_info_t peer;
+
+    memset(
+            &peer,
+            0,
+            sizeof(peer));
+
+    memcpy(
+            peer.peer_addr,
+            s_broadcast_mac,
+            ENP_ESPNOW_MAC_LENGTH);
+
+    /*
+     * Use the current Wi-Fi channel.
+     */
+    peer.channel =
+            0;
+
+    /*
+     * ESP-NOW is currently operating through the STA
+     * interface.
+     */
+    peer.ifidx =
+            WIFI_IF_STA;
+
+    /*
+     * Discovery broadcast is not encrypted.
+     */
+    peer.encrypt =
+            false;
+
+    esp_err_t err =
+            esp_now_add_peer(&peer);
+
+    if (err == ESP_ERR_ESPNOW_EXIST)
+    {
+        return ESP_OK;
+    }
+
+    return err;
 }
 
 /*----------------------------------------------------------
@@ -599,6 +726,18 @@ static void enp_transport_espnow_receive_callback(
     {
         return;
     }
+	
+	ESP_LOGI(
+	            TAG,
+	            "ESP-NOW RX: %d bytes from "
+	            "%02X:%02X:%02X:%02X:%02X:%02X",
+	            data_len,
+	            info->src_addr[0],
+	            info->src_addr[1],
+	            info->src_addr[2],
+	            info->src_addr[3],
+	            info->src_addr[4],
+	            info->src_addr[5]);
 
     if (data_len >
         (int)ENP_MAX_FRAME_SIZE)
@@ -638,7 +777,11 @@ static void enp_transport_espnow_receive_callback(
             event.length);
 
     /*
-     * Never block the Wi-Fi task.
+     * Never block the ESP-NOW/Wi-Fi callback.
+     *
+     * If the queue is full, the frame is intentionally
+     * dropped. ENP reliability/retry mechanisms belong
+     * above this transport layer.
      */
     (void)xQueueSend(
             s_queue,
@@ -655,9 +798,11 @@ static void enp_transport_espnow_send_callback(
         esp_now_send_status_t status)
 {
     /*
+     * The send callback executes in the ESP-NOW context.
+     *
      * Do not perform lengthy processing here.
      *
-     * Future TX statistics/retry handling should post
+     * Future ENP TX statistics/retry handling should post
      * an event to a lower-priority task.
      */
     (void)tx_info;
