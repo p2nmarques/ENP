@@ -1,17 +1,12 @@
 # ENP — ESP Network Protocol
 
-**Version:** 0.2.0  
-**Status:** Core Discovery path hardware-validated  
-**Target:** ESP-IDF 6.0.2  
-**Primary transport:** ESP-NOW
+![Status](https://img.shields.io/badge/status-v0.2.0--draft-blue)
+![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.0.2-red)
+![License](https://img.shields.io/badge/license-GPLv3.0-green)
 
 ENP (ESP Network Protocol) is a lightweight, modular, transport-independent networking layer for ESP32 systems.
 
 ENP is intended to provide a protocol and networking layer above transports such as ESP-NOW without exposing transport-specific details to services and applications.
-
-![Status](https://img.shields.io/badge/status-v0.2.0-blue)
-![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.0.2-red)
-![License](https://img.shields.io/badge/license-GPLv3.0-green)
 
 ---
 
