@@ -32,10 +32,6 @@
 - [x] Neighbor table update
 - [x] Bidirectional two-node hardware validation
 
----
-
-## Immediate next milestone
-
 ### Periodic Discovery
 
 - [x] Define Discovery announcement interval: 2 seconds.
@@ -49,20 +45,11 @@
 - [x] Add periodic neighbor maintenance.
 - [x] Mark inactive neighbors `STALE`.
 - [x] Define current policy: retain stale entries for reuse.
-- [ ] Validate with node power-off/recovery hardware tests.
-
-A sensible initial relationship is:
-
-```text
-Discovery interval: 2 seconds
-Neighbor timeout:   6 seconds
-```
-
-These values are proposed, not yet frozen.
+- [X] Validate with node power-off/recovery hardware tests.
 
 ---
 
-## After Discovery aging
+## Immediate next milestone
 
 ### Sequence and duplicate handling
 
