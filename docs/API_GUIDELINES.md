@@ -1,576 +1,259 @@
 # ENP API Guidelines
 
-**ESP Network Protocol**
-
-Version: 0.2.0
-
-Status: Draft
+**Version:** 0.2.0  
+**Status:** Active
 
 ---
 
-# Purpose
+# 1. Purpose
 
-This document defines the API design principles and coding conventions used throughout the ENP project.
+These guidelines define the API and layering rules for ENP.
 
-Its goals are to:
-
-- Keep the public API small and consistent.
-- Encourage modular development.
-- Minimize coupling between components.
-- Make ENP easy to extend and maintain.
-- Preserve backward compatibility whenever possible.
-
-These guidelines apply to all future ENP modules.
+The goal is to keep the protocol modular, transport-independent, deterministic, and maintainable.
 
 ---
 
-# Design Philosophy
+# 2. Layering
 
-ENP follows a layered architecture.
-
-```
+```text
 Application
-        │
-        ▼
-ENP Services
-        │
-        ▼
+    ↓
+Services
+    ↓
 ENP Core
-        │
-        ▼
-Transport
-        │
-        ▼
+    ↓
+Transport abstraction
+    ↓
+Link implementation
+    ↓
 ESP-IDF
 ```
 
-Each layer communicates only with the layer immediately below it.
+Dependencies must point downward.
+
+A service must not directly include or call ESP-NOW APIs.
 
 ---
 
-# API Levels
+# 3. Public and internal APIs
 
-ENP distinguishes three API levels.
-
-## Public API
-
-Stable.
-
-Applications are expected to use these headers.
-
-```
-enp.h
-
-enp_context.h
-
-enp_transport.h
-
-enp_protocol.h
-
-enp_config.h
-
-enp_types.h
-
-enp_version.h
-```
-
-Changes to these files should remain backward compatible whenever possible.
-
----
-
-## Experimental API
-
-These headers are public while ENP is under active development.
-
-```
-enp_node.h
-
-enp_neighbor.h
-
-enp_network.h
-```
-
-These APIs may change before ENP 1.0.
-
----
-
-## Internal API
-
-Internal headers must never be used directly by applications.
-
-Examples include:
-
-```
-dispatcher/
-
-discovery/
-
-routing/
-
-management/
-
-heartbeat/
-
-stats/
-
-utils/
-```
-
-These modules may change without notice.
-
----
-
-# Public Entry Point
-
-Applications should include only:
+The canonical public entry point is:
 
 ```c
 #include "core/enp.h"
 ```
 
-Internal ENP modules should include only the headers they require.
+Advanced users may include individual public ENP headers when appropriate.
 
-Example:
+Core/public contracts include:
 
-```c
-#include "enp_context.h"
-#include "enp_transport.h"
+```text
+enp.h
+enp_types.h
+enp_address.h
+enp_node.h
+enp_network.h
+enp_context.h
+enp_transport.h
+enp_protocol.h
+enp_packet.h
+enp_crc16.h
+enp_config.h
 ```
 
-Avoid including `enp.h` inside ENP implementation files.
+Internal/service infrastructure includes:
 
----
-
-# Header Layout
-
-All public headers shall follow the same structure.
-
-```c
-/**
- * @file
- * @brief
- */
-
-#ifndef ENP_XXX_H
-#define ENP_XXX_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Includes */
-
-/* Macros */
-
-/* Types */
-
-/* Public API */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-```
-
-This layout shall remain consistent across the project.
-
----
-
-# Naming Conventions
-
-## Functions
-
-Public functions shall begin with:
-
-```
-enp_
-```
-
-Example:
-
-```c
-enp_context_init()
-
-enp_transport_send()
-
-enp_packet_verify()
-
-enp_dispatcher_register()
-```
-
----
-
-## Types
-
-Structures and typedefs shall end with `_t`.
-
-Examples:
-
-```c
-enp_context_t
-
-enp_packet_t
-
-enp_node_t
-
-enp_transport_t
-```
-
----
-
-## Enumerations
-
-Enumeration types shall end with `_t`.
-
-Examples:
-
-```c
-enp_role_t
-
-enp_packet_type_t
-
-enp_result_t
-```
-
----
-
-## Macros
-
-Macros shall be uppercase.
-
-Examples:
-
-```c
-ENP_MAX_NEIGHBORS
-
-ENP_PROTOCOL_VERSION
-
-ENP_PACKET_MAGIC
-```
-
----
-
-## Static Functions
-
-Private functions shall be declared `static`.
-
-Example:
-
-```c
-static esp_err_t packet_verify(...)
-```
-
----
-
-# Module Responsibilities
-
-Each module owns exactly one responsibility.
-
-Examples:
-
-```
-protocol/
-    Packet encoding
-    Packet decoding
-    CRC
-
-transport/
-    ESP-NOW
-    Wi-Fi
-
+```text
 dispatcher/
-    Packet dispatching
-
-discovery/
-    Automatic discovery
-
-routing/
-    Multi-hop routing
-
-management/
-    Management packets
-
-stats/
-    Statistics
+service/
+link/
 ```
 
-Avoid combining unrelated responsibilities in a single module.
+The distinction is architectural: a module being visible in the source tree does not automatically make its implementation details part of the public contract.
 
 ---
 
-# Include Policy
+# 4. Naming
 
-Only include the headers required.
+Functions:
 
-Prefer:
-
-```c
-#include "enp_context.h"
-#include "enp_packet.h"
+```text
+enp_*
 ```
 
-Avoid:
+Types:
 
-```c
-#include "enp.h"
+```text
+enp_*_t
 ```
 
-inside ENP implementation files.
+Macros:
+
+```text
+ENP_*
+```
+
+Private functions and variables are `static`.
 
 ---
 
-# Dependency Rules
+# 5. `enp_types.h`
 
-Dependencies shall always point downward.
+`enp_types.h` contains only fundamental protocol types and enums.
 
+It must not depend on:
+
+- ESP-IDF
+- FreeRTOS
+- transport implementations
+- services
+
+Current fundamental types include:
+
+```text
+enp_node_id_t
+enp_network_id_t
+enp_sequence_t
+enp_capability_t
+enp_role_t
 ```
-Application
-
-↓
-
-Services
-
-↓
-
-Core
-
-↓
-
-Transport
-
-↓
-
-ESP-IDF
-```
-
-Lower layers must never depend on higher layers.
 
 ---
 
-# Global Variables
+# 6. Error handling
 
-Avoid global variables.
+Public functions return `esp_err_t`.
 
-Applications should create exactly one:
+Return values must not be silently ignored.
+
+`ESP_ERROR_CHECK()` is appropriate at application initialization boundaries where failure is fatal.
+
+Library/core code should normally return the error to its caller.
+
+---
+
+# 7. Ownership
+
+The application owns the runtime context:
 
 ```c
 enp_context_t
 ```
 
-All ENP modules receive a pointer to this context.
+The context contains the active transport pointer but does not own the transport implementation object.
+
+Service descriptors are owned by their modules and must remain valid while registered.
 
 ---
 
-# Memory Management
+# 8. Memory
 
-ENP follows these principles:
+Prefer deterministic/static allocation.
 
-- No hidden dynamic allocation.
-- Prefer stack allocation.
-- Static allocation is preferred over heap allocation.
-- Any dynamic allocation must be clearly documented.
+The ESP-NOW receive path uses:
+
+```text
+StaticQueue_t
+StaticTask_t
+static buffers
+static task stack
+```
+
+The ESP-NOW callback must not perform blocking work.
 
 ---
 
-# Error Handling
+# 9. Transport independence
 
-All public functions shall return `esp_err_t`.
-
-Never ignore return values.
-
-Use:
+Protocol services operate on:
 
 ```c
-ESP_ERROR_CHECK(...)
+enp_transport_address_t
 ```
 
-where appropriate.
+rather than ESP-NOW MAC addresses.
+
+ESP-NOW-specific conversion belongs in:
+
+```text
+link/enp_transport_espnow.*
+```
 
 ---
 
-# Const Correctness
+# 10. Service contract
 
-Parameters shall be marked `const` whenever possible.
+A service descriptor contains:
 
-Example:
+```text
+name
+packet_type
+init
+process
+```
+
+The process callback receives:
 
 ```c
-esp_err_t enp_send(
-        const uint8_t *mac,
-        const void *data,
-        size_t length);
+enp_context_t *
+const enp_packet_t *
+const enp_transport_address_t *
 ```
+
+The dispatcher validates the packet before invoking the service.
 
 ---
 
-# Documentation
+# 11. Packet handling
 
-All public APIs shall be documented using Doxygen.
+Services should use the packet API:
 
-Example:
+```text
+enp_packet_init()
+enp_packet_header()
+enp_packet_payload()
+enp_packet_payload_const()
+enp_packet_seal()
+enp_packet_verify()
+enp_packet_length()
+```
+
+Services should not duplicate packet serialization or CRC logic.
+
+---
+
+# 12. Time
+
+Services should obtain ENP time through:
 
 ```c
-/**
- * @brief Initialize the ENP context.
- *
- * @param context Context to initialize.
- *
- * @return
- *      - ESP_OK
- *      - ESP_ERR_INVALID_ARG
- */
+enp_context_time_ms()
 ```
+
+They should not introduce platform-specific timer dependencies when an ENP context abstraction is sufficient.
 
 ---
 
-# Versioning
-
-Public APIs should evolve conservatively.
-
-Breaking changes should occur only in a new major protocol version.
-
----
-
-# File Organization
-
-Each directory owns a namespace.
-
-Example:
-
-```
-protocol/
-
-    enp_packet.*
-
-    enp_crc16.*
-```
-
-```
-transport/
-
-    enp_transport_espnow.*
-
-    enp_transport_wifi.*
-```
-
-```
-routing/
-
-    enp_routing.*
-```
-
-This naming convention should remain consistent throughout the project.
-
----
-
-# ENP Context
-
-Applications own exactly one context.
-
-```
-enp_context_t
-```
-
-Services operate on a context but never own it.
-
-The context represents the runtime state of one ENP instance.
-
----
-
-# Object Ownership
-
-```
-enp_context_t
-        │
-        ├── enp_network_t
-        │       │
-        │       ├── Local Node
-        │       └── Neighbor Table
-        │
-        └── Active Transport
-```
-
-Ownership should always follow this hierarchy.
-
----
-
-# Transport Independence
-
-The ENP Core must remain transport independent.
-
-Applications and protocol services should not depend directly on ESP-NOW.
-
-All communication with the underlying transport must occur through the transport abstraction layer.
-
----
-
-# Future Compatibility
-
-The public API should be designed with future protocol services in mind, including:
-
-- Discovery
-- Heartbeat
-- Routing
-- Reliability
-- OTA
-- Security
-- Mesh Networking
-
-New features should extend existing interfaces whenever practical instead of introducing incompatible APIs.
-
----
-
-# Guiding Principles
-
-When designing new APIs, ask:
-
-- Does this belong in the correct layer?
-- Can this responsibility be isolated?
-- Is this API transport independent?
-- Will this still make sense in ENP 1.0?
-- Can this be tested independently?
-- Does this introduce unnecessary coupling?
-
-If the answer to any of these questions is "no", reconsider the design before implementation.
-
----
-
-# Summary
-
-ENP is designed around a simple principle:
-
-> **Expose capabilities, hide implementation.**
-
-A small, consistent, and well-documented API is easier to understand, easier to test, and easier to maintain than a large API exposing internal implementation details.
-
-These guidelines should be followed by all contributors to ensure ENP remains modular, scalable, and maintainable as it evolves.
-
----
-
-# Architecture First
-
-ENP prioritizes architectural consistency over rapid feature development.
+# 13. Documentation rule
 
 Before implementing a new feature:
 
-1. Update the protocol specification if required.
-2. Update the object model if required.
-3. Review the public API.
-4. Only then implement the feature.
-
-Following this process helps ensure that ENP remains coherent as it evolves.
-
----
-
-Notes:
-
-enp_types.h shall contain only primitive protocol types and enumerations. It shall never depend on ESP-IDF, FreeRTOS, or any ENP module.
+1. Define its responsibility.
+2. Update the protocol specification if the wire format changes.
+3. Define/update the API.
+4. Implement it.
+5. Build.
+6. Test.
+7. Hardware-validate where necessary.
+8. Freeze the result before building dependent functionality.
 
 ---
 
-# Rule ENP-001
+# 14. No obsolete compatibility APIs
 
-Every ENP application should include only enp.h. Public ENP headers (enp_packet.h, enp_context.h, etc.) may be included individually by advanced users, but enp.h is the canonical entry point for the library.
+Once a v0.2 API has been frozen, do not reintroduce obsolete APIs solely to make old application code compile.
 
----
+Examples of legacy APIs that should not return to the v0.2 core include old packet-finalization or direct ESP-NOW peer APIs.
+
+Migration should move old applications onto the new architecture instead.
+

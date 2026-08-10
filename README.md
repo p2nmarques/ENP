@@ -1,278 +1,348 @@
-# ENP - ESP Network Protocol
+# ENP — ESP Network Protocol
 
-> A lightweight, modular and transport-independent networking protocol for ESP32 devices.
+**Version:** 0.2.0  
+**Status:** Core Discovery path hardware-validated  
+**Target:** ESP-IDF 6.0.2  
+**Primary transport:** ESP-NOW
 
-![Status](https://img.shields.io/badge/status-v0.2.0--draft-blue)
-![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.x-red)
+ENP (ESP Network Protocol) is a lightweight, modular, transport-independent networking layer for ESP32 systems.
+
+ENP is intended to provide a protocol and networking layer above transports such as ESP-NOW without exposing transport-specific details to services and applications.
+
+![Status](https://img.shields.io/badge/status-v0.2.0-blue)
+![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.0.2-red)
 ![License](https://img.shields.io/badge/license-GPLv3.0-green)
 
 ---
 
-## Overview
+## Current v0.2 milestone
 
-ENP (**ESP Network Protocol**) is an open-source networking protocol designed specifically for ESP32 devices.
+ENP v0.2 currently has a working, hardware-validated Discovery path between two ESP32 nodes.
 
-Unlike ESP-NOW, which provides only a low-level wireless transport, ENP provides a complete networking layer including:
+Validated:
 
-- Automatic node discovery
-- Reliable packet delivery
-- Device identification
-- Routing
-- Mesh networking
-- Network management
-- Diagnostics
-- Statistics
+- Wi-Fi STA initialization and connection.
+- ESP-NOW 2.0 initialization on ESP-IDF 6.0.2.
+- ESP-NOW broadcast peer handling.
+- Transport abstraction.
+- Static RX queue and static RX task.
+- ENP packet creation and CRC validation.
+- ENP dispatcher.
+- Discovery service.
+- Logical node addressing.
+- Transport-source addressing.
+- Neighbor table updates.
+- Bidirectional Discovery between two physical ESP32 nodes.
 
-ENP is designed to be lightweight enough for embedded systems while remaining modular and extensible.
+Example validation:
 
-The first transport implementation uses **ESP-NOW**, but the protocol is intentionally transport independent and may later support:
+```text
+Gateway
+  network = 1
+  node    = 1
 
-- ESP-NOW
-- Wi-Fi
-- Ethernet
-- BLE
-- LoRa
-- Serial links
+Sensor
+  network = 1
+  node    = 2
 
----
+Wi-Fi channel = 10
 
-# Project Goals
+Gateway:
+  Neighbor discovered: network=1 node=2
 
-The objectives of ENP are:
+Sensor:
+  Neighbor discovered: network=1 node=1
+```
 
-- Lightweight
-- Modular
-- Transport independent
-- Reliable
-- Deterministic
-- Easy to debug
-- Mesh capable
-- ESP-IDF native
+The current Discovery payload is 4 bytes:
 
-ENP is **not** intended to replace TCP/IP or MQTT.
-
-Instead, ENP provides an efficient networking layer specifically optimized for ESP32 embedded systems.
+```text
+role            1 byte
+capabilities    2 bytes
+reserved        1 byte
+```
 
 ---
 
 # Architecture
 
-```
+```text
 +------------------------------------------------------+
-|                  Applications                        |
-|------------------------------------------------------|
-| Gateway | Sensor | Relay | Monitor | OTA | CLI       |
+| Applications                                         |
+| Gateway | Sensor | Relay | Monitor | ...             |
 +------------------------------------------------------+
-|                  ENP Services                        |
-|------------------------------------------------------|
-| Discovery | Routing | Reliability | Management       |
+| ENP Services                                         |
+| Discovery | Heartbeat* | Routing* | ...              |
 +------------------------------------------------------+
-|                    ENP Core                          |
-|------------------------------------------------------|
-| Protocol | CRC | Statistics | Timers | Utilities     |
+| ENP Core                                              |
+| Context | Dispatcher | Network | Protocol | Stats     |
 +------------------------------------------------------+
-|                    Transport                         |
-|------------------------------------------------------|
-| ESP-NOW                                              |
+| Transport abstraction                                 |
+| enp_transport                                         |
 +------------------------------------------------------+
-|                     ESP-IDF                          |
+| Link implementations                                  |
+| ESP-NOW | Wi-Fi* | ...                                |
 +------------------------------------------------------+
-```
+| ESP-IDF                                               |
++------------------------------------------------------+
 
-Applications never communicate directly with ESP-NOW.
-
-All communication flows through the ENP protocol layer.
-
----
-
-# Current Status
-
-Current development branch:
-
-```
-v0.2.0
+* not yet part of the validated v0.2 runtime path
 ```
 
-Implemented:
-
-- ESP-IDF 6.x support
-- Wi-Fi station
-- ESP-NOW transport
-- Gateway application
-- Sensor application
-- CRC packet validation
-- ACK packets
-- Statistics module
-- Modular architecture
-- Object model
-
-Currently in development:
-
-- Automatic Gateway Discovery
-- Dynamic peer registration
-- Protocol versioning
-
----
-
-# Roadmap
-
-## v0.2
-
-- Automatic Discovery
-- Dynamic Peer Registration
-- Protocol Specification
-- Generic Packet Header
-
----
-
-## v0.3
-
-- Neighbor Discovery
-- Heartbeats
-- RSSI Monitoring
-- Node Information
-
----
-
-## v0.4
-
-- Routing
-- Multi-hop Forwarding
-- Duplicate Suppression
-- TTL
-
----
-
-## v0.5
-
-- Reliable Delivery
-- Retransmissions
-- Fragmentation
-- Reassembly
-
----
-
-## v1.0
-
-- ESP-NOW Mesh
-- OTA Updates
-- Encryption
-- CLI
-- Diagnostics
-- Power Management
-
----
-
-## Repository Structure
+The dependency direction is:
 
 ```text
-ENP/
-│
-├── docs/
-│   ├── ENP_PROTOCOL_v0.2.md
-│   └── ROADMAP.md
-│
-├── main/
-│   ├── application/
-│   │   ├── gateway.c
-│   │   ├── gateway.h
-│   │   ├── sensor.c
-│   │   └── sensor.h
-│   │
-│   ├── network/
-│   │   ├── wifi.c
-│   │   ├── wifi.h
-│   │   ├── espnow.c
-│   │   └── espnow.h
-│   │
-│   ├── core/
-│   │   ├── protocol/
-│   │   ├── stats/
-│   │   └── utils/
-│   │
-│   ├── main.c
-│   └── CMakeLists.txt
-│
-├── Kconfig.projbuild
-├── CMakeLists.txt
-├── LICENSE
-└── README.md
+Application
+    ↓
+ENP Services
+    ↓
+ENP Core
+    ↓
+Transport abstraction
+    ↓
+Link implementation
+    ↓
+ESP-IDF
+```
+
+ENP services do not directly call ESP-NOW APIs.
+
+---
+
+# Core components
+
+| Component | Responsibility | v0.2 status |
+|---|---|---|
+| `enp_address` | Logical ENP addresses | Frozen |
+| `enp_types` | Fundamental protocol types | Frozen |
+| `enp_node` | Local node model | Frozen |
+| `enp_network` | Local network state | Frozen |
+| `enp_context` | Runtime ownership/state | Frozen |
+| `enp_transport` | Transport abstraction | Frozen |
+| `enp_packet` | Packet storage/access | Frozen |
+| `enp_crc16` | CRC-16/CCITT-FALSE | Frozen |
+| `enp_protocol` | Wire constants/types | Frozen |
+| `enp_dispatcher` | Packet validation/routing to services | Implemented |
+| `enp_service` | Service contract | Frozen |
+| `enp_neighbor` | Direct-neighbor table | Implemented |
+| Discovery | Node announcement/neighbor learning | Hardware validated |
+| ESP-NOW transport | ESP-NOW link implementation | Hardware validated |
+
+---
+
+# Addressing
+
+ENP distinguishes logical and transport identities.
+
+## Logical address
+
+```text
+Network ID : 16 bits
+Node ID    : 32 bits
+Total      : 6 bytes
+```
+
+Logical addresses are carried by the ENP packet header.
+
+## Transport address
+
+Transport addresses are owned by the active transport implementation.
+
+For ESP-NOW:
+
+```text
+6 bytes = MAC address
+```
+
+At the ENP transport abstraction level:
+
+```text
+length == 0  → transport broadcast
+length == 6  → ESP-NOW unicast MAC
+```
+
+The ESP-NOW implementation maps transport broadcast to:
+
+```text
+FF:FF:FF:FF:FF:FF
+```
+
+and maintains the broadcast peer during transport initialization.
+
+---
+
+# Packet format
+
+The ENP v0.2 header is 26 bytes:
+
+```text
+Magic             4
+Version           1
+Type              1
+Flags             1
+TTL               1
+Source            6
+Destination       6
+Payload length    2
+Sequence          4
+-------------------
+Header           26 bytes
+CRC16             2 bytes
+```
+
+Maximum frame size:
+
+```text
+250 bytes
+```
+
+Maximum payload:
+
+```text
+222 bytes
+```
+
+Multi-byte values are serialized little-endian.
+
+The wire protocol version is currently:
+
+```text
+1
+```
+
+This is intentionally distinct from the ENP software/project version:
+
+```text
+0.2.0
 ```
 
 ---
 
-# Packet Flow
+# Discovery
 
-```
-Sensor
+Discovery is currently the first implemented ENP service.
 
-↓
+A node broadcasts:
 
-ENP Packet
-
-↓
-
-ESP-NOW
-
-↓
-
-Gateway
-
-↓
-
-ACK
+```text
+ENP_PACKET_DISCOVERY
 ```
 
-Future versions may include routing through relay nodes.
+with:
 
+```text
+role
+capabilities
+reserved
 ```
-Sensor
 
-↓
+The receiver combines:
 
-Relay
+```text
+ENP logical source address
++
+transport source address
++
+Discovery payload
+```
 
-↓
+to create/update a neighbor entry.
 
-Relay
+Discovery does not place MAC addresses in the ENP payload.
 
-↓
+---
 
-Gateway
+# Neighbor table
+
+A neighbor entry currently contains:
+
+```text
+Logical address
+Transport address
+Role
+Capabilities
+Last sequence
+RSSI
+Last seen time
+State
+```
+
+States:
+
+```text
+EMPTY
+ACTIVE
+STALE
+```
+
+Neighbor expiration support exists in the neighbor API, but automatic periodic aging is not yet part of the validated runtime loop.
+
+RSSI is currently recorded as unavailable (`0`) because the generic ENP transport receive callback does not yet expose radio metadata.
+
+---
+
+# Memory model
+
+The ESP-NOW transport uses:
+
+- `StaticQueue_t`
+- statically allocated queue storage
+- `StaticTask_t`
+- statically allocated task stack
+
+The ESP-NOW receive callback copies the frame into the static queue and performs no blocking application processing.
+
+The worker task invokes the ENP transport receive callback.
+
+---
+
+# Current runtime flow
+
+```text
+Wi-Fi STA
+   ↓
+ESP-NOW initialization
+   ↓
+ENP context
+   ↓
+Dispatcher
+   ↓
+Discovery service registration
+   ↓
+Transport receive callback
+   ↓
+Discovery announcement
+```
+
+Receive path:
+
+```text
+ESP-NOW RX callback
+   ↓
+Static queue
+   ↓
+Static worker task
+   ↓
+ENP receive callback
+   ↓
+Dispatcher
+   ↓
+Packet validation
+   ↓
+Discovery service
+   ↓
+Neighbor table
 ```
 
 ---
 
-# Documentation
-
-The protocol specification is available in:
-
-```
-docs/
-```
-
-including:
-
-- ENP Protocol
-- Discovery
-- Routing
-- Packet Format
-- Architecture
-
----
-
-# Building
+# Build
 
 Requirements:
 
-- ESP-IDF 6.x
-- ESP32
-
-Clone the repository:
-
-```bash
-git clone https://github.com/pmarques-fullstack/ENP.git
-```
+- ESP-IDF 6.0.2
+- ESP32 device
+- Wi-Fi access point
 
 Configure:
 
@@ -286,58 +356,67 @@ Build:
 idf.py build
 ```
 
-Flash:
+Flash and monitor:
 
 ```bash
 idf.py flash monitor
 ```
 
----
-
-# Design Philosophy
-
-ENP follows a layered architecture.
-
-```
-Application
-
-↓
-
-ENP Services
-
-↓
-
-ENP Core
-
-↓
-
-Transport
-
-↓
-
-Hardware
-```
-
-This allows applications to remain independent of the underlying transport technology.
+For the current ESP-NOW + Wi-Fi STA implementation, nodes must operate on the same Wi-Fi channel.
 
 ---
 
-# License
+# Roadmap
 
-This project is released under the GPL-3.0 license.
+## v0.2 — current
+
+- Core API
+- Packet format
+- CRC
+- Transport abstraction
+- ESP-NOW transport
+- Dispatcher
+- Service contract
+- Discovery
+- Neighbor table
+- Two-node hardware validation
+
+## Next
+
+- Periodic Discovery
+- Neighbor aging/expiration task
+- Duplicate suppression
+- Sequence-number policy
+- Better local capability configuration
+- Optional transport metadata such as RSSI
+
+## Future
+
+- Heartbeat
+- Routing table
+- Multi-hop forwarding
+- TTL enforcement during forwarding
+- Reliable delivery/retransmission
+- Fragmentation/reassembly
+- Security
+- OTA
+- Diagnostics
+- CLI
+
+Features are not considered implemented merely because their headers or placeholders exist.
 
 ---
 
-# Author
+# Design rule
 
-**Pedro Marques**
+The protocol specification, public API, and implementation should be kept synchronized.
 
-Creator of ENP – ESP Network Protocol.
+When a design decision changes:
 
----
+1. Update the specification.
+2. Update the API documentation.
+3. Update the implementation.
+4. Perform a build.
+5. Perform hardware validation where applicable.
+6. Freeze the result before building the next layer.
 
-# Vision
-
-ENP aims to become an open, lightweight networking framework for ESP32 devices that provides a clean abstraction above ESP-NOW while remaining flexible enough to support future transports and advanced mesh networking capabilities.
-
-> **Build networks, not just links.**

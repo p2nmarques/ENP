@@ -1,0 +1,140 @@
+# ENP Roadmap
+
+## v0.2 — Current milestone
+
+### Core
+
+- [x] Fundamental types
+- [x] Logical addressing
+- [x] Node/network model
+- [x] Runtime context
+- [x] Transport abstraction
+- [x] Packet format
+- [x] CRC16
+- [x] Dispatcher
+- [x] Service contract
+
+### ESP-NOW transport
+
+- [x] ESP-IDF 6.0.2
+- [x] ESP-NOW 2.0 initialization
+- [x] Broadcast peer
+- [x] Unicast peer handling
+- [x] Static RX queue
+- [x] Static RX task
+- [x] Transport callback
+
+### Discovery
+
+- [x] Discovery payload
+- [x] Discovery TX
+- [x] Discovery RX
+- [x] Neighbor table update
+- [x] Bidirectional two-node hardware validation
+
+---
+
+## Immediate next milestone
+
+### Periodic Discovery
+
+- [ ] Define Discovery announcement interval.
+- [ ] Add periodic Discovery scheduler.
+- [ ] Define interaction with startup Discovery.
+- [ ] Avoid blocking service/transport callbacks.
+
+### Neighbor aging
+
+- [ ] Define stale threshold.
+- [ ] Add periodic neighbor maintenance.
+- [ ] Mark inactive neighbors `STALE`.
+- [ ] Define removal policy.
+- [ ] Validate with node power-off tests.
+
+A sensible initial relationship is:
+
+```text
+Discovery interval: 2 seconds
+Neighbor timeout:   6 seconds
+```
+
+These values are proposed, not yet frozen.
+
+---
+
+## After Discovery aging
+
+### Sequence and duplicate handling
+
+- [ ] Define sequence comparison rules.
+- [ ] Define wrap-around behavior.
+- [ ] Define duplicate cache.
+- [ ] Define duplicate lifetime.
+- [ ] Validate repeated frames.
+
+This should be completed before routing/forwarding.
+
+---
+
+## Later
+
+### v0.3
+
+- Heartbeat
+- Node information
+- Link-quality metadata
+- RSSI integration
+- Neighbor maintenance
+
+### v0.4
+
+- Routing table
+- Route selection
+- Multi-hop forwarding
+- TTL enforcement
+- Duplicate suppression integration
+
+### v0.5
+
+- Reliable delivery
+- ACK handling
+- Retransmission
+- Retry policy
+- Fragmentation
+- Reassembly
+
+### v1.x
+
+- Security
+- OTA
+- Diagnostics
+- CLI
+- Power management
+- Additional transports
+- Mesh optimization
+
+---
+
+## Development rule
+
+A roadmap item is not considered complete because headers, enums, or placeholders exist.
+
+A feature becomes complete only after:
+
+```text
+Design
+  ↓
+Specification
+  ↓
+API
+  ↓
+Implementation
+  ↓
+Clean build
+  ↓
+Test
+  ↓
+Hardware validation where applicable
+  ↓
+Freeze
+```
