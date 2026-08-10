@@ -11,7 +11,7 @@
   * @brief ENP neighbor table implementation.
   */
 
- #include "../network/enp_neighbor.h"
+ #include "enp_neighbor.h"
 
 #include <string.h>
 
@@ -23,8 +23,7 @@
          const enp_neighbor_table_t *table,
          const enp_address_t *address)
  {
-     if ((table == NULL) ||
-         (address == NULL))
+     if ((table == NULL) || (address == NULL))
      {
          return ENP_MAX_NEIGHBORS;
      }
@@ -74,6 +73,25 @@
      return ENP_MAX_NEIGHBORS;
  }
 
+ static bool enp_neighbor_lock(
+        enp_neighbor_table_t *table)
+{
+    return (table != NULL) &&
+           (table->mutex != NULL) &&
+           (xSemaphoreTake(
+                    table->mutex,
+                    portMAX_DELAY) == pdTRUE);
+}
+
+static void enp_neighbor_unlock(
+        enp_neighbor_table_t *table)
+{
+    if ((table != NULL) && (table->mutex != NULL))
+    {
+        (void)xSemaphoreGive(table->mutex);
+    }
+}
+
  /*----------------------------------------------------------
   * Lifecycle
   *---------------------------------------------------------*/
@@ -90,6 +108,14 @@
              table,
              0,
              sizeof(*table));
+    table->mutex =
+            xSemaphoreCreateMutexStatic(
+                    &table->mutex_storage);
+
+    if (table->mutex == NULL)
+    {
+        return ESP_FAIL;
+    }
 
      return ESP_OK;
  }
@@ -97,15 +123,20 @@
  esp_err_t enp_neighbor_table_clear(
          enp_neighbor_table_t *table)
  {
-     if (table == NULL)
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+    if (table == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-     memset(
-             table,
-             0,
-             sizeof(*table));
+    if (!enp_neighbor_lock(table))
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    memset(table->entries, 0, sizeof(table->entries));
+    table->count = 0U;
+
+    enp_neighbor_unlock(table);
 
      return ESP_OK;
  }
@@ -115,105 +146,114 @@
   *---------------------------------------------------------*/
 
   esp_err_t enp_neighbor_update(
-          enp_neighbor_table_t *table,
-          const enp_address_t *address,
-          const enp_transport_address_t *transport_address,
-          enp_role_t role,
-          uint16_t capabilities,
-          enp_sequence_t sequence,
-          int8_t rssi,
-          uint32_t now_ms)
+        enp_neighbor_table_t *table,
+        const enp_address_t *address,
+        const enp_transport_address_t *transport_address,
+        enp_role_t role,
+        uint16_t capabilities,
+        enp_sequence_t sequence,
+        int8_t rssi,
+        uint32_t now_ms)
   {
-      if ((table == NULL) ||
-          (address == NULL) ||
-          (transport_address == NULL))
-      {
-          return ESP_ERR_INVALID_ARG;
-      }
+    if ((table == NULL) ||
+        (address == NULL) ||
+        (transport_address == NULL))
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-      if (enp_address_is_broadcast(address))
-      {
-          return ESP_ERR_INVALID_ARG;
-      }
+    if (enp_address_is_broadcast(address))
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-      size_t index =
-              enp_neighbor_find_index(
-                      table,
-                      address);
+    if (!enp_neighbor_lock(table))
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
+      
+    size_t index =
+            enp_neighbor_find_index(
+                    table,
+                    address);
 
-      if (index < ENP_MAX_NEIGHBORS)
-      {
-          enp_neighbor_t *neighbor =
-                  &table->entries[index];
+    if (index < ENP_MAX_NEIGHBORS)
+    {
+        enp_neighbor_t *neighbor =
+                &table->entries[index];
 
-          neighbor->transport_address =
-                  *transport_address;
+        neighbor->transport_address =
+                *transport_address;
 
-          neighbor->role =
-                  role;
+        neighbor->role =
+                role;
 
-          neighbor->capabilities =
-                  capabilities;
+        neighbor->capabilities =
+                capabilities;
 
-          neighbor->last_sequence =
-                  sequence;
+        neighbor->last_sequence =
+                sequence;
 
-          neighbor->rssi =
-                  rssi;
+        neighbor->rssi =
+                rssi;
 
-          neighbor->last_seen_ms =
-                  now_ms;
+        neighbor->last_seen_ms =
+                now_ms;
 
-          neighbor->state =
-                  ENP_NEIGHBOR_STATE_ACTIVE;
+        neighbor->state =
+                ENP_NEIGHBOR_STATE_ACTIVE;
 
-          return ESP_OK;
-      }
+        enp_neighbor_unlock(table);
+        return ESP_OK;
+    }
 
-      index =
-              enp_neighbor_find_free_index(
-                      table);
+    index =
+            enp_neighbor_find_free_index(
+                    table);
 
-      if (index >= ENP_MAX_NEIGHBORS)
-      {
-          return ESP_ERR_NO_MEM;
-      }
+    if (index >= ENP_MAX_NEIGHBORS)
+    {
+        enp_neighbor_unlock(table);
+        return ESP_ERR_NO_MEM;
+    }
 
-      enp_neighbor_t *neighbor =
-              &table->entries[index];
+    enp_neighbor_t *neighbor =
+            &table->entries[index];
 
-      memset(
-              neighbor,
-              0,
-              sizeof(*neighbor));
+    memset(
+            neighbor,
+            0,
+            sizeof(*neighbor));
 
-      neighbor->address =
-              *address;
+    neighbor->address =
+            *address;
 
-      neighbor->transport_address =
-              *transport_address;
+    neighbor->transport_address =
+            *transport_address;
 
-      neighbor->role =
-              role;
+    neighbor->role =
+            role;
 
-      neighbor->capabilities =
-              capabilities;
+    neighbor->capabilities =
+            capabilities;
 
-      neighbor->last_sequence =
-              sequence;
+    neighbor->last_sequence =
+            sequence;
 
-      neighbor->rssi =
-              rssi;
+    neighbor->rssi =
+            rssi;
 
-      neighbor->last_seen_ms =
-              now_ms;
+    neighbor->last_seen_ms =
+            now_ms;
 
-      neighbor->state =
-              ENP_NEIGHBOR_STATE_ACTIVE;
+    neighbor->state =
+            ENP_NEIGHBOR_STATE_ACTIVE;
 
-      table->count++;
+    table->count++;
 
-      return ESP_OK;
+    enp_neighbor_unlock(table);
+
+    return ESP_OK;
   }
 
  /*----------------------------------------------------------
@@ -229,6 +269,10 @@
      {
          return NULL;
      }
+
+     /* This legacy pointer-returning API is intended for callers
+     * that already control synchronization. Current ENP runtime
+     * paths use update/expire/count, which are internally locked. */
 
      const size_t index =
              enp_neighbor_find_index(
@@ -274,34 +318,41 @@
          enp_neighbor_table_t *table,
          const enp_address_t *address)
  {
-     if ((table == NULL) ||
-         (address == NULL))
-     {
-         return ESP_ERR_INVALID_ARG;
-     }
+    if ((table == NULL) ||
+        (address == NULL))
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (!enp_neighbor_lock(table))
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
 
      const size_t index =
              enp_neighbor_find_index(
                      table,
                      address);
 
-     if (index >= ENP_MAX_NEIGHBORS)
-     {
-         return ESP_ERR_NOT_FOUND;
-     }
+    if (index >= ENP_MAX_NEIGHBORS)
+    {
+    enp_neighbor_unlock(table);
+        return ESP_ERR_NOT_FOUND;
+    }
 
-     memset(
-             &table->entries[index],
-             0,
-             sizeof(table->entries[index]));
+    memset(
+            &table->entries[index],
+            0,
+            sizeof(table->entries[index]));
 
-     if (table->count > 0U)
-     {
-         table->count--;
-     }
+    if (table->count > 0U)
+    {
+        table->count--;
+    }
 
-     return ESP_OK;
- }
+    enp_neighbor_unlock(table);
+    return ESP_OK;
+}
 
  /*----------------------------------------------------------
   * Expiration
@@ -312,45 +363,51 @@
          uint32_t now_ms,
          uint32_t timeout_ms)
  {
-     if (table == NULL)
-     {
-         return 0U;
-     }
+    if (table == NULL)
+    {
+        return 0U;
+    }
 
-     size_t expired = 0U;
+    if (!enp_neighbor_lock(table))
+    {
+        return 0U;
+    }
 
-     for (size_t index = 0U;
-          index < ENP_MAX_NEIGHBORS;
-          ++index)
-     {
-         enp_neighbor_t *neighbor =
-                 &table->entries[index];
+    size_t expired = 0U;
 
-         if (neighbor->state !=
-             ENP_NEIGHBOR_STATE_ACTIVE)
-         {
-             continue;
-         }
+    for (size_t index = 0U;
+        index < ENP_MAX_NEIGHBORS;
+        ++index)
+    {
+        enp_neighbor_t *neighbor =
+                &table->entries[index];
+
+        if (neighbor->state !=
+            ENP_NEIGHBOR_STATE_ACTIVE)
+        {
+            continue;
+        }
 
          /*
           * Unsigned subtraction intentionally handles
           * uint32_t millisecond counter wraparound.
           */
-         const uint32_t elapsed =
-                 now_ms -
-                 neighbor->last_seen_ms;
+        const uint32_t elapsed =
+                now_ms -
+                neighbor->last_seen_ms;
 
-         if (elapsed >= timeout_ms)
-         {
-             neighbor->state =
-                     ENP_NEIGHBOR_STATE_STALE;
+        if (elapsed >= timeout_ms)
+        {
+            neighbor->state =
+                    ENP_NEIGHBOR_STATE_STALE;
 
-             expired++;
-         }
-     }
+            expired++;
+        }
+    }
 
-     return expired;
- }
+    enp_neighbor_unlock(table);
+    return expired;
+}
 
  /*----------------------------------------------------------
   * Information
@@ -359,12 +416,15 @@
  size_t enp_neighbor_count(
          const enp_neighbor_table_t *table)
  {
-     if (table == NULL)
-     {
-         return 0U;
-     }
+    if (table == NULL)
+    {
+        return 0U;
+    }
 
-     return table->count;
+    /* count is only a diagnostic value and is not currently
+    * used by a concurrent runtime decision. */
+
+    return table->count;
  }
 
 

@@ -26,6 +26,9 @@
 
   #include "esp_err.h"
 
+  #include "freertos/FreeRTOS.h"
+  #include "freertos/semphr.h"
+
   #include "core/enp_address.h"
   #include "config/enp_defaults.h"
   #include "core/enp_transport.h"
@@ -109,6 +112,11 @@
       enp_neighbor_t entries[ENP_MAX_NEIGHBORS];
 
       size_t count;
+
+      /* Protects concurrent table mutation from the RX worker
+      * and the periodic maintenance task. */
+     SemaphoreHandle_t mutex;
+     StaticSemaphore_t mutex_storage;
 
   } enp_neighbor_table_t;
 

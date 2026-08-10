@@ -38,18 +38,18 @@
 
 ### Periodic Discovery
 
-- [ ] Define Discovery announcement interval.
-- [ ] Add periodic Discovery scheduler.
-- [ ] Define interaction with startup Discovery.
-- [ ] Avoid blocking service/transport callbacks.
+- [x] Define Discovery announcement interval: 2 seconds.
+- [x] Add periodic Discovery scheduler using a static FreeRTOS task.
+- [x] Keep startup Discovery separate from periodic Discovery.
+- [x] Keep periodic work outside transport callbacks.
 
 ### Neighbor aging
 
-- [ ] Define stale threshold.
-- [ ] Add periodic neighbor maintenance.
-- [ ] Mark inactive neighbors `STALE`.
-- [ ] Define removal policy.
-- [ ] Validate with node power-off tests.
+- [x] Define stale threshold: 6 seconds.
+- [x] Add periodic neighbor maintenance.
+- [x] Mark inactive neighbors `STALE`.
+- [x] Define current policy: retain stale entries for reuse.
+- [ ] Validate with node power-off/recovery hardware tests.
 
 A sensible initial relationship is:
 

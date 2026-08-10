@@ -28,6 +28,7 @@
 #include "config/enp_defaults.h"
 
 #include "core/enp_context.h"
+#include "core/enp_maintenance.h"
 #include "core/enp_transport.h"
 
 #include "core/dispatcher/enp_dispatcher.h"
@@ -375,6 +376,14 @@ void app_main(void)
 			        TAG,
 			        "Initial discovery announcement sent");
 
+    /*------------------------------------------------------
+     * Periodic maintenance
+     *-----------------------------------------------------*/
+
+    ESP_ERROR_CHECK(
+            enp_maintenance_init(
+                    &s_context));
+                    
     /*------------------------------------------------------
      * Startup complete
      *-----------------------------------------------------*/

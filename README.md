@@ -17,49 +17,130 @@ ENP is intended to provide a protocol and networking layer above transports such
 
 ## Current v0.2 milestone
 
-ENP v0.2 currently has a working, hardware-validated Discovery path between two ESP32 nodes.
+The following functionality has been validated on two physical ESP32 nodes:
 
-Validated:
+- Wi-Fi STA connection
+- ESP-NOW 2.0 on ESP-IDF 6.0.2
+- ESP-NOW broadcast peer
+- Transport abstraction
+- Static RX queue/task
+- ENP packet and CRC handling
+- Dispatcher
+- Discovery service
+- Logical and transport addressing
+- Neighbor table updates
+- Bidirectional Discovery
+- Periodic Discovery every 2000 ms
+- Neighbor aging with a 6000 ms timeout
+- ACTIVE → STALE
+- STALE → ACTIVE recovery
 
-- Wi-Fi STA initialization and connection.
-- ESP-NOW 2.0 initialization on ESP-IDF 6.0.2.
-- ESP-NOW broadcast peer handling.
-- Transport abstraction.
-- Static RX queue and static RX task.
-- ENP packet creation and CRC validation.
-- ENP dispatcher.
-- Discovery service.
-- Logical node addressing.
-- Transport-source addressing.
-- Neighbor table updates.
-- Bidirectional Discovery between two physical ESP32 nodes.
-
-Example validation:
+Validated topology:
 
 ```text
-Gateway
-  network = 1
-  node    = 1
-
-Sensor
-  network = 1
-  node    = 2
-
-Wi-Fi channel = 10
-
-Gateway:
-  Neighbor discovered: network=1 node=2
-
-Sensor:
-  Neighbor discovered: network=1 node=1
+Gateway                         Sensor
+network=1                       network=1
+node=1                          node=2
+role=1                          role=2
+       \                       /
+        \--- Wi-Fi channel 10 /
+         \---- ESP-NOW -------/
 ```
 
-The current Discovery payload is 4 bytes:
+## Neighbor lifecycle
 
 ```text
-role            1 byte
-capabilities    2 bytes
-reserved        1 byte
+           Discovery
+              │
+              ▼
+           ACTIVE
+              │
+       no Discovery for
+        6000 ms
+              │
+              ▼
+            STALE
+              │
+       Discovery resumes
+              │
+              ▼
+           ACTIVE
+```
+
+Validated timing:
+
+```text
+Discovery interval: 2000 ms
+Neighbor timeout:   6000 ms
+```
+
+## Hardware validation record
+
+Gateway:
+
+```text
+network=1 node=1
+```
+
+Sensor:
+
+```text
+network=1 node=2
+```
+
+Wi-Fi channel:
+
+```text
+10
+```
+
+Observed periodic Discovery at approximately:
+
+```text
+27715 ms
+29715 ms
+
+61055 ms
+63055 ms
+65055 ms
+67055 ms
+69055 ms
+```
+
+Observed aging:
+
+```text
+Neighbor aging: 1 neighbor(s) became STALE
+```
+
+Observed recovery:
+
+```text
+Neighbor discovered: network=1 node=2 role=2 capabilities=0x0000
+```
+
+Result:
+
+**PASS — hardware validated.**
+
+## Receive path
+
+```text
+ESP-NOW RX callback
+       ↓
+StaticQueue
+       ↓
+StaticTask
+       ↓
+ENP transport callback
+       ↓
+Dispatcher
+       ↓
+Packet validation
+       ↓
+Discovery service
+       ↓
+Neighbor table
 ```
 
 ---
@@ -110,23 +191,26 @@ ENP services do not directly call ESP-NOW APIs.
 ---
 
 # Core components
+## Current status
 
-| Component | Responsibility | v0.2 status |
-|---|---|---|
-| `enp_address` | Logical ENP addresses | Frozen |
-| `enp_types` | Fundamental protocol types | Frozen |
-| `enp_node` | Local node model | Frozen |
-| `enp_network` | Local network state | Frozen |
-| `enp_context` | Runtime ownership/state | Frozen |
-| `enp_transport` | Transport abstraction | Frozen |
-| `enp_packet` | Packet storage/access | Frozen |
-| `enp_crc16` | CRC-16/CCITT-FALSE | Frozen |
-| `enp_protocol` | Wire constants/types | Frozen |
-| `enp_dispatcher` | Packet validation/routing to services | Implemented |
-| `enp_service` | Service contract | Frozen |
-| `enp_neighbor` | Direct-neighbor table | Implemented |
-| Discovery | Node announcement/neighbor learning | Hardware validated |
-| ESP-NOW transport | ESP-NOW link implementation | Hardware validated |
+| Component | Status |
+|---|---|
+| `enp_address` | Frozen |
+| `enp_types` | Frozen |
+| `enp_node` | Frozen |
+| `enp_network` | Frozen |
+| `enp_context` | Frozen |
+| `enp_transport` | Frozen |
+| `enp_packet` | Frozen |
+| `enp_crc16` | Frozen |
+| `enp_protocol` | Frozen |
+| `enp_dispatcher` | Hardware validated |
+| `enp_service` | Frozen |
+| `enp_neighbor` | Hardware validated |
+| ESP-NOW transport | Hardware validated |
+| Discovery | Hardware validated |
+| Periodic Discovery | Hardware validated |
+| Neighbor aging | Hardware validated |
 
 ---
 
@@ -275,7 +359,7 @@ ACTIVE
 STALE
 ```
 
-Neighbor expiration support exists in the neighbor API, but automatic periodic aging is not yet part of the validated runtime loop.
+Periodic Discovery and neighbor aging are now implemented and hardware validated.
 
 RSSI is currently recorded as unavailable (`0`) because the generic ENP transport receive callback does not yet expose radio metadata.
 
@@ -380,11 +464,10 @@ For the current ESP-NOW + Wi-Fi STA implementation, nodes must operate on the sa
 - Discovery
 - Neighbor table
 - Two-node hardware validation
+- Hardware validation of periodic Discovery and neighbor aging
 
 ## Next
 
-- Periodic Discovery
-- Neighbor aging/expiration task
 - Duplicate suppression
 - Sequence-number policy
 - Better local capability configuration

@@ -15,18 +15,18 @@ The architecture is intentionally layered so that protocol services do not depen
 | Application                                          |
 +------------------------------------------------------+
 | ENP Services                                         |
-| Discovery                                             |
+| Discovery                                            |
 +------------------------------------------------------+
-| ENP Core                                              |
+| ENP Core                                             |
 | Context | Dispatcher | Network | Neighbor | Protocol |
 +------------------------------------------------------+
-| Transport abstraction                                 |
-| enp_transport                                         |
+| Transport abstraction                                |
+| enp_transport                                        |
 +------------------------------------------------------+
-| Link implementation                                   |
-| enp_transport_espnow                                  |
+| Link implementation                                  |
+| enp_transport_espnow                                 |
 +------------------------------------------------------+
-| ESP-IDF                                               |
+| ESP-IDF                                              |
 +------------------------------------------------------+
 ```
 
@@ -137,6 +137,18 @@ The dispatcher is responsible for:
 The dispatcher does not implement Discovery, Routing, or application logic.
 
 ---
+
+
+## 5A. Periodic maintenance
+
+The current implementation adds a statically allocated ENP maintenance task. Every 2 seconds it:
+
+1. expires neighbors whose `last_seen_ms` is at least 6 seconds old;
+2. sends a Discovery announcement.
+
+The task is intentionally outside the ESP-NOW receive callback and outside the Discovery service processing callback.
+
+The periodic mechanism is implemented but must still be hardware-validated with node power-off and recovery tests.
 
 ## 6. Service contract
 
@@ -299,19 +311,12 @@ No dynamic allocation is required for the receive path.
 Two physical ESP32 nodes have been tested:
 
 ```text
-             Wi-Fi channel 10
-
-       +-----------------------+
-       |                       |
-       v                       v
-   Gateway                 Sensor
-   node 1                  node 2
-       |                       |
-       +------ ESP-NOW --------+
-              Discovery
+Gateway node 1  ←──── ESP-NOW ────→  Sensor node 2
+        \                           /
+         \────── Wi-Fi channel 10 /
 ```
 
-Both nodes successfully discovered each other.
+Both directions have been validated.
 
 ---
 
@@ -334,4 +339,3 @@ Multi-hop mesh
 ```
 
 Routing must not be introduced until sequence handling and duplicate suppression are defined.
-

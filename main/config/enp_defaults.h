@@ -12,7 +12,9 @@
 
  #define ENP_MAX_RETRIES                 3
 
- #define ENP_DISCOVERY_TIMEOUT_MS        2000
+ #define ENP_DISCOVERY_INTERVAL_MS       2000U
+ 
+ #define ENP_DISCOVERY_TIMEOUT_MS        6000U
 
  #define ENP_HEARTBEAT_INTERVAL_MS       10000
 

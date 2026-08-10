@@ -44,6 +44,17 @@ This document records the v0.2 baseline that must not be changed casually while 
 - [x] Static RX queue
 - [x] Static RX task
 
+## Periodic maintenance status
+
+The following behavior is implemented but is **not yet frozen as hardware-validated**:
+
+```text
+Discovery interval = 2000 ms
+Neighbor timeout   = 6000 ms
+```
+
+The implementation uses a statically allocated FreeRTOS task. Hardware validation must confirm: periodic announcements, stale transition after node loss, and reactivation after node recovery.
+
 ## Discovery
 
 - [x] Discovery payload definition
