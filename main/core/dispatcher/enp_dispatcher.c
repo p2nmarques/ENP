@@ -12,9 +12,12 @@
   */
 
   #include "enp_dispatcher.h"
+#include "core/enp_duplicate.h"
 
   #include <stdbool.h>
   #include <stddef.h>
+  #include <stdint.h>
+  #include <inttypes.h>
   #include <string.h>
 
   #include "esp_log.h"
@@ -39,6 +42,8 @@
 
  static bool s_initialized = false;
 
+static enp_duplicate_cache_t s_duplicate_cache;
+
  /*----------------------------------------------------------
   * Public API
   *---------------------------------------------------------*/
@@ -57,6 +62,26 @@
      }
 
      s_context = context;
+
+     /*
+      * Initialize the duplicate cache before the dispatcher
+      * becomes visible to the receive path.
+      */
+     esp_err_t duplicate_err =
+             enp_duplicate_cache_init(
+                     &s_duplicate_cache);
+
+     if (duplicate_err != ESP_OK)
+     {
+         ESP_LOGE(
+                 TAG,
+                 "Duplicate cache initialization failed: %s",
+                 esp_err_to_name(duplicate_err));
+
+         s_context = NULL;
+
+         return duplicate_err;
+     }
 
      s_service_count = 0U;
 
@@ -83,6 +108,24 @@
      if (!s_initialized)
      {
          return ESP_OK;
+     }
+
+     /*
+      * Clear the duplicate cache while the dispatcher is still
+      * considered initialized. The dispatcher owns this cache.
+      */
+     esp_err_t duplicate_err =
+             enp_duplicate_cache_clear(
+                     &s_duplicate_cache);
+
+     if (duplicate_err != ESP_OK)
+     {
+         ESP_LOGE(
+                 TAG,
+                 "Duplicate cache clear failed: %s",
+                 esp_err_to_name(duplicate_err));
+
+         return duplicate_err;
      }
 
      /*
@@ -234,6 +277,53 @@
       if (header == NULL)
       {
           return ESP_ERR_INVALID_ARG;
+      }
+
+      /*
+       * Duplicate suppression is performed after complete packet
+       * validation and before service dispatch.
+       *
+       * The duplicate identity is:
+       *
+       *     source logical address + sequence number
+       *
+       * The transport address is deliberately not part of the
+       * identity. This remains correct when packets are forwarded
+       * through multiple transports/nodes.
+       */
+      bool duplicate = false;
+
+      esp_err_t duplicate_err =
+              enp_duplicate_check_and_record(
+                      &s_duplicate_cache,
+                      &header->source,
+                      header->sequence,
+                      enp_context_time_ms(
+                              s_context),
+                      &duplicate);
+
+      if (duplicate_err != ESP_OK)
+      {
+          ESP_LOGE(
+                  TAG,
+                  "Duplicate check failed: %s",
+                  esp_err_to_name(duplicate_err));
+
+          return duplicate_err;
+      }
+
+      if (duplicate)
+      {
+          ESP_LOGD(
+                  TAG,
+                  "Dropped duplicate packet: "
+                  "network=%u node=%" PRIu32
+                  " seq=%" PRIu32,
+                  (unsigned)header->source.network,
+                  header->source.node,
+                  header->sequence);
+
+          return ESP_OK;
       }
 
       /*

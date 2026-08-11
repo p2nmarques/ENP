@@ -330,10 +330,11 @@ void app_main(void)
     /*------------------------------------------------------
      * Dispatcher
      *-----------------------------------------------------*/
-
+	 
     ESP_ERROR_CHECK(
             enp_dispatcher_init(
                     &s_context));
+
 
     ESP_LOGI(
             TAG,
@@ -383,6 +384,7 @@ void app_main(void)
     ESP_ERROR_CHECK(
             enp_maintenance_init(
                     &s_context));
+					
                     
     /*------------------------------------------------------
      * Startup complete

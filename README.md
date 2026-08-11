@@ -150,16 +150,16 @@ Neighbor table
 | ENP Services                                         |
 | Discovery | Heartbeat* | Routing* | ...              |
 +------------------------------------------------------+
-| ENP Core                                              |
-| Context | Dispatcher | Network | Protocol | Stats     |
+| ENP Core                                             |
+| Context | Dispatcher | Network | Protocol | Stats    |
 +------------------------------------------------------+
-| Transport abstraction                                 |
-| enp_transport                                         |
+| Transport abstraction                                |
+| enp_transport                                        |
 +------------------------------------------------------+
-| Link implementations                                  |
-| ESP-NOW | Wi-Fi* | ...                                |
+| Link implementations                                 |
+| ESP-NOW | Wi-Fi* | ...                               |
 +------------------------------------------------------+
-| ESP-IDF                                               |
+| ESP-IDF                                              |
 +------------------------------------------------------+
 
 * not yet part of the validated v0.2 runtime path
@@ -498,3 +498,14 @@ When a design decision changes:
 5. Perform hardware validation where applicable.
 6. Freeze the result before building the next layer.
 
+
+## Duplicate suppression integration
+
+The isolated duplicate cache has passed all ESP32 tests and is now
+integrated into the dispatcher.
+
+The dispatcher checks every valid packet before service dispatch.
+Duplicate packets are consumed and do not reach services.
+
+Integration is implemented but requires a clean build and live
+hardware validation before this feature is marked hardware-validated.

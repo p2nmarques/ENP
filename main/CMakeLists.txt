@@ -6,6 +6,7 @@ idf_component_register(
     	"main.c"
         "core/enp_address.c"
         "core/enp_context.c"
+        "core/enp_duplicate.c"
         "core/enp_maintenance.c"
         "core/enp_transport.c"
         "core/dispatcher/enp_dispatcher.c"
