@@ -1,511 +1,507 @@
 # ENP — ESP Network Protocol
 
-![Status](https://img.shields.io/badge/status-v0.2.0--draft-blue)
+![Status](https://img.shields.io/badge/status-v0.2.0--Frozen-blue)
 ![ESP-IDF](https://img.shields.io/badge/ESP--IDF-6.0.2-red)
 ![License](https://img.shields.io/badge/license-GPLv3.0-green)
 
-ENP (ESP Network Protocol) is a lightweight, modular, transport-independent networking layer for ESP32 systems.
+ENP (ESP Network Protocol) is a lightweight, modular, transport-independent network protocol being developed for ESP32 nodes using **ESP-IDF 6.0.2** and the **ESP-NOW 2.0** transport.
 
 ENP is intended to provide a protocol and networking layer above transports such as ESP-NOW without exposing transport-specific details to services and applications.
 
----
-
-## Current v0.2 milestone
-
-The following functionality has been validated on two physical ESP32 nodes:
-
-- Wi-Fi STA connection
-- ESP-NOW 2.0 on ESP-IDF 6.0.2
-- ESP-NOW broadcast peer
-- Transport abstraction
-- Static RX queue/task
-- ENP packet and CRC handling
-- Dispatcher
-- Discovery service
-- Logical and transport addressing
-- Neighbor table updates
-- Bidirectional Discovery
-- Periodic Discovery every 2000 ms
-- Neighbor aging with a 6000 ms timeout
-- ACTIVE → STALE
-- STALE → ACTIVE recovery
-
-Validated topology:
-
-```text
-Gateway                         Sensor
-network=1                       network=1
-node=1                          node=2
-role=1                          role=2
-       \                       /
-        \--- Wi-Fi channel 10 /
-         \---- ESP-NOW -------/
-```
-
-## Neighbor lifecycle
-
-```text
-           Discovery
-              │
-              ▼
-           ACTIVE
-              │
-       no Discovery for
-        6000 ms
-              │
-              ▼
-            STALE
-              │
-       Discovery resumes
-              │
-              ▼
-           ACTIVE
-```
-
-Validated timing:
-
-```text
-Discovery interval: 2000 ms
-Neighbor timeout:   6000 ms
-```
-
-## Hardware validation record
-
-Gateway:
-
-```text
-network=1 node=1
-```
-
-Sensor:
-
-```text
-network=1 node=2
-```
-
-Wi-Fi channel:
-
-```text
-10
-```
-
-Observed periodic Discovery at approximately:
-
-```text
-27715 ms
-29715 ms
-
-61055 ms
-63055 ms
-65055 ms
-67055 ms
-69055 ms
-```
-
-Observed aging:
-
-```text
-Neighbor aging: 1 neighbor(s) became STALE
-```
-
-Observed recovery:
-
-```text
-Neighbor discovered: network=1 node=2 role=2 capabilities=0x0000
-```
-
-Result:
-
-**PASS — hardware validated.**
-
-## Receive path
-
-```text
-ESP-NOW RX callback
-       ↓
-StaticQueue
-       ↓
-StaticTask
-       ↓
-ENP transport callback
-       ↓
-Dispatcher
-       ↓
-Packet validation
-       ↓
-Discovery service
-       ↓
-Neighbor table
-```
+The v0.2 milestone establishes the stable one-hop protocol foundation:
+packet handling, transport, dispatch, Discovery, neighbor management,
+periodic maintenance, and duplicate suppression.
 
 ---
 
-# Architecture
-
-```text
-+------------------------------------------------------+
-| Applications                                         |
-| Gateway | Sensor | Relay | Monitor | ...             |
-+------------------------------------------------------+
-| ENP Services                                         |
-| Discovery | Heartbeat* | Routing* | ...              |
-+------------------------------------------------------+
-| ENP Core                                             |
-| Context | Dispatcher | Network | Protocol | Stats    |
-+------------------------------------------------------+
-| Transport abstraction                                |
-| enp_transport                                        |
-+------------------------------------------------------+
-| Link implementations                                 |
-| ESP-NOW | Wi-Fi* | ...                               |
-+------------------------------------------------------+
-| ESP-IDF                                              |
-+------------------------------------------------------+
-
-* not yet part of the validated v0.2 runtime path
-```
-
-The dependency direction is:
-
-```text
-Application
-    ↓
-ENP Services
-    ↓
-ENP Core
-    ↓
-Transport abstraction
-    ↓
-Link implementation
-    ↓
-ESP-IDF
-```
-
-ENP services do not directly call ESP-NOW APIs.
+**Status: ENP v0.2 baseline frozen and hardware validated.**
 
 ---
 
-# Core components
-## Current status
+## 1. v0.2 Architecture
+
+```text
+                         ENP v0.2
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+          ENP Core                    ESP-NOW Transport
+             │                             │
+    ┌────────┼────────┐                    │
+    │        │        │                    │
+  Packet  Dispatcher  Network          ESP-NOW 2.0
+    │        │        │
+    │        │     Neighbor Table
+    │        │        │
+    │        │     Discovery
+    │        │        │
+    │        │     Neighbor Aging
+    │        │
+    │     Duplicate Cache
+    │
+   CRC16
+```
+
+### Receive path
+
+```text
+ESP-NOW RX
+    │
+    ▼
+Transport receive path
+    │
+    ▼
+ENP packet validation
+    │
+    ▼
+Duplicate detection
+    │
+    ├── DUPLICATE ──► DROP
+    │
+    └── NEW
+         │
+         ▼
+      Dispatcher
+         │
+         ▼
+       Service
+```
+
+The duplicate check occurs before service dispatch.
+
+---
+
+## 2. Frozen and Hardware-Validated Features
 
 | Component | Status |
 |---|---|
-| `enp_address` | Frozen |
-| `enp_types` | Frozen |
-| `enp_node` | Frozen |
-| `enp_network` | Frozen |
-| `enp_context` | Frozen |
-| `enp_transport` | Frozen |
-| `enp_packet` | Frozen |
-| `enp_crc16` | Frozen |
-| `enp_protocol` | Frozen |
-| `enp_dispatcher` | Hardware validated |
-| `enp_service` | Frozen |
-| `enp_neighbor` | Hardware validated |
-| ESP-NOW transport | Hardware validated |
-| Discovery | Hardware validated |
-| Periodic Discovery | Hardware validated |
-| Neighbor aging | Hardware validated |
+| ENP core types | 🔒 Frozen |
+| Logical addressing | 🔒 Frozen |
+| Packet format | 🔒 Frozen |
+| CRC16 | 🔒 Frozen |
+| Transport abstraction | 🔒 Frozen |
+| ESP-NOW 2.0 transport | ✅ Hardware validated |
+| Static receive path | ✅ Hardware validated |
+| Dispatcher | ✅ Hardware validated |
+| Service contract | 🔒 Frozen |
+| Discovery | ✅ Hardware validated |
+| Neighbor table | ✅ Hardware validated |
+| Periodic Discovery | ✅ Hardware validated |
+| Neighbor aging | ✅ Hardware validated |
+| Neighbor stale/recovery | ✅ Hardware validated |
+| Sequence number | 🔒 Frozen |
+| Duplicate cache | ✅ Hardware validated |
+| Duplicate suppression | 🔒 Frozen / hardware validated |
 
 ---
 
-# Addressing
+## 3. ESP-NOW Transport
 
-ENP distinguishes logical and transport identities.
-
-## Logical address
+The current implementation targets:
 
 ```text
-Network ID : 16 bits
-Node ID    : 32 bits
-Total      : 6 bytes
+ESP-IDF: 6.0.2
+ESP-NOW: 2.0
 ```
 
-Logical addresses are carried by the ENP packet header.
+The transport provides the ENP link between nodes while keeping the
+higher-level protocol independent of the ESP-NOW API.
 
-## Transport address
+The validated hardware configuration uses Wi-Fi station mode and keeps
+the ESP-NOW channel aligned with the connected Wi-Fi network.
 
-Transport addresses are owned by the active transport implementation.
-
-For ESP-NOW:
-
-```text
-6 bytes = MAC address
-```
-
-At the ENP transport abstraction level:
-
-```text
-length == 0  → transport broadcast
-length == 6  → ESP-NOW unicast MAC
-```
-
-The ESP-NOW implementation maps transport broadcast to:
-
-```text
-FF:FF:FF:FF:FF:FF
-```
-
-and maintains the broadcast peer during transport initialization.
+Broadcast Discovery is supported through the configured ESP-NOW broadcast
+peer.
 
 ---
 
-# Packet format
+## 4. Logical Addressing
 
-The ENP v0.2 header is 26 bytes:
+ENP uses logical addresses rather than exposing transport MAC addresses
+to the higher protocol layers.
+
+A node is identified by:
 
 ```text
-Magic             4
-Version           1
-Type              1
-Flags             1
-TTL               1
-Source            6
-Destination       6
-Payload length    2
-Sequence          4
--------------------
-Header           26 bytes
-CRC16             2 bytes
+Network ID
+Node ID
 ```
 
-Maximum frame size:
+Node roles are represented independently of the transport address.
+
+Example validated configuration:
 
 ```text
-250 bytes
-```
+Gateway:
+    Network = 1
+    Node    = 1
+    Role    = Gateway
 
-Maximum payload:
-
-```text
-222 bytes
-```
-
-Multi-byte values are serialized little-endian.
-
-The wire protocol version is currently:
-
-```text
-1
-```
-
-This is intentionally distinct from the ENP software/project version:
-
-```text
-0.2.0
+Sensor:
+    Network = 1
+    Node    = 2
+    Role    = Sensor
 ```
 
 ---
 
-# Discovery
+## 5. Packet Processing
 
-Discovery is currently the first implemented ENP service.
-
-A node broadcasts:
+A received packet follows this sequence:
 
 ```text
-ENP_PACKET_DISCOVERY
+Receive
+   ↓
+Frame validation
+   ↓
+CRC validation
+   ↓
+Duplicate detection
+   ↓
+Dispatcher
+   ↓
+Service
 ```
 
-with:
-
-```text
-role
-capabilities
-reserved
-```
-
-The receiver combines:
-
-```text
-ENP logical source address
-+
-transport source address
-+
-Discovery payload
-```
-
-to create/update a neighbor entry.
-
-Discovery does not place MAC addresses in the ENP payload.
+Invalid packets are rejected before they can reach a service or poison
+the duplicate cache.
 
 ---
 
-# Neighbor table
+## 6. Discovery
 
-A neighbor entry currently contains:
+Discovery is the first ENP network service.
+
+A Discovery announcement communicates:
 
 ```text
-Logical address
-Transport address
-Role
+Network ID
+Node ID
+Node role
 Capabilities
-Last sequence
-RSSI
-Last seen time
-State
 ```
 
-States:
+Discovery is transported using ESP-NOW broadcast.
+
+The receiving node updates its neighbor table.
+
+Hardware validation confirmed bidirectional Discovery between:
 
 ```text
-EMPTY
-ACTIVE
-STALE
+Gateway ↔ Sensor
 ```
-
-Periodic Discovery and neighbor aging are now implemented and hardware validated.
-
-RSSI is currently recorded as unavailable (`0`) because the generic ENP transport receive callback does not yet expose radio metadata.
 
 ---
 
-# Memory model
+## 7. Periodic Discovery
 
-The ESP-NOW transport uses:
+The ENP maintenance subsystem periodically sends Discovery announcements.
 
-- `StaticQueue_t`
-- statically allocated queue storage
-- `StaticTask_t`
-- statically allocated task stack
+Current validated interval:
 
-The ESP-NOW receive callback copies the frame into the static queue and performs no blocking application processing.
+```text
+Discovery interval = 2000 ms
+```
 
-The worker task invokes the ENP transport receive callback.
+Periodic work is performed outside the ESP-NOW receive callback using
+statically allocated FreeRTOS resources.
+
+Hardware validation confirmed that periodic Discovery continues to
+refresh neighbors during normal operation.
 
 ---
 
-# Current runtime flow
+## 8. Neighbor Management
+
+Neighbors are maintained using logical ENP addresses.
+
+Current validated stale policy:
 
 ```text
-Wi-Fi STA
-   ↓
-ESP-NOW initialization
-   ↓
-ENP context
-   ↓
-Dispatcher
-   ↓
-Discovery service registration
-   ↓
-Transport receive callback
-   ↓
-Discovery announcement
+Neighbor stale threshold = 6000 ms
 ```
 
-Receive path:
+The neighbor lifecycle is:
 
 ```text
-ESP-NOW RX callback
-   ↓
-Static queue
-   ↓
-Static worker task
-   ↓
-ENP receive callback
-   ↓
-Dispatcher
-   ↓
-Packet validation
-   ↓
+Discovery received
+       │
+       ▼
+    ACTIVE
+       │
+       │ no Discovery
+       ▼
+     STALE
+       │
+       │ Discovery resumes
+       ▼
+    ACTIVE
+```
+
+Hardware testing confirmed:
+
+- neighbor discovery;
+- periodic refresh;
+- transition to `STALE`;
+- recovery after Discovery resumes.
+
+---
+
+## 9. Duplicate Suppression
+
+Duplicate suppression is part of the frozen v0.2 runtime.
+
+### Duplicate identity
+
+A packet is considered a duplicate using:
+
+```text
+Source Network ID
++
+Source Node ID
++
+Sequence Number
+```
+
+The ESP-NOW MAC address is **not** part of the duplicate identity.
+
+This is intentional because future multi-hop forwarding must preserve
+the identity of the originating ENP packet independently of the
+transport peer through which it arrives.
+
+### Cache policy
+
+```text
+Capacity = 32 entries
+Lifetime = 10000 ms
+Allocation = static
+Owner = Dispatcher
+```
+
+The dispatcher checks the duplicate cache after packet validation and
+before service dispatch.
+
+A duplicate is consumed and dropped:
+
+```text
+VALID PACKET
+    │
+    ▼
+Duplicate check
+    │
+    ├── duplicate ──► DROP
+    │
+    └── new ────────► SERVICE
+```
+
+### Hardware validation
+
+The same serialized Discovery frame was transmitted three times using:
+
+```text
+Sequence = 0x7E000001
+```
+
+Observed behavior:
+
+```text
+Frame #1
+    NEW
+    ↓
 Discovery service
-   ↓
-Neighbor table
+
+Frame #2
+    DUPLICATE
+    ↓
+Dispatcher DROP
+
+wait 11000 ms
+
+Frame #3
+    NEW
+    ↓
+Discovery service
 ```
+
+The Sensor hardware log confirmed:
+
+```text
+enp_discovery: Neighbor discovered: network=1 node=1 ...
+enp_dispatcher: Dropped duplicate packet: network=1 node=1 seq=2113929217
+enp_discovery: Neighbor discovered: network=1 node=1 ...
+```
+
+`2113929217` is `0x7E000001`.
+
+The normal periodic Discovery traffic continued during the test.
+
+### Isolated duplicate-cache validation
+
+The duplicate-cache module was also independently tested for:
+
+- first packet / duplicate behavior;
+- different sequence numbers;
+- different sources;
+- expiration;
+- 32-bit millisecond clock wrap-around;
+- 32-entry capacity;
+- oldest-entry replacement;
+- cache clear.
+
+All tests passed.
 
 ---
 
-# Build
+## 10. Sequence Number Boundary
 
-Requirements:
+The ENP packet contains a 32-bit sequence number.
 
-- ESP-IDF 6.0.2
-- ESP32 device
-- Wi-Fi access point
+For v0.2 it is frozen as a component of duplicate identity.
 
-Configure:
+However, **sequence-number ordering is not yet defined**.
 
-```bash
-idf.py menuconfig
+In particular, routing has not yet established a serial-number comparison
+rule for values crossing:
+
+```text
+0xFFFFFFFF → 0x00000000
 ```
 
-Build:
-
-```bash
-idf.py build
-```
-
-Flash and monitor:
-
-```bash
-idf.py flash monitor
-```
-
-For the current ESP-NOW + Wi-Fi STA implementation, nodes must operate on the same Wi-Fi channel.
+That decision belongs to the routing architecture specification and is
+therefore deliberately outside the frozen v0.2 duplicate-suppression
+contract.
 
 ---
 
-# Roadmap
+## 11. Static Resource Policy
 
-## v0.2 — current
+The current ENP implementation follows a static-resource policy for
+core runtime paths.
 
-- Core API
-- Packet format
-- CRC
-- Transport abstraction
-- ESP-NOW transport
-- Dispatcher
-- Service contract
-- Discovery
-- Neighbor table
-- Two-node hardware validation
-- Hardware validation of periodic Discovery and neighbor aging
+The project uses:
 
-## Next
+```text
+Static FreeRTOS queues
+Static FreeRTOS tasks
+Fixed-size protocol buffers/tables
+Bounded neighbor table
+Bounded duplicate cache
+```
 
-- Duplicate suppression
-- Sequence-number policy
-- Better local capability configuration
-- Optional transport metadata such as RSSI
-
-## Future
-
-- Heartbeat
-- Routing table
-- Multi-hop forwarding
-- TTL enforcement during forwarding
-- Reliable delivery/retransmission
-- Fragmentation/reassembly
-- Security
-- OTA
-- Diagnostics
-- CLI
-
-Features are not considered implemented merely because their headers or placeholders exist.
+This is intended to make memory ownership and runtime behavior
+predictable on embedded nodes.
 
 ---
 
-# Design rule
+## 12. Hardware Validation Summary
 
-The protocol specification, public API, and implementation should be kept synchronized.
+The v0.2 Gateway/Sensor hardware validation has confirmed:
 
-When a design decision changes:
+```text
+Gateway ↔ Sensor communication               ✅
+ESP-NOW transport                            ✅
+Packet reception                             ✅
+Discovery TX/RX                              ✅
+Bidirectional Discovery                      ✅
+Periodic Discovery                           ✅
+Neighbor table updates                       ✅
+Neighbor aging                               ✅
+STALE transition                             ✅
+STALE → ACTIVE recovery                      ✅
+Duplicate cache                              ✅
+Dispatcher duplicate suppression             ✅
+NEW → DUPLICATE → EXPIRED → NEW              ✅
+Normal Discovery after duplicate testing     ✅
+```
 
-1. Update the specification.
-2. Update the API documentation.
-3. Update the implementation.
-4. Perform a build.
-5. Perform hardware validation where applicable.
-6. Freeze the result before building the next layer.
+The normal Gateway and Sensor firmware were subsequently flashed again
+and confirmed operational after removal of the temporary replay
+diagnostic.
 
+---
 
-## Duplicate suppression integration
+## 13. v0.2 Scope Boundary
 
-The isolated duplicate cache has passed all ESP32 tests and is now
-integrated into the dispatcher.
+The following features are **not implemented** in ENP v0.2:
 
-The dispatcher checks every valid packet before service dispatch.
-Duplicate packets are consumed and do not reach services.
+```text
+Routing
+Route discovery
+Route selection
+Multi-hop forwarding
+TTL enforcement
+Route repair
+Reliable delivery
+Retransmission
+Fragmentation
+Security
+OTA
+```
 
-Integration is implemented but requires a clean build and live
-hardware validation before this feature is marked hardware-validated.
+In particular:
+
+> **ENP v0.2 is a validated one-hop foundation. It is not yet a
+> multi-hop mesh routing implementation.**
+
+---
+
+## 14. Next Milestone — Routing Architecture
+
+The next development phase begins with a design specification rather
+than immediate implementation.
+
+The routing specification must define:
+
+1. Route entry structure.
+2. Destination and next-hop semantics.
+3. Route state.
+4. Route lifetime and expiration.
+5. Route metric.
+6. TTL semantics.
+7. Forwarding rules.
+8. Loop prevention.
+9. Route discovery.
+10. Route invalidation and repair.
+11. Gateway/root-node behavior.
+12. Sequence-number semantics for routing.
+
+The existing v0.2 Discovery, Neighbor, and Duplicate mechanisms should be
+treated as a **frozen foundation** while routing is designed.
+
+---
+
+## 15. Development / Freeze Rule
+
+ENP development follows:
+
+```text
+Design
+  ↓
+Specification
+  ↓
+API
+  ↓
+Implementation
+  ↓
+Clean build
+  ↓
+Test
+  ↓
+Hardware validation
+  ↓
+Documentation
+  ↓
+Freeze
+```
+
+A feature is not considered complete merely because its headers, enums,
+or placeholders exist.
+
+---
+
+## 16. Project Status
+
+**ENP v0.2 — FROZEN BASELINE**
+
+The project is ready to proceed to the **Routing Architecture
+Specification** without modifying the frozen v0.2 foundation.
