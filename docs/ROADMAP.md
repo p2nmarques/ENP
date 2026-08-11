@@ -38,6 +38,7 @@
 - [x] Add periodic Discovery scheduler using a static FreeRTOS task.
 - [x] Keep startup Discovery separate from periodic Discovery.
 - [x] Keep periodic work outside transport callbacks.
+- [x] Hardware-validate periodic announcements.
 
 ### Neighbor aging
 
@@ -47,48 +48,68 @@
 - [x] Define current policy: retain stale entries for reuse.
 - [X] Validate with node power-off/recovery hardware tests.
 
----
-
-## Immediate next milestone
-
 ### Sequence and duplicate handling
 
-- [ ] Define sequence comparison rules.
-- [ ] Define wrap-around behavior.
-- [ ] Define duplicate cache.
-- [ ] Define duplicate lifetime.
-- [ ] Validate repeated frames.
+- [x] Define duplicate identity: source Network ID + source Node ID + sequence.
+- [x] Define duplicate cache.
+- [x] Define duplicate lifetime: 10 seconds.
+- [x] Validate cache timeout and `uint32_t` time wrap-around.
+- [x] Validate cache capacity and oldest-entry replacement.
+- [x] Integrate duplicate detection into the dispatcher.
+- [x] Validate repeated frames on hardware.
+- [x] Validate `NEW → DUPLICATE → EXPIRED → NEW` end-to-end.
+- [x] Freeze duplicate suppression.
 
-This should be completed before routing/forwarding.
+### v0.2 boundary
+
+The following are deliberately **not implemented** in the frozen v0.2
+baseline:
+
+- [ ] Routing
+- [ ] Route discovery
+- [ ] Route selection
+- [ ] Multi-hop forwarding
+- [ ] TTL enforcement
+- [ ] Reliable delivery
+- [ ] Retransmission
+- [ ] Fragmentation
+- [ ] Security
+- [ ] OTA
+
+
+---
+
+## Next milestone — Routing architecture
+
+Before implementation, define and review:
+
+- [ ] Route entry structure.
+- [ ] Destination versus next-hop semantics.
+- [ ] Route state.
+- [ ] Route lifetime and expiration.
+- [ ] Route metric.
+- [ ] TTL decrement/discard semantics.
+- [ ] Sequence-number semantics for routing.
+- [ ] Forwarding rules.
+- [ ] Loop prevention.
+- [ ] Route discovery.
+- [ ] Route invalidation and repair.
+- [ ] Gateway/root-node behavior.
+
+The routing specification must not destabilize the frozen v0.2
+Discovery/Neighbor/Duplicate foundation.
 
 ---
 
 ## Later
 
-### v0.3
+### Reliability
 
-- Heartbeat
-- Node information
-- Link-quality metadata
-- RSSI integration
-- Neighbor maintenance
-
-### v0.4
-
-- Routing table
-- Route selection
-- Multi-hop forwarding
-- TTL enforcement
-- Duplicate suppression integration
-
-### v0.5
-
-- Reliable delivery
-- ACK handling
-- Retransmission
-- Retry policy
-- Fragmentation
-- Reassembly
+- [ ] ACK handling
+- [ ] Retransmission
+- [ ] Retry policy
+- [ ] Fragmentation
+- [ ] Reassembly
 
 ### v1.x
 

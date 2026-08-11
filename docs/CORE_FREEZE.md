@@ -1,7 +1,7 @@
 # ENP v0.2 Core Freeze
 
 **Version:** 0.2.0  
-**Status:** Core frozen; Discovery path hardware-validated
+**Status:** v0.2 baseline frozen; Discovery, neighbor maintenance, and duplicate suppression hardware-validated
 
 This document records the v0.2 baseline that must not be changed casually while higher-level networking features are developed.
 
@@ -46,14 +46,60 @@ This document records the v0.2 baseline that must not be changed casually while 
 
 ## Periodic maintenance status
 
-The following behavior is implemented but is **not yet frozen as hardware-validated**:
+The periodic maintenance path is **hardware-validated and frozen**.
+
+Current behavior:
 
 ```text
 Discovery interval = 2000 ms
 Neighbor timeout   = 6000 ms
 ```
 
-The implementation uses a statically allocated FreeRTOS task. Hardware validation must confirm: periodic announcements, stale transition after node loss, and reactivation after node recovery.
+The implementation uses statically allocated FreeRTOS resources and keeps
+periodic work outside the ESP-NOW receive callback.
+
+Hardware validation confirmed:
+
+- periodic Discovery announcements;
+- neighbor transition to `STALE` after loss of Discovery;
+- neighbor refresh/recovery after Discovery resumes.
+
+## Duplicate suppression
+
+Duplicate suppression is **hardware-validated and frozen**.
+
+The dispatcher owns a statically allocated duplicate cache.
+
+Duplicate identity:
+
+```text
+(source Network ID,
+ source Node ID,
+ sequence number)
+```
+
+Current cache policy:
+
+```text
+Capacity = 32 entries
+Lifetime = 10000 ms
+```
+
+A valid packet is recorded before service dispatch. A duplicate is consumed
+by the dispatcher and is not delivered to the service.
+
+End-to-end hardware validation confirmed:
+
+```text
+NEW → service
+DUPLICATE → DROP
+wait > 10 seconds
+same packet → NEW → service
+```
+
+The duplicate cache also passed isolated ESP32 tests covering timeout,
+`uint32_t` time wrap-around, capacity/replacement, and clear behavior.
+
 
 ## Discovery
 
@@ -164,12 +210,11 @@ The ESP-NOW transport installs the broadcast peer during initialization.
 
 ## What is NOT frozen as a completed feature
 
-The following are intentionally not considered implemented merely because APIs/placeholders exist:
+The following are intentionally not implemented merely because APIs,
+enums, or placeholders exist:
 
-- Periodic Discovery scheduler
-- Automatic neighbor aging task
-- Duplicate suppression
 - Routing
+- Multi-hop forwarding
 - Multi-hop forwarding
 - Reliable delivery
 - Retransmission

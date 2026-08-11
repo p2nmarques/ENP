@@ -2,10 +2,11 @@
 
 ## Status
 
-The isolated `enp_duplicate.c` module has been validated on ESP32.
+**Frozen and hardware-validated.**
 
-The dispatcher integration is implemented in this milestone but is
-**not yet hardware-validated**.
+The isolated `enp_duplicate.c` module was validated on ESP32 and the
+dispatcher integration was subsequently validated end-to-end on Gateway
+and Sensor hardware.
 
 ## Receive path
 
@@ -27,19 +28,18 @@ Duplicate cache
       Service
 ```
 
+Duplicate suppression occurs after complete packet validation and before
+service dispatch.
+
 ## Ordering
 
-Duplicate suppression occurs:
+1. The complete ENP packet is validated.
+2. The duplicate cache is checked and the valid packet is recorded.
+3. Only a new packet is passed to the registered service.
+4. A duplicate is consumed by the dispatcher and is not delivered again.
 
-1. after complete packet validation;
-2. before service dispatch.
-
-This means invalid packets cannot poison the duplicate cache.
-
-A valid packet is recorded before the service callback is invoked.
-
-If the service later returns an error, a retransmission of the same
-packet remains a duplicate for the cache lifetime.
+Therefore an invalid packet cannot poison the duplicate cache, while a
+valid packet remains suppressed even if its service later returns an error.
 
 ## Identity
 
@@ -51,10 +51,10 @@ Duplicate identity is:
  sequence number)
 ```
 
-The transport source address is not part of the identity.
+The transport source address is deliberately **not** part of the identity.
 
-This is required for future multi-hop forwarding, where the same
-originated packet may arrive from different transport peers.
+This is important for future multi-hop forwarding, where an originated
+packet may arrive through different transport peers.
 
 ## Cache
 
@@ -62,27 +62,59 @@ originated packet may arrive from different transport peers.
 Capacity: 32 entries
 Lifetime: 10000 ms
 Allocation: static
-Synchronization: static FreeRTOS mutex
+Ownership: dispatcher
 ```
 
-## Duplicate handling
+The cache has been independently tested on ESP32 for:
 
-A duplicate is intentionally consumed by the dispatcher and returns
-`ESP_OK` to the transport receive path.
+- first packet / duplicate behavior;
+- different sequence numbers;
+- different sources;
+- expiration;
+- `uint32_t` time wrap-around;
+- full-cache oldest-entry replacement;
+- clear/reset behavior.
 
-It is logged at `DEBUG` level to avoid flooding the normal serial
-console.
+## Hardware validation
 
-## Hardware validation to perform
+The complete dispatcher path was tested with one valid Discovery frame
+sealed once and transmitted three times using the same sequence:
 
-1. Build the integrated firmware with ESP-IDF 6.0.2.
-2. Run Gateway and Sensor normally.
-3. Confirm ordinary Discovery still works.
-4. Replay an identical valid Discovery frame within 10 seconds.
-5. Confirm the duplicate is logged by the dispatcher and does not
-   generate a second Discovery-service processing event.
-6. Wait beyond 10 seconds and replay the same identity.
-7. Confirm it is accepted as a new packet.
+```text
+0x7E000001
+```
 
-The implementation must not be frozen as hardware-validated until
-these tests pass.
+Expected and observed behavior:
+
+```text
+Frame #1
+    NEW → Discovery service
+
+Frame #2, 100 ms later
+    DUPLICATE → DROP
+
+Frame #3, 11000 ms later
+    NEW → Discovery service
+```
+
+The Sensor log confirmed:
+
+```text
+enp_discovery: Neighbor discovered: network=1 node=1 ...
+enp_dispatcher: Dropped duplicate packet: network=1 node=1 seq=2113929217
+enp_discovery: Neighbor discovered: network=1 node=1 ...
+```
+
+`2113929217` is `0x7E000001`.
+
+Normal periodic Discovery continued throughout the test, confirming that
+duplicate suppression did not disrupt the existing Discovery path.
+
+## Frozen rules
+
+Do not change the duplicate identity, cache semantics, or dispatcher
+ordering without a new design review and validation cycle.
+
+Sequence-number ordering/comparison for future routing is **not** defined
+by this document. The sequence field is currently used as a packet
+identity component for duplicate suppression.

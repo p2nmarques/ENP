@@ -115,9 +115,15 @@ ENP dispatcher
         ↓
 packet validation
         ↓
-service lookup by packet type
-        ↓
-service process callback
+duplicate detection
+        │
+        ├── DUPLICATE → DROP
+        │
+        └── NEW
+             ↓
+        service lookup by packet type
+             ↓
+        service process callback
 ```
 
 The ESP-NOW callback must remain short and non-blocking.
@@ -130,9 +136,16 @@ The dispatcher is responsible for:
 
 1. receiving a complete ENP frame;
 2. validating the packet;
-3. determining its packet type;
-4. locating the registered service;
-5. invoking the service.
+3. checking duplicate identity;
+4. recording valid new packets in the duplicate cache;
+5. determining the packet type;
+6. locating the registered service;
+7. invoking the service.
+
+A duplicate packet is consumed by the dispatcher and is not passed to the
+service.
+
+The dispatcher owns the duplicate cache.
 
 The dispatcher does not implement Discovery, Routing, or application logic.
 
@@ -148,7 +161,8 @@ The current implementation adds a statically allocated ENP maintenance task. Eve
 
 The task is intentionally outside the ESP-NOW receive callback and outside the Discovery service processing callback.
 
-The periodic mechanism is implemented but must still be hardware-validated with node power-off and recovery tests.
+This behavior has been hardware-validated, including stale transition and
+recovery after Discovery resumes.
 
 ## 6. Service contract
 

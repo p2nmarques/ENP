@@ -2,7 +2,7 @@
 
 **Software version:** 0.2.0  
 **Wire protocol version:** 1  
-**Status:** v0.2 core/discovery baseline
+**Status:** v0.2 frozen core/discovery/duplicate-suppression baseline
 
 ---
 
@@ -150,13 +150,44 @@ A forwarding implementation must define decrement/discard behavior before TTL be
 
 ---
 
-# 9. Sequence number
+# 9. Sequence number and duplicate suppression
 
 Each packet contains a 32-bit sequence number.
 
-The current packet format supports sequence numbers, and the neighbor table records the last received sequence.
+For the v0.2 duplicate-suppression mechanism, packet identity is:
 
-A complete duplicate-suppression policy is not yet part of the validated v0.2 runtime.
+```text
+source Network ID
++
+source Node ID
++
+sequence number
+```
+
+The transport source address is not part of duplicate identity.
+
+The dispatcher owns a statically allocated duplicate cache:
+
+```text
+Capacity = 32 entries
+Lifetime = 10000 ms
+```
+
+Duplicate checking occurs after complete packet validation and before
+service dispatch.
+
+A duplicate is consumed by the dispatcher and is not delivered to the
+registered service.
+
+The v0.2 runtime has been hardware-validated for:
+
+```text
+NEW → DUPLICATE → DROP → EXPIRED → NEW
+```
+
+The 32-bit sequence field is **not yet assigned an ordering/comparison
+semantics** for routing. In particular, wrap-around ordering between
+sequence values is not part of the frozen v0.2 routing contract.
 
 ---
 

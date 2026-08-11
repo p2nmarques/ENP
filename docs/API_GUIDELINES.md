@@ -67,6 +67,7 @@ Internal/service infrastructure includes:
 dispatcher/
 service/
 link/
+core/enp_duplicate.*
 ```
 
 The distinction is architectural: a module being visible in the source tree does not automatically make its implementation details part of the public contract.
@@ -257,3 +258,42 @@ Examples of legacy APIs that should not return to the v0.2 core include old pack
 
 Migration should move old applications onto the new architecture instead.
 
+
+
+# 15. Duplicate suppression
+
+`enp_duplicate` is a core runtime module owned by the dispatcher.
+
+The public module contract is:
+
+```c
+enp_duplicate_cache_init()
+enp_duplicate_cache_clear()
+enp_duplicate_check_and_record()
+enp_duplicate_count()
+```
+
+Services must not manipulate the duplicate cache directly.
+
+The dispatcher performs duplicate detection after packet validation and
+before service dispatch.
+
+Duplicate identity is:
+
+```text
+source Network ID + source Node ID + sequence
+```
+
+The current frozen v0.2 cache policy is:
+
+```text
+32 entries
+10000 ms lifetime
+static allocation
+```
+
+The transport source address is intentionally excluded from duplicate
+identity.
+
+Sequence-number ordering for routing is a separate concern and is not
+defined by this duplicate-suppression contract.
