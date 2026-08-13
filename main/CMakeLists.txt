@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"test_enp_routing_main.c"
+    	#"test_enp_route_metric_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -15,6 +15,7 @@ idf_component_register(
         "core/protocol/enp_crc16.c"
         "core/protocol/enp_packet.c"
         "core/protocol/payloads/enp_routing.c"
+        "core/routing/enp_route_metric.c"
         "core/service/discovery/enp_service_discovery.c"
         "core/stats/stats.c"
         "core/utils/utils.c"
