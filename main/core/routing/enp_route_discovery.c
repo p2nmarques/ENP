@@ -5,80 +5,152 @@
  *      Author: Pedro Marques
  */
 
- #ifndef ENP_RERR_PROCESSOR_H
- #define ENP_RERR_PROCESSOR_H
-
- /**
-  * ENP v0.2 R4-D — RERR Processor
+ /*
+  * enp_route_discovery.c
   *
-  * Hardware-independent processing of received Route Error messages.
-  *
-  * R4-D owns the protocol decision:
-  *   - validate RERR;
-  *   - determine whether it applies to the installed route;
-  *   - compare destination sequence freshness;
-  *   - invalidate an applicable route.
-  *
-  * R4-D deliberately does not own:
-  *   - route-table storage;
-  *   - transport;
-  *   - packet forwarding;
-  *   - precursor/notification management.
-  *
-  * The v0.2 RERR payload identifies the unreachable destination, not an
-  * originator or precursor list. Therefore forwarding/notification policy is
-  * left to the integration layer rather than invented here.
+  * ENP v0.2 Route Discovery State Machine — R4-A.1
   */
 
- #include <stdbool.h>
- #include <stdint.h>
+ #include "enp_route_discovery.h"
 
- #include "enp_routing_rerr.h"
+ #include <string.h>
 
- typedef struct {
-     uint16_t network_id;
-     uint16_t node_id;
- } enp_rerr_destination_t;
+ static bool destination_valid(enp_discovery_destination_t destination)
+ {
+     return destination.network_id != 0U &&
+            destination.node_id != 0U;
+ }
 
- typedef struct {
-     bool installed;
-     bool active;
-     uint32_t destination_sequence;
- } enp_rerr_route_info_t;
+ /* RFC-style uint32 serial-number comparison. */
+ static bool sequence_is_newer_or_equal(
+     uint32_t received,
+     uint32_t requested)
+ {
+     uint32_t difference = received - requested;
 
- typedef bool (*enp_rerr_route_lookup_fn)(
-     void *context,
-     enp_rerr_destination_t destination,
-     enp_rerr_route_info_t *route_info);
+     return difference == 0U || difference < 0x80000000UL;
+ }
 
- typedef bool (*enp_rerr_route_invalidate_fn)(
-     void *context,
-     enp_rerr_destination_t destination);
+ /* Wrap-safe deadline test: true when now is at or after deadline. */
+ static bool deadline_reached(uint32_t now_ms, uint32_t deadline_ms)
+ {
+     return (int32_t)(now_ms - deadline_ms) >= 0;
+ }
 
- typedef struct {
-     void *context;
-     enp_rerr_route_lookup_fn lookup_route;
-     enp_rerr_route_invalidate_fn invalidate_route;
- } enp_rerr_processor_callbacks_t;
+ bool enp_route_discovery_init(enp_route_discovery_t *discovery)
+ {
+     if (discovery == NULL) {
+         return false;
+     }
 
- typedef struct {
-     enp_rerr_processor_callbacks_t callbacks;
- } enp_rerr_processor_t;
+     memset(discovery, 0, sizeof(*discovery));
+     discovery->state = ENP_DISCOVERY_STATE_IDLE;
 
- typedef enum {
-     ENP_RERR_RESULT_REJECT = 0,
-     ENP_RERR_RESULT_IGNORED_NO_ROUTE,
-     ENP_RERR_RESULT_IGNORED_STALE,
-     ENP_RERR_RESULT_IGNORED_INACTIVE,
-     ENP_RERR_RESULT_INVALIDATED,
- } enp_rerr_result_t;
+     return true;
+ }
 
- bool enp_rerr_processor_init(
-     enp_rerr_processor_t *processor,
-     const enp_rerr_processor_callbacks_t *callbacks);
+ bool enp_route_discovery_start(
+     enp_route_discovery_t *discovery,
+     enp_discovery_destination_t destination,
+     uint32_t route_request_id,
+     uint32_t destination_sequence,
+     uint8_t ttl,
+     uint32_t now_ms)
+ {
+     if (discovery == NULL) {
+         return false;
+     }
 
- enp_rerr_result_t enp_rerr_processor_handle(
-     enp_rerr_processor_t *processor,
-     const enp_routing_rerr_t *rerr);
+     if (!destination_valid(destination) ||
+         route_request_id == 0U ||
+         ttl == 0U) {
+         return false;
+     }
 
- #endif
+     if (discovery->state == ENP_DISCOVERY_STATE_REQUESTING) {
+         return false;
+     }
+
+     discovery->state = ENP_DISCOVERY_STATE_REQUESTING;
+     discovery->destination = destination;
+     discovery->route_request_id = route_request_id;
+     discovery->destination_sequence = destination_sequence;
+     discovery->ttl = ttl;
+     discovery->retry_count = 0U;
+     discovery->started_at_ms = now_ms;
+     discovery->deadline_ms = now_ms + ENP_DISCOVERY_TIMEOUT_MS;
+
+     return true;
+ }
+
+ bool enp_route_discovery_on_rrep(
+     enp_route_discovery_t *discovery,
+     enp_discovery_destination_t destination,
+     uint32_t destination_sequence)
+ {
+     if (discovery == NULL ||
+         discovery->state != ENP_DISCOVERY_STATE_REQUESTING) {
+         return false;
+     }
+
+     if (!destination_valid(destination)) {
+         return false;
+     }
+
+     if (destination.network_id != discovery->destination.network_id ||
+         destination.node_id != discovery->destination.node_id) {
+         return false;
+     }
+
+     if (!sequence_is_newer_or_equal(
+             destination_sequence,
+             discovery->destination_sequence)) {
+         return false;
+     }
+
+     discovery->state = ENP_DISCOVERY_STATE_COMPLETE;
+
+     return true;
+ }
+
+ bool enp_route_discovery_on_timeout(
+     enp_route_discovery_t *discovery,
+     uint32_t now_ms)
+ {
+     if (discovery == NULL ||
+         discovery->state != ENP_DISCOVERY_STATE_REQUESTING) {
+         return false;
+     }
+
+     if (!deadline_reached(now_ms, discovery->deadline_ms)) {
+         return false;
+     }
+
+     if (discovery->retry_count >= ENP_MAX_RETRIES) {
+         discovery->state = ENP_DISCOVERY_STATE_FAILED;
+         return false;
+     }
+
+     discovery->retry_count++;
+     discovery->started_at_ms = now_ms;
+     discovery->deadline_ms = now_ms + ENP_DISCOVERY_TIMEOUT_MS;
+
+     return true;
+ }
+
+ bool enp_route_discovery_is_active(
+     const enp_route_discovery_t *discovery)
+ {
+     return discovery != NULL &&
+            discovery->state == ENP_DISCOVERY_STATE_REQUESTING;
+ }
+
+ enp_discovery_state_t enp_route_discovery_state(
+     const enp_route_discovery_t *discovery)
+ {
+     if (discovery == NULL) {
+         return ENP_DISCOVERY_STATE_FAILED;
+     }
+
+     return discovery->state;
+ }

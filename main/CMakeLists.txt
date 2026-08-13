@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"test_enp_route_discovery_main.c"
+    	"R4_D_test_enp_rerr_processor_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
