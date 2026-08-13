@@ -33,7 +33,7 @@
  #include <stdbool.h>
  #include <stdint.h>
 
- #include "enp_routing_rerr.h"
+ #include "core/protocol/payloads/enp_routing.h"
 
  typedef struct {
      uint16_t network_id;

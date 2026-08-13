@@ -18,7 +18,6 @@ idf_component_register(
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
         "core/routing/enp_route_table.c"
-        "core/routing/enp_routing_rerr.c"
         "core/routing/enp_rerr_processor.c"
         "core/routing/enp_rrep_processor.c"
         "core/routing/enp_rreq_processor.c"

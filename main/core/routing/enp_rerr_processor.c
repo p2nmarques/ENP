@@ -8,6 +8,7 @@
  #include "enp_rerr_processor.h"
 
  #include <string.h>
+ #include "esp_log.h"
 
  static bool destination_valid(enp_rerr_destination_t destination)
  {
@@ -33,8 +34,18 @@
 
  static bool reason_valid(uint8_t reason)
  {
-     return reason >= ENP_ROUTE_ERROR_NEXT_HOP_UNREACHABLE &&
-            reason <= ENP_RERR_RESULT_INVALIDATED;
+     switch (reason) {
+         case ENP_ROUTE_ERROR_NO_ROUTE:
+         case ENP_ROUTE_ERROR_NEXT_HOP_UNREACHABLE:
+         case ENP_ROUTE_ERROR_ROUTE_EXPIRED:
+         case ENP_ROUTE_ERROR_LOCAL_REPAIR_FAILED:
+         case ENP_ROUTE_ERROR_TTL_EXPIRED:
+             return true;
+
+         case ENP_ROUTE_ERROR_UNKNOWN:
+         default:
+             return false;
+     }
  }
 
  bool enp_rerr_processor_init(
@@ -58,17 +69,28 @@
      enp_rerr_processor_t *processor,
      const enp_routing_rerr_t *rerr)
  {
+		
      if (processor == NULL || rerr == NULL) {
          return ENP_RERR_RESULT_REJECT;
      }
+	 
+	 ESP_LOGI(
+	 	    "RERRPROC",
+	 	    "RERR validate: version=%u subtype=%u reason=%u "
+	 	    "reserved0=%u reserved1=%lu",
+	 	    (unsigned)rerr->payload_version,
+	 	    (unsigned)rerr->subtype,
+	 	    (unsigned)rerr->reason,
+	 	    (unsigned)rerr->reserved_0,
+	 	    (unsigned long)rerr->reserved_1);
 
-     if (rerr->subtype != ENP_ROUTING_SUBTYPE_RERR ||
-         rerr->payload_version != ENP_ROUTING_PAYLOAD_VERSION ||
-         rerr->reserved_0 != 0U ||
-         rerr->reason != 0U ||
-         !reason_valid(rerr->reason)) {
-         return ENP_RERR_RESULT_REJECT;
-     }
+	 if (rerr->subtype != ENP_ROUTING_SUBTYPE_RERR ||
+	     rerr->payload_version != ENP_ROUTING_PAYLOAD_VERSION ||
+	     rerr->reserved_0 != 0U ||
+	     rerr->reserved_1 != 0U ||
+	     !reason_valid(rerr->reason)) {
+	     return ENP_RERR_RESULT_REJECT;
+	 }
 
      enp_rerr_destination_t destination = {
          .network_id = rerr->unreachable_network_id,
