@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"R4_D_test_enp_rerr_processor_main.c"
+    	#"E1.3_rerr_invalidation_integration_test.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
