@@ -1,4 +1,4 @@
-#include "enp_rrep_processor.h"
+#include "core/routing/enp_rrep_processor.h"
 
 #include <string.h>
 
@@ -96,8 +96,7 @@ static enp_routing_rrep_t make_rrep(
     uint16_t destination_node,
     uint32_t sequence,
     uint8_t hop_count,
-    uint32_t lifetime,
-    uint32_t metric)
+    uint32_t lifetime)
 {
     return (enp_routing_rrep_t){
         .payload_version = ENP_ROUTING_PAYLOAD_VERSION,
@@ -106,9 +105,9 @@ static enp_routing_rrep_t make_rrep(
         .destination_node_id = destination_node,
         .destination_sequence = sequence,
         .hop_count = hop_count,
-        .reserved = 0U,
+        .reserved_0 = 0U,
         .route_lifetime_ms = lifetime,
-        .metric = metric
+        .reserved_1 = 0U
     };
 }
 
@@ -201,7 +200,7 @@ static void test_forward(void)
     setup(&processor, &mock, 3U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 100U, 2U, 5000U, 2U);
+        make_rrep(9U, 100U, 2U, 5000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -269,7 +268,7 @@ static void test_complete_at_originator(void)
     setup(&processor, &mock, 1U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 200U, 4U, 10000U, 4U);
+        make_rrep(9U, 200U, 4U, 10000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -313,7 +312,7 @@ static void test_invalid(void)
     setup(&processor, &mock, 3U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 1U, 2U, 5000U, 2U);
+        make_rrep(9U, 1U, 2U, 5000U);
     enp_routing_rrep_t output;
 
     input.payload_version = 0xFFU;
@@ -326,7 +325,7 @@ static void test_invalid(void)
             &output) == ENP_RREP_RESULT_REJECT,
         "invalid version rejected");
 
-    input = make_rrep(9U, 2U, 2U, 5000U, 2U);
+    input = make_rrep(9U, 2U, 2U, 5000U);
     input.subtype = ENP_ROUTING_SUBTYPE_RREQ;
 
     EXPECT_TRUE(
@@ -337,7 +336,7 @@ static void test_invalid(void)
             &output) == ENP_RREP_RESULT_REJECT,
         "invalid subtype rejected");
 
-    input = make_rrep(0U, 3U, 2U, 5000U, 2U);
+    input = make_rrep(0U, 3U, 2U, 5000U);
 
     EXPECT_TRUE(
         enp_rrep_processor_handle(
@@ -347,7 +346,7 @@ static void test_invalid(void)
             &output) == ENP_RREP_RESULT_REJECT,
         "zero destination rejected");
 
-    input = make_rrep(9U, 4U, UINT8_MAX, 5000U, 2U);
+    input = make_rrep(9U, 4U, UINT8_MAX, 5000U);
 
     EXPECT_TRUE(
         enp_rrep_processor_handle(
@@ -357,7 +356,7 @@ static void test_invalid(void)
             &output) == ENP_RREP_RESULT_REJECT,
         "hop-count overflow rejected");
 
-    input = make_rrep(9U, 5U, 2U, 5000U, UINT32_MAX);
+    input = make_rrep(9U, 5U, 2U, 5000U);
 
     EXPECT_TRUE(
         enp_rrep_processor_handle(
@@ -404,7 +403,7 @@ static void test_no_route(void)
     setup(&processor, &mock, 3U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 10U, 2U, 5000U, 2U);
+        make_rrep(9U, 10U, 2U, 5000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -436,7 +435,7 @@ static void test_update_failure(void)
     setup(&processor, &mock, 3U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 20U, 2U, 5000U, 2U);
+        make_rrep(9U, 20U, 2U, 5000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -464,7 +463,7 @@ static void test_completion_failure(void)
     setup(&processor, &mock, 1U, 1U);
 
     enp_routing_rrep_t input =
-        make_rrep(9U, 30U, 3U, 5000U, 3U);
+        make_rrep(9U, 30U, 3U, 5000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -497,7 +496,7 @@ static void test_sequence_wrap_helper_behavior(void)
      * R4-C preserves the wrapped sequence unchanged through completion.
      */
     enp_routing_rrep_t input =
-        make_rrep(9U, 0x00000002U, 3U, 5000U, 3U);
+        make_rrep(9U, 0x00000002U, 3U, 5000U);
     enp_routing_rrep_t output;
 
     EXPECT_TRUE(
@@ -516,7 +515,7 @@ static void test_sequence_wrap_helper_behavior(void)
 static void test_wire_round_trip(void)
 {
     enp_routing_rrep_t input =
-        make_rrep(9U, 0x12345678U, 3U, 9000U, 3U);
+        make_rrep(9U, 0x12345678U, 3U, 9000U);
 
     uint8_t buffer[ENP_ROUTING_RREP_WIRE_SIZE];
     enp_routing_rrep_t output;

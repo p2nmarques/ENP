@@ -17,7 +17,8 @@
 
  static bool node_valid(enp_rrep_node_t node)
  {
-     return !(node.network_id == 0U && node.node_id == 0U);
+     return node.network_id != 0U &&
+            node.node_id != 0U;
  }
 
  /*
@@ -26,12 +27,6 @@
   * Returns true when candidate is newer than or equal to reference,
   * assuming differences remain below 2^31.
   */
- static bool sequence_is_newer_or_equal(
-     uint32_t candidate,
-     uint32_t reference)
- {
-     return (int32_t)(candidate - reference) >= 0;
- }
 
  bool enp_rrep_processor_init(
      enp_rrep_processor_t *processor,
@@ -71,11 +66,13 @@
      }
 
      if (rrep->payload_version != ENP_ROUTING_PAYLOAD_VERSION ||
-         rrep->subtype != ENP_ROUTING_SUBTYPE_RREP) {
+         rrep->subtype != ENP_ROUTING_SUBTYPE_RREP ||
+         rrep->reserved_0 != 0U ||
+         rrep->reserved_1 != 0U) {
          return ENP_RREP_RESULT_REJECT;
      }
 
-     if (rrep->destination_network_id == 0U &&
+     if (rrep->destination_network_id == 0U ||
          rrep->destination_node_id == 0U) {
          return ENP_RREP_RESULT_REJECT;
      }
@@ -84,11 +81,7 @@
          return ENP_RREP_RESULT_REJECT;
      }
 
-     if (rrep->metric == UINT32_MAX) {
-         return ENP_RREP_RESULT_REJECT;
-     }
-
-     enp_rrep_node_t destination = {
+      enp_rrep_node_t destination = {
          .network_id = rrep->destination_network_id,
          .node_id = rrep->destination_node_id
      };
@@ -109,7 +102,7 @@
              rrep->destination_sequence,
              route_hop_count,
              rrep->route_lifetime_ms,
-             rrep->metric)) {
+             (uint32_t)rrep->hop_count)) {
          return ENP_RREP_RESULT_REJECT;
      }
 
