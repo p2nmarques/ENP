@@ -12,32 +12,9 @@
  #include <stddef.h>
  #include <stdint.h>
 
- #define ENP_ROUTING_PAYLOAD_VERSION 1U
- #define ENP_ROUTING_SUBTYPE_RERR 3U
- #define ENP_ROUTING_RERR_WIRE_SIZE 16U
+ #include "core/protocol/payloads/enp_routing.h"
 
- typedef struct __attribute__((packed)) {
-     uint8_t subtype;
-     uint8_t flags;
-     uint8_t version;
-     uint8_t reserved;
-
-     uint16_t unreachable_network_id;
-     uint16_t unreachable_node_id;
-
-     uint32_t destination_sequence;
-
-     uint8_t reason;
-     uint8_t reason_reserved;
- } enp_routing_rerr_t;
-
- typedef enum {
-     ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE = 1,
-     ENP_RERR_REASON_TRANSPORT_FAILURE = 2,
-     ENP_RERR_REASON_ROUTE_EXPIRED = 3,
-     ENP_RERR_REASON_LOCAL_REPAIR_FAILED = 4,
-     ENP_RERR_REASON_POLICY_INVALIDATED = 5,
- } enp_rerr_reason_t;
+ /* R4-D uses the canonical R2 RERR wire definition. */
 
  bool enp_routing_rerr_encode(
      const enp_routing_rerr_t *message,

@@ -1,430 +1,540 @@
-#include "enp_rerr_processor.h"
+#include "core/routing/enp_rrep_processor.h"
 
 #include <string.h>
 
 #include "esp_log.h"
 
-static const char *TAG = "RERRTEST";
+static const char *TAG = "RREPTEST";
 static int s_failures;
 
 typedef struct {
+    bool update_ok;
     bool lookup_ok;
-    bool invalidate_ok;
-    enp_rerr_route_info_t route;
+    bool completion_ok;
 
+    uint32_t update_calls;
     uint32_t lookup_calls;
-    uint32_t invalidate_calls;
+    uint32_t completion_calls;
 
-    enp_rerr_destination_t last_destination;
+    enp_rrep_node_t last_destination;
+    enp_rrep_node_t last_next_hop;
+    enp_rrep_node_t lookup_destination;
+
+    enp_route_sequence_t last_sequence;
+    uint8_t last_hop_count;
+    uint32_t last_lifetime;
+    uint32_t last_metric;
 } mock_context_t;
 
 #define PASS(name) ESP_LOGI(TAG, "PASS: %s", name)
-#define FAIL(name) do { ESP_LOGE(TAG, "FAIL: %s", name); ++s_failures; } while (0)
-#define EXPECT_TRUE(condition, name) do { if (condition) PASS(name); else FAIL(name); } while (0)
 
-static bool mock_lookup(
+#define FAIL(name) do { \
+    ESP_LOGE(TAG, "FAIL: %s", name); \
+    ++s_failures; \
+} while (0)
+
+#define EXPECT_TRUE(condition, name) do { \
+    if (condition) PASS(name); \
+    else FAIL(name); \
+} while (0)
+
+static bool mock_update_route(
     void *context,
-    enp_rerr_destination_t destination,
-    enp_rerr_route_info_t *route_info)
+    enp_rrep_node_t destination,
+    enp_rrep_node_t next_hop,
+    enp_route_sequence_t destination_sequence,
+    uint8_t hop_count,
+    uint32_t lifetime_ms,
+    uint32_t metric)
+{
+    mock_context_t *mock = context;
+
+    ++mock->update_calls;
+    mock->last_destination = destination;
+    mock->last_next_hop = next_hop;
+    mock->last_sequence = destination_sequence;
+    mock->last_hop_count = hop_count;
+    mock->last_lifetime = lifetime_ms;
+    mock->last_metric = metric;
+
+    return mock->update_ok;
+}
+
+static bool mock_lookup_next_hop(
+    void *context,
+    enp_rrep_node_t destination,
+    enp_rrep_node_t *next_hop)
 {
     mock_context_t *mock = context;
 
     ++mock->lookup_calls;
-    mock->last_destination = destination;
+    mock->lookup_destination = destination;
 
-    if (!mock->lookup_ok || route_info == NULL) {
+    if (!mock->lookup_ok || next_hop == NULL) {
         return false;
     }
 
-    *route_info = mock->route;
+    *next_hop = (enp_rrep_node_t){1U, 7U};
     return true;
 }
 
-static bool mock_invalidate(
+static bool mock_discovery_complete(
     void *context,
-    enp_rerr_destination_t destination)
+    enp_rrep_node_t destination,
+    enp_route_sequence_t destination_sequence)
 {
     mock_context_t *mock = context;
 
-    ++mock->invalidate_calls;
+    ++mock->completion_calls;
     mock->last_destination = destination;
+    mock->last_sequence = destination_sequence;
 
-    return mock->invalidate_ok;
+    return mock->completion_ok;
+}
+
+static enp_routing_rrep_t make_rrep(
+    uint16_t destination_node,
+    uint32_t sequence,
+    uint8_t hop_count,
+    uint32_t lifetime)
+{
+    return (enp_routing_rrep_t){
+        .payload_version = ENP_ROUTING_PAYLOAD_VERSION,
+        .subtype = ENP_ROUTING_SUBTYPE_RREP,
+        .destination_network_id = 1U,
+        .destination_node_id = destination_node,
+        .destination_sequence = sequence,
+        .hop_count = hop_count,
+        .reserved_0 = 0U,
+        .route_lifetime_ms = lifetime,
+        .reserved_1 = 0U
+    };
 }
 
 static void setup(
-    enp_rerr_processor_t *processor,
-    mock_context_t *mock)
+    enp_rrep_processor_t *processor,
+    mock_context_t *mock,
+    uint16_t local_node,
+    uint16_t originator_node)
 {
-    enp_rerr_processor_callbacks_t callbacks = {
+    enp_rrep_processor_callbacks_t callbacks = {
         .context = mock,
-        .lookup_route = mock_lookup,
-        .invalidate_route = mock_invalidate
+        .update_route = mock_update_route,
+        .lookup_next_hop = mock_lookup_next_hop,
+        .discovery_complete = mock_discovery_complete
     };
 
-    enp_rerr_processor_init(processor, &callbacks);
-}
-
-static enp_routing_rerr_t make_rerr(
-    uint16_t network_id,
-    uint16_t node_id,
-    uint32_t sequence,
-    uint8_t reason)
-{
-    return (enp_routing_rerr_t){
-        .subtype = ENP_ROUTING_SUBTYPE_RERR,
-        .flags = 0U,
-        .version = ENP_ROUTING_PAYLOAD_VERSION,
-        .reserved = 0U,
-        .unreachable_network_id = network_id,
-        .unreachable_node_id = node_id,
-        .destination_sequence = sequence,
-        .reason = reason,
-        .reason_reserved = 0U
-    };
+    enp_rrep_processor_init(
+        processor,
+        (enp_rrep_node_t){1U, local_node},
+        (enp_rrep_node_t){1U, originator_node},
+        &callbacks);
 }
 
 static void test_initialization(void)
 {
-    enp_rerr_processor_t processor;
+    enp_rrep_processor_t processor;
     mock_context_t mock = {
+        .update_ok = true,
         .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
+        .completion_ok = true
     };
 
-    enp_rerr_processor_callbacks_t callbacks = {
+    enp_rrep_processor_callbacks_t callbacks = {
         .context = &mock,
-        .lookup_route = mock_lookup,
-        .invalidate_route = mock_invalidate
+        .update_route = mock_update_route,
+        .lookup_next_hop = mock_lookup_next_hop,
+        .discovery_complete = mock_discovery_complete
     };
 
     EXPECT_TRUE(
-        enp_rerr_processor_init(&processor, &callbacks),
+        enp_rrep_processor_init(
+            &processor,
+            (enp_rrep_node_t){1U, 3U},
+            (enp_rrep_node_t){1U, 1U},
+            &callbacks),
         "processor initialization");
 
     EXPECT_TRUE(
-        !enp_rerr_processor_init(NULL, &callbacks),
+        !enp_rrep_processor_init(
+            NULL,
+            (enp_rrep_node_t){1U, 3U},
+            (enp_rrep_node_t){1U, 1U},
+            &callbacks),
         "initialization rejects NULL");
 
     EXPECT_TRUE(
-        !enp_rerr_processor_init(&processor, NULL),
+        !enp_rrep_processor_init(
+            &processor,
+            (enp_rrep_node_t){0U, 0U},
+            (enp_rrep_node_t){1U, 1U},
+            &callbacks),
+        "invalid local node rejected");
+
+    EXPECT_TRUE(
+        !enp_rrep_processor_init(
+            &processor,
+            (enp_rrep_node_t){1U, 3U},
+            (enp_rrep_node_t){0U, 0U},
+            &callbacks),
+        "invalid originator rejected");
+
+    EXPECT_TRUE(
+        !enp_rrep_processor_init(
+            &processor,
+            (enp_rrep_node_t){1U, 3U},
+            (enp_rrep_node_t){1U, 1U},
+            NULL),
         "NULL callbacks rejected");
 }
 
-static void test_invalidate_equal_sequence(void)
+static void test_forward(void)
 {
-    enp_rerr_processor_t processor;
+    enp_rrep_processor_t processor;
     mock_context_t mock = {
+        .update_ok = true,
         .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
+        .completion_ok = true
     };
 
-    setup(&processor, &mock);
+    setup(&processor, &mock, 3U, 1U);
 
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 10U, ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_INVALIDATED,
-        "equal sequence invalidates route");
+    enp_routing_rrep_t input =
+        make_rrep(9U, 100U, 2U, 5000U);
+    enp_routing_rrep_t output;
 
     EXPECT_TRUE(
-        mock.lookup_calls == 1U,
-        "route lookup performed once");
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_FORWARD,
+        "RREP is forwarded toward originator");
 
     EXPECT_TRUE(
-        mock.invalidate_calls == 1U,
-        "route invalidation performed once");
+        mock.update_calls == 1U,
+        "forward route updated once");
 
     EXPECT_TRUE(
         mock.last_destination.node_id == 9U,
-        "correct unreachable destination used");
+        "route update stores RREP destination");
+
+    EXPECT_TRUE(
+        mock.last_next_hop.node_id == 8U,
+        "route update stores previous hop");
+
+    EXPECT_TRUE(
+        mock.last_sequence == 100U,
+        "route update stores destination sequence");
+
+    EXPECT_TRUE(
+        mock.last_hop_count == 2U,
+        "route update stores RREP hop count");
+
+    EXPECT_TRUE(
+        mock.last_lifetime == 5000U,
+        "route update stores route lifetime");
+
+    EXPECT_TRUE(
+        mock.last_metric == 2U,
+        "route update stores metric");
+
+    EXPECT_TRUE(
+        mock.lookup_calls == 1U,
+        "originator next-hop lookup performed");
+
+    EXPECT_TRUE(
+        mock.lookup_destination.node_id == 1U,
+        "lookup targets discovery originator");
+
+    EXPECT_TRUE(
+        output.hop_count == 3U,
+        "forwarded RREP increments hop count");
+
+    EXPECT_TRUE(
+        output.destination_node_id == input.destination_node_id,
+        "forwarded RREP preserves destination");
 }
 
-static void test_invalidate_newer_sequence(void)
+static void test_complete_at_originator(void)
 {
-    enp_rerr_processor_t processor;
+    enp_rrep_processor_t processor;
     mock_context_t mock = {
+        .update_ok = true,
         .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
+        .completion_ok = true
     };
 
-    setup(&processor, &mock);
+    setup(&processor, &mock, 1U, 1U);
 
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 11U, ENP_RERR_REASON_ROUTE_EXPIRED);
+    enp_routing_rrep_t input =
+        make_rrep(9U, 200U, 4U, 10000U);
+    enp_routing_rrep_t output;
 
     EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_INVALIDATED,
-        "newer sequence invalidates route");
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 2U},
+            &input,
+            &output) == ENP_RREP_RESULT_COMPLETE,
+        "RREP completes discovery at originator");
+
+    EXPECT_TRUE(
+        mock.update_calls == 1U,
+        "originator updates forward route");
+
+    EXPECT_TRUE(
+        mock.completion_calls == 1U,
+        "discovery completion callback invoked");
+
+    EXPECT_TRUE(
+        mock.lookup_calls == 0U,
+        "originator does not perform next-hop lookup");
+
+    EXPECT_TRUE(
+        mock.last_destination.node_id == 9U,
+        "completion reports route destination");
+
+    EXPECT_TRUE(
+        mock.last_sequence == 200U,
+        "completion reports destination sequence");
 }
 
-static void test_ignore_older_sequence(void)
+static void test_invalid(void)
 {
-    enp_rerr_processor_t processor;
+    enp_rrep_processor_t processor;
     mock_context_t mock = {
+        .update_ok = true,
         .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
+        .completion_ok = true
     };
 
-    setup(&processor, &mock);
+    setup(&processor, &mock, 3U, 1U);
 
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 9U, ENP_RERR_REASON_TRANSPORT_FAILURE);
+    enp_routing_rrep_t input =
+        make_rrep(9U, 1U, 2U, 5000U);
+    enp_routing_rrep_t output;
 
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_IGNORED_STALE,
-        "older sequence does not invalidate route");
+    input.payload_version = 0xFFU;
 
     EXPECT_TRUE(
-        mock.invalidate_calls == 0U,
-        "older RERR does not call invalidation");
-}
-
-static void test_unknown_sequence_rules(void)
-{
-    enp_rerr_processor_t processor;
-    enp_routing_rerr_t rerr;
-
-    mock_context_t known_route = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
-    };
-
-    setup(&processor, &known_route);
-
-    rerr = make_rerr(
-        1U, 9U, 0U, ENP_RERR_REASON_POLICY_INVALIDATED);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_IGNORED_STALE,
-        "unknown RERR sequence cannot invalidate known route");
-
-    mock_context_t unknown_route = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 0U}
-    };
-
-    setup(&processor, &unknown_route);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_INVALIDATED,
-        "known or unknown RERR may invalidate unknown route");
-}
-
-static void test_no_route_and_inactive(void)
-{
-    enp_rerr_processor_t processor;
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 10U, ENP_RERR_REASON_ROUTE_EXPIRED);
-
-    mock_context_t no_route = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {false, false, 0U}
-    };
-
-    setup(&processor, &no_route);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_IGNORED_NO_ROUTE,
-        "RERR for absent route is ignored");
-
-    mock_context_t inactive = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, false, 10U}
-    };
-
-    setup(&processor, &inactive);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_IGNORED_INACTIVE,
-        "RERR for inactive route is ignored");
-}
-
-static void test_invalid_inputs(void)
-{
-    enp_rerr_processor_t processor;
-    mock_context_t mock = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
-    };
-
-    setup(&processor, &mock);
-
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 10U, ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE);
-
-    rerr.subtype = 2U;
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "invalid subtype rejected");
-
-    rerr = make_rerr(1U, 9U, 10U, ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE);
-    rerr.version = 2U;
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
         "invalid version rejected");
 
-    rerr = make_rerr(1U, 9U, 10U, 0U);
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "invalid reason rejected");
-
-    rerr = make_rerr(1U, 9U, 10U, 6U);
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "reserved reason rejected");
-
-    rerr = make_rerr(0U, 9U, 10U, ENP_RERR_REASON_ROUTE_EXPIRED);
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "zero network rejected");
-
-    rerr = make_rerr(1U, 0U, 10U, ENP_RERR_REASON_ROUTE_EXPIRED);
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "zero node rejected");
+    input = make_rrep(9U, 2U, 2U, 5000U);
+    input.subtype = ENP_ROUTING_SUBTYPE_RREQ;
 
     EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, NULL) ==
-            ENP_RERR_RESULT_REJECT,
-        "NULL RERR rejected");
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "invalid subtype rejected");
+
+    input = make_rrep(0U, 3U, 2U, 5000U);
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "zero destination rejected");
+
+    input = make_rrep(9U, 4U, UINT8_MAX, 5000U);
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "hop-count overflow rejected");
+
+    input = make_rrep(9U, 5U, 2U, 5000U);
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){0U, 0U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "invalid previous hop rejected");
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            NULL,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "NULL RREP rejected");
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            NULL) == ENP_RREP_RESULT_REJECT,
+        "NULL forward RREP rejected");
 }
 
-static void test_lookup_and_invalidate_failure(void)
+static void test_no_route(void)
 {
-    enp_rerr_processor_t processor;
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 10U, ENP_RERR_REASON_TRANSPORT_FAILURE);
-
-    mock_context_t lookup_failure = {
-        .lookup_ok = false,
-        .invalidate_ok = true,
-        .route = {true, true, 10U}
-    };
-
-    setup(&processor, &lookup_failure);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "route lookup failure rejects RERR");
-
-    mock_context_t invalidate_failure = {
-        .lookup_ok = true,
-        .invalidate_ok = false,
-        .route = {true, true, 10U}
-    };
-
-    setup(&processor, &invalidate_failure);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_REJECT,
-        "route invalidation failure rejects RERR");
-}
-
-static void test_sequence_wrap(void)
-{
-    enp_rerr_processor_t processor;
+    enp_rrep_processor_t processor;
     mock_context_t mock = {
-        .lookup_ok = true,
-        .invalidate_ok = true,
-        .route = {true, true, 0xFFFFFFFEU}
+        .update_ok = true,
+        .lookup_ok = false,
+        .completion_ok = true
     };
 
-    setup(&processor, &mock);
+    setup(&processor, &mock, 3U, 1U);
 
-    enp_routing_rerr_t rerr =
-        make_rerr(1U, 9U, 1U, ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE);
-
-    EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_INVALIDATED,
-        "newer RERR across sequence wrap invalidates route");
-
-    mock.route.destination_sequence = 2U;
-    setup(&processor, &mock);
-
-    rerr.destination_sequence = 0xFFFFFFFEU;
+    enp_routing_rrep_t input =
+        make_rrep(9U, 10U, 2U, 5000U);
+    enp_routing_rrep_t output;
 
     EXPECT_TRUE(
-        enp_rerr_processor_handle(&processor, &rerr) ==
-            ENP_RERR_RESULT_IGNORED_STALE,
-        "older RERR across sequence wrap is ignored");
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_DROP_NO_ROUTE,
+        "RREP dropped when originator route is unavailable");
+
+    EXPECT_TRUE(
+        mock.update_calls == 1U,
+        "destination route is still learned");
+
+    EXPECT_TRUE(
+        mock.lookup_calls == 1U,
+        "originator lookup attempted");
 }
 
-static void test_all_reasons(void)
+static void test_update_failure(void)
 {
-    for (uint8_t reason = ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE;
-         reason <= ENP_RERR_REASON_POLICY_INVALIDATED;
-         ++reason) {
-        enp_rerr_processor_t processor;
-        mock_context_t mock = {
-            .lookup_ok = true,
-            .invalidate_ok = true,
-            .route = {true, true, 10U}
-        };
+    enp_rrep_processor_t processor;
+    mock_context_t mock = {
+        .update_ok = false,
+        .lookup_ok = true,
+        .completion_ok = true
+    };
 
-        setup(&processor, &mock);
+    setup(&processor, &mock, 3U, 1U);
 
-        enp_routing_rerr_t rerr = make_rerr(1U, 9U, 10U, reason);
+    enp_routing_rrep_t input =
+        make_rrep(9U, 20U, 2U, 5000U);
+    enp_routing_rrep_t output;
 
-        EXPECT_TRUE(
-            enp_rerr_processor_handle(&processor, &rerr) ==
-                ENP_RERR_RESULT_INVALIDATED,
-            "valid RERR reason accepted");
-    }
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 8U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "route-update failure rejects RREP");
+
+    EXPECT_TRUE(
+        mock.lookup_calls == 0U,
+        "failed route update stops processing");
+}
+
+static void test_completion_failure(void)
+{
+    enp_rrep_processor_t processor;
+    mock_context_t mock = {
+        .update_ok = true,
+        .lookup_ok = true,
+        .completion_ok = false
+    };
+
+    setup(&processor, &mock, 1U, 1U);
+
+    enp_routing_rrep_t input =
+        make_rrep(9U, 30U, 3U, 5000U);
+    enp_routing_rrep_t output;
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 2U},
+            &input,
+            &output) == ENP_RREP_RESULT_REJECT,
+        "discovery completion failure rejects RREP");
+
+    EXPECT_TRUE(
+        mock.completion_calls == 1U,
+        "completion callback invoked once");
+}
+
+static void test_sequence_wrap_helper_behavior(void)
+{
+    enp_rrep_processor_t processor;
+    mock_context_t mock = {
+        .update_ok = true,
+        .lookup_ok = true,
+        .completion_ok = true
+    };
+
+    setup(&processor, &mock, 1U, 1U);
+
+    /*
+     * R4-C does not independently reject a sequence based on age.
+     * R4-A.1 performs discovery-result correlation. This test verifies that
+     * R4-C preserves the wrapped sequence unchanged through completion.
+     */
+    enp_routing_rrep_t input =
+        make_rrep(9U, 0x00000002U, 3U, 5000U);
+    enp_routing_rrep_t output;
+
+    EXPECT_TRUE(
+        enp_rrep_processor_handle(
+            &processor,
+            (enp_rrep_node_t){1U, 2U},
+            &input,
+            &output) == ENP_RREP_RESULT_COMPLETE,
+        "sequence wrap value accepted and preserved");
+
+    EXPECT_TRUE(
+        mock.last_sequence == 0x00000002U,
+        "wrapped sequence preserved");
 }
 
 static void test_wire_round_trip(void)
 {
-    enp_routing_rerr_t input =
-        make_rerr(1U, 9U, 0x12345678U, ENP_RERR_REASON_LOCAL_REPAIR_FAILED);
+    enp_routing_rrep_t input =
+        make_rrep(9U, 0x12345678U, 3U, 9000U);
 
-    uint8_t buffer[ENP_ROUTING_RERR_WIRE_SIZE];
-    enp_routing_rerr_t output;
-
-    EXPECT_TRUE(
-        enp_routing_rerr_encode(&input, buffer, sizeof(buffer)),
-        "RERR encode");
+    uint8_t buffer[ENP_ROUTING_RREP_WIRE_SIZE];
+    enp_routing_rrep_t output;
 
     EXPECT_TRUE(
-        enp_routing_rerr_decode(&output, buffer, sizeof(buffer)),
-        "RERR decode");
+        enp_routing_rrep_encode(
+            &input,
+            buffer,
+            sizeof(buffer)),
+        "RREP encode for processor test");
+
+    EXPECT_TRUE(
+        enp_routing_rrep_decode(
+            &output,
+            buffer,
+            sizeof(buffer)),
+        "RREP decode for processor test");
 
     EXPECT_TRUE(
         memcmp(&input, &output, sizeof(input)) == 0,
-        "RERR round-trip");
+        "RREP wire round-trip preserved");
 }
 
 void app_main(void)
 {
     ESP_LOGI(TAG, "======================================");
-    ESP_LOGI(TAG, "ENP v0.2 R4-D RERR processor test");
-    ESP_LOGI(TAG, "RERR wire size: %u", (unsigned)ENP_ROUTING_RERR_WIRE_SIZE);
+    ESP_LOGI(TAG, "ENP v0.2 R4-C RREP processor test");
     ESP_LOGI(TAG, "======================================");
 
     ESP_LOGI(TAG, "--------------------------------------");
@@ -432,34 +542,32 @@ void app_main(void)
     test_initialization();
 
     ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Equal/newer sequence tests");
-    test_invalidate_equal_sequence();
-    test_invalidate_newer_sequence();
+    ESP_LOGI(TAG, "Forwarding tests");
+    test_forward();
 
     ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Stale sequence tests");
-    test_ignore_older_sequence();
-    test_unknown_sequence_rules();
-
-    ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Route applicability tests");
-    test_no_route_and_inactive();
+    ESP_LOGI(TAG, "Originator completion tests");
+    test_complete_at_originator();
 
     ESP_LOGI(TAG, "--------------------------------------");
     ESP_LOGI(TAG, "Invalid-input tests");
-    test_invalid_inputs();
+    test_invalid();
 
     ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Callback failure tests");
-    test_lookup_and_invalidate_failure();
+    ESP_LOGI(TAG, "Missing-route tests");
+    test_no_route();
 
     ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Sequence wrap tests");
-    test_sequence_wrap();
+    ESP_LOGI(TAG, "Route-update failure tests");
+    test_update_failure();
 
     ESP_LOGI(TAG, "--------------------------------------");
-    ESP_LOGI(TAG, "Reason-code tests");
-    test_all_reasons();
+    ESP_LOGI(TAG, "Discovery completion failure tests");
+    test_completion_failure();
+
+    ESP_LOGI(TAG, "--------------------------------------");
+    ESP_LOGI(TAG, "Sequence handling tests");
+    test_sequence_wrap_helper_behavior();
 
     ESP_LOGI(TAG, "--------------------------------------");
     ESP_LOGI(TAG, "Wire integration tests");
@@ -468,9 +576,12 @@ void app_main(void)
     ESP_LOGI(TAG, "======================================");
 
     if (s_failures == 0) {
-        ESP_LOGI(TAG, "ALL RERR PROCESSOR TESTS PASSED");
+        ESP_LOGI(TAG, "ALL RREP PROCESSOR TESTS PASSED");
     } else {
-        ESP_LOGE(TAG, "%d RERR PROCESSOR TEST(S) FAILED", s_failures);
+        ESP_LOGE(
+            TAG,
+            "%d RREP PROCESSOR TEST(S) FAILED",
+            s_failures);
     }
 
     ESP_LOGI(TAG, "======================================");

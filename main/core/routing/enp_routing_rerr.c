@@ -36,6 +36,12 @@
             ((uint32_t)src[3] << 24);
  }
 
+ static bool reason_valid(uint8_t reason)
+ {
+     return reason >= ENP_ROUTE_ERROR_NO_ROUTE &&
+            reason <= ENP_ROUTE_ERROR_TTL_EXPIRED;
+ }
+
  bool enp_routing_rerr_encode(
      const enp_routing_rerr_t *message,
      uint8_t *buffer,
@@ -46,19 +52,24 @@
          return false;
      }
 
-     buffer[0] = ENP_ROUTING_SUBTYPE_RERR;
-     buffer[1] = message->flags;
-     buffer[2] = ENP_ROUTING_PAYLOAD_VERSION;
-     buffer[3] = 0U;
+     if (message->payload_version != ENP_ROUTING_PAYLOAD_VERSION ||
+         message->subtype != ENP_ROUTING_SUBTYPE_RERR ||
+         message->unreachable_network_id == 0U ||
+         message->unreachable_node_id == 0U ||
+         !reason_valid(message->reason) ||
+         message->reserved_0 != 0U ||
+         message->reserved_1 != 0U) {
+         return false;
+     }
 
-     put_u16_le(&buffer[4], message->unreachable_network_id);
-     put_u16_le(&buffer[6], message->unreachable_node_id);
-     put_u32_le(&buffer[8], message->destination_sequence);
-
-     buffer[12] = message->reason;
-     buffer[13] = 0U;
-     buffer[14] = 0U;
-     buffer[15] = 0U;
+     buffer[0] = message->payload_version;
+     buffer[1] = message->subtype;
+     put_u16_le(&buffer[2], message->unreachable_network_id);
+     put_u16_le(&buffer[4], message->unreachable_node_id);
+     put_u32_le(&buffer[6], message->destination_sequence);
+     buffer[10] = message->reason;
+     buffer[11] = 0U;
+     put_u32_le(&buffer[12], 0U);
 
      return true;
  }
@@ -69,36 +80,29 @@
      size_t buffer_size)
  {
      if (message == NULL || buffer == NULL ||
-         buffer_size < ENP_ROUTING_RERR_WIRE_SIZE ||
-         buffer[0] != ENP_ROUTING_SUBTYPE_RERR ||
-         buffer[2] != ENP_ROUTING_PAYLOAD_VERSION ||
-         buffer[3] != 0U ||
-         buffer[13] != 0U ||
-         buffer[14] != 0U ||
-         buffer[15] != 0U) {
+         buffer_size < ENP_ROUTING_RERR_WIRE_SIZE) {
          return false;
      }
 
-     if (buffer[12] < ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE ||
-         buffer[12] > ENP_RERR_REASON_POLICY_INVALIDATED) {
+     if (buffer[0] != ENP_ROUTING_PAYLOAD_VERSION ||
+         buffer[1] != ENP_ROUTING_SUBTYPE_RERR ||
+         get_u16_le(&buffer[2]) == 0U ||
+         get_u16_le(&buffer[4]) == 0U ||
+         !reason_valid(buffer[10]) ||
+         buffer[11] != 0U ||
+         get_u32_le(&buffer[12]) != 0U) {
          return false;
      }
 
      memset(message, 0, sizeof(*message));
-
-     message->subtype = buffer[0];
-     message->flags = buffer[1];
-     message->version = buffer[2];
-     message->reserved = buffer[3];
-
-     message->unreachable_network_id = get_u16_le(&buffer[4]);
-     message->unreachable_node_id = get_u16_le(&buffer[6]);
-     message->destination_sequence = get_u32_le(&buffer[8]);
-
-     message->reason = buffer[12];
+     message->payload_version = buffer[0];
+     message->subtype = buffer[1];
+     message->unreachable_network_id = get_u16_le(&buffer[2]);
+     message->unreachable_node_id = get_u16_le(&buffer[4]);
+     message->destination_sequence = get_u32_le(&buffer[6]);
+     message->reason = buffer[10];
+     message->reserved_0 = buffer[11];
+     message->reserved_1 = get_u32_le(&buffer[12]);
 
      return true;
  }
-
-
-

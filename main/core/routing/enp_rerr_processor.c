@@ -33,8 +33,8 @@
 
  static bool reason_valid(uint8_t reason)
  {
-     return reason >= ENP_RERR_REASON_NEXT_HOP_UNAVAILABLE &&
-            reason <= ENP_RERR_REASON_POLICY_INVALIDATED;
+     return reason >= ENP_ROUTE_ERROR_NEXT_HOP_UNREACHABLE &&
+            reason <= ENP_RERR_RESULT_INVALIDATED;
  }
 
  bool enp_rerr_processor_init(
@@ -63,9 +63,9 @@
      }
 
      if (rerr->subtype != ENP_ROUTING_SUBTYPE_RERR ||
-         rerr->version != ENP_ROUTING_PAYLOAD_VERSION ||
-         rerr->reserved != 0U ||
-         rerr->reason_reserved != 0U ||
+         rerr->payload_version != ENP_ROUTING_PAYLOAD_VERSION ||
+         rerr->reserved_0 != 0U ||
+         rerr->reason != 0U ||
          !reason_valid(rerr->reason)) {
          return ENP_RERR_RESULT_REJECT;
      }
