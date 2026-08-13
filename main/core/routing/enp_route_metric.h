@@ -15,7 +15,13 @@
  #ifndef ENP_ROUTE_METRIC_H
  #define ENP_ROUTE_METRIC_H
 
-
+ /* ENP v0.2 Route Metric Abstraction — R3-A
+  *
+  * Initial metric policy:
+  *     HOP_COUNT
+  *
+  * Lower values represent better routes.
+  */
 
  #include <stdbool.h>
  #include <stdint.h>
