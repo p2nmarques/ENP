@@ -3,8 +3,8 @@
 
 idf_component_register(
     SRCS
-    	"main.c"
-    	#"E1.3_rerr_invalidation_integration_test.c"
+    	#"main.c"
+    	"E3_1_raw_espnow_broadcast_diagnostic_main_v3_PEER_FIX.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"

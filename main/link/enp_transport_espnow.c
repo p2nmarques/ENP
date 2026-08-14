@@ -798,13 +798,35 @@ static void enp_transport_espnow_send_callback(
         esp_now_send_status_t status)
 {
     /*
-     * The send callback executes in the ESP-NOW context.
+     * Diagnostic instrumentation only.
      *
-     * Do not perform lengthy processing here.
-     *
-     * Future ENP TX statistics/retry handling should post
-     * an event to a lower-priority task.
+     * The send callback executes in the ESP-NOW/Wi-Fi context.
+     * Keep this callback lightweight: logging only, with no
+     * queue operations, blocking calls, or routing processing.
      */
-    (void)tx_info;
-    (void)status;
+    if (tx_info == NULL)
+    {
+        ESP_LOGE(
+                TAG,
+                "ESP-NOW TX callback: tx_info is NULL");
+
+        return;
+    }
+
+    const char *status_text =
+            (status == ESP_NOW_SEND_SUCCESS)
+                ? "SUCCESS"
+                : "FAIL";
+
+    ESP_LOGI(
+            TAG,
+            "ESP-NOW TX: "
+            "%02X:%02X:%02X:%02X:%02X:%02X -> %s",
+            tx_info->des_addr[0],
+            tx_info->des_addr[1],
+            tx_info->des_addr[2],
+            tx_info->des_addr[3],
+            tx_info->des_addr[4],
+            tx_info->des_addr[5],
+            status_text);
 }
