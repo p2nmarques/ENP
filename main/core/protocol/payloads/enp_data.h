@@ -23,7 +23,7 @@
   *   - No FreeRTOS dependency.
   *   - No dynamic allocation.
   *
-  * ESP-IDF 5.5 compatible.
+  * ESP-IDF 6.0.2 compatible.
   */
 
  #include <stdbool.h>

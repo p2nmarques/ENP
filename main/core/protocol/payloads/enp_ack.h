@@ -8,7 +8,7 @@
  * ENP v0.2 — DATA acknowledgement payload.
  *
  * E3.3.3 integration wire format.
- * Transport-independent and ESP-IDF 5.5 compatible.
+ * Transport-independent and ESP-IDF 6.0.2 compatible.
  *
  * The ENP packet header carries:
  *   source      = ACK generator (C)

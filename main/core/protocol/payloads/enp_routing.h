@@ -22,7 +22,7 @@
   *
   * Multi-byte wire fields use little-endian byte order.
   *
-  * ESP-IDF 5.5 compatible.
+  * ESP-IDF 6.02 compatible.
   */
 
  #include <stdbool.h>
