@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"E3.3.5_test_enp_real_multihop_ack_duplicate_main_RELAY_ROLE.c"
+    	#"tests/2-E/E3.3.6_test_enp_real_multihop_retransmission_main_RELAY_ROLE.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -29,7 +29,8 @@ idf_component_register(
         "link/enp_transport_wifi.c"     # list the source files of this component
     INCLUDE_DIRS  "."      # optional, add here public include directories
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
-    REQUIRES 
+    REQUIRES
+    	esp_common 
     	esp_wifi
         esp_event
         esp_netif
