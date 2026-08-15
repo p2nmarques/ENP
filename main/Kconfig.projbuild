@@ -8,6 +8,9 @@ choice DEVICE_ROLE
 
 config DEVICE_ROLE_GATEWAY
     bool "Gateway"
+	
+config DEVICE_ROLE_RELAY
+	    bool "Relay"
 
 config DEVICE_ROLE_SENSOR
     bool "Sensor"
@@ -23,5 +26,14 @@ config ESP_WIFI_PASSWORD
 config GATEWAY_MAC
     string "Gateway MAC Address"
     default "94:e6:86:0d:11:8c"
+	
+config ENP_E3_NODE_ID
+    int "E3.2 test node ID"
+    range 1 3
+    default 1
+    help
+        Physical node ID used by the E3.2 three-node test.
+        Use 1 for A/Gateway, 2 for B/Router, and 3 for C/Sensor.
+
 
 endmenu

@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"E2.1_test_enp_mock_transport_main.c"
+    	#"E3.3.3_test_enp_real_multihop_data_ack_main_RELAY_ROLE.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -14,6 +14,7 @@ idf_component_register(
         "core/network/enp_neighbor.c"
         "core/protocol/enp_crc16.c"
         "core/protocol/enp_packet.c"
+        "core/protocol/payloads/enp_data.c"
         "core/protocol/payloads/enp_routing.c"
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
