@@ -4,6 +4,9 @@
  *  Created on: Aug 15, 2026
  *      Author: Pedro Marques
  *
+ *	v2 - FIX: E3.3.5 no longer uses a fixed DATA packet sequence
+ *	v3 - FIX: Surgical C-side state fix
+ *
  * ENP v0.2 — E3.3.5 real three-node ACK duplicate suppression.
  *
  * Test roles use the existing DEVICE_ROLE_GATEWAY / DEVICE_ROLE_RELAY / DEVICE_ROLE_SENSOR
@@ -20,30 +23,34 @@
  *
  *     e3 ackdup
  *
- * E3.3.5 reuses the E3.2.2 route discovery and E3.3.2 DATA implementation.
- * The test deliberately transmits the exact same DATA packet twice, then
- * transmits a second packet with a new sequence number. The expected result
- * is one suppression and two end-to-end deliveries. The ACK path is retained
- * so the test also proves that duplicates do not generate duplicate ACKs.
- * 
- * The test sends one special DATA packet A->B->C. C constructs one ACK and transmits the exact same sealed ACK packet twice. B must forward the first copy and suppress the second. A must receive exactly one ACK.
- *
- * Expected:
- *  C transmitted identical ACK twice
- *  B suppressed exactly one duplicate ACK
- *  B forwarded exactly one unique ACK
- *  A received exactly one ACK
- *  ALL E3.3.5 ACK DUPLICATE TESTS PASSED
- *
- * ESP-IDF 6.0.2 only. FreeRTOS task/queue architecture remains static.
+ * A
+ *	Starts the test.
+ *	Validates only what A can observe: exactly one ACK received during the complete test window.
+ *	No longer checks B or C counters.
+ * B
+ *	Detects the E3.3.5 ACK from its packet contents.
+ *	Maintains its own:
+ *		forwarded count
+ *		suppressed count
+ *	Validates locally:
+ *		1 ACK forwarded
+ *		1 duplicate suppressed
+ *	Reports E3.3.5 B ROLE PASSED.
+ * C
+ *	Detects the special E3.3.5 DATA.
+ *	Maintains its own ACK transmission count.
+ *	Validates locally:
+ *		exactly 2 ACK transmissions
+ *		same ACK packet/sequence used for both transmissions
+ *	Reports E3.3.5 C ROLE PASSED.
  *
  */
 
  #include <stdbool.h>
- #include <stddef.h>
- #include <stdint.h>
- #include <stdio.h>
- #include <string.h>
+  #include <stddef.h>
+  #include <stdint.h>
+  #include <stdio.h>
+  #include <string.h>
 
   #include "esp_err.h"
   #include "esp_event.h"
@@ -96,7 +103,9 @@
  #define E3_DUPLICATE_APP_SEQ_2      2U
  #define E3_DUPLICATE_PACKET_SEQ_1   0x2101U
  #define E3_DUPLICATE_PACKET_SEQ_2   0x2102U
- #define E3_ACK_DUP_DATA_SEQ        0x3101U
+ /* E3.3.5 uses a reserved application sequence, but the DATA packet
+  * sequence is allocated dynamically for every execution. This prevents an
+  * earlier E3.3.5 run from being mistaken for a duplicate on a later run. */
  #define E3_ACK_DUP_APP_SEQ         3U
  #define E3_ACK_DUP_GAP_MS          250U
  #define E3_ACK_DUP_SETTLE_MS       3000U
@@ -1126,7 +1135,7 @@
      }
 
      if (CONFIG_ENP_E3_NODE_ID == E3_NODE_B &&
-         ack.data_packet_sequence == E3_ACK_DUP_DATA_SEQ) {
+         ack.application_sequence == E3_ACK_DUP_APP_SEQ) {
          if (!s_ack_duplicate_test_active) {
              s_ack_duplicate_test_active = true;
              s_ack_duplicate_suppressed_count = 0U;
@@ -1143,6 +1152,12 @@
              CONFIG_ENP_E3_NODE_ID == E3_NODE_B) {
              ++s_ack_duplicate_suppressed_count;
              ESP_LOGI(TAG, "PASS: B suppressed duplicate ACK packet");
+             if (s_ack_duplicate_forward_count == 1U &&
+                 s_ack_duplicate_suppressed_count == 1U) {
+                 ESP_LOGI(TAG, "PASS: B forwarded exactly 1 unique ACK");
+                 ESP_LOGI(TAG, "PASS: B suppressed exactly 1 duplicate ACK");
+                 ESP_LOGI(TAG, "E3.3.5 B ROLE PASSED");
+             }
          }
          return;
      }
@@ -1169,7 +1184,7 @@
          }
 
          if (s_ack_duplicate_test_active) {
-             if (ack.data_packet_sequence != E3_ACK_DUP_DATA_SEQ ||
+             if (ack.data_packet_sequence != s_last_data_packet_sequence ||
                  ack.application_sequence != E3_ACK_DUP_APP_SEQ) {
                  ESP_LOGE(TAG,
                           "FAIL: E3.3.5 ACK mismatch data_seq=%lu app_seq=%lu",
@@ -1285,9 +1300,11 @@
      }
 
      ++s_ack_forward_count;
-     if (s_ack_duplicate_test_active &&
-         CONFIG_ENP_E3_NODE_ID == E3_NODE_B &&
-         ack.data_packet_sequence == E3_ACK_DUP_DATA_SEQ) {
+
+     if (CONFIG_ENP_E3_NODE_ID == E3_NODE_B &&
+         ack.application_sequence == E3_ACK_DUP_APP_SEQ &&
+         header->source.node == E3_NODE_C &&
+         header->destination.node == E3_NODE_A) {
          ++s_ack_duplicate_forward_count;
          ESP_LOGI(TAG, "PASS: B forwarded ACK for E3.3.5 test DATA");
      }
@@ -1326,13 +1343,6 @@
           s_duplicate_test_active = true;
       }
 
-      if (CONFIG_ENP_E3_NODE_ID == E3_NODE_C &&
-          header->source.node == E3_NODE_A &&
-          header->sequence == E3_ACK_DUP_DATA_SEQ) {
-          s_ack_duplicate_test_active = true;
-          s_ack_duplicate_sent_count = 0U;
-      }
-
       if (header->payload_length < ENP_DATA_HEADER_SIZE) {
           ESP_LOGW(TAG, "DATA RX: payload too short for DATA header");
           return;
@@ -1347,6 +1357,16 @@
       if (!enp_data_header_valid(&data_header)) {
           ESP_LOGW(TAG, "DATA RX: invalid DATA header");
           return;
+      }
+
+      /* E3.3.5 is identified by its reserved application sequence rather
+       * than by a fixed packet sequence. Packet sequence is deliberately
+       * unique for every test execution. */
+      if (CONFIG_ENP_E3_NODE_ID == E3_NODE_C &&
+          header->source.node == E3_NODE_A &&
+          data_header.application_sequence == E3_ACK_DUP_APP_SEQ) {
+          s_ack_duplicate_test_active = true;
+          s_ack_duplicate_sent_count = 0U;
       }
 
       const size_t application_length =
@@ -1409,7 +1429,21 @@
               return;
           }
 
-          if (s_duplicate_test_active) {
+          if (s_ack_duplicate_test_active &&
+              CONFIG_ENP_E3_NODE_ID == E3_NODE_C) {
+              if (header->source.node != E3_NODE_A ||
+                  data_header.application_sequence != E3_ACK_DUP_APP_SEQ) {
+                  ESP_LOGE(TAG,
+                           "FAIL: C E3.3.5 DATA validation source=%u app_seq=%lu expected source=%u app_seq=%u",
+                           (unsigned)header->source.node,
+                           (unsigned long)data_header.application_sequence,
+                           (unsigned)E3_NODE_A,
+                           (unsigned)E3_ACK_DUP_APP_SEQ);
+                  s_test_failed = true;
+                  return;
+              }
+              ESP_LOGI(TAG, "PASS: C E3.3.5 application sequence is valid");
+          } else if (s_duplicate_test_active) {
               const bool expected =
                       data_header.application_sequence == E3_DUPLICATE_APP_SEQ_1 ||
                       data_header.application_sequence == E3_DUPLICATE_APP_SEQ_2;
@@ -1440,13 +1474,28 @@
               ESP_LOGI(TAG, "E3.3.2 DATA delivery complete: A -> B -> C");
           }
 
+          const bool e3_3_5_ack =
+                  s_ack_duplicate_test_active &&
+                  CONFIG_ENP_E3_NODE_ID == E3_NODE_C &&
+                  header->source.node == E3_NODE_A &&
+                  data_header.application_sequence == E3_ACK_DUP_APP_SEQ;
+
           if (send_ack_from_c(
                   header->sequence,
                   data_header.application_sequence,
-                  s_ack_duplicate_test_active &&
-                  header->sequence == E3_ACK_DUP_DATA_SEQ) != ESP_OK) {
+                  e3_3_5_ack) != ESP_OK) {
               ESP_LOGE(TAG, "FAIL: C ACK transmission to B");
               s_test_failed = true;
+          } else if (e3_3_5_ack) {
+              if (s_ack_duplicate_sent_count == 2U) {
+                  ESP_LOGI(TAG, "PASS: C transmitted exactly 2 identical ACK packets");
+                  ESP_LOGI(TAG, "E3.3.5 C ROLE PASSED");
+              } else {
+                  ESP_LOGE(TAG,
+                           "FAIL: C expected 2 ACK transmissions, got %lu",
+                           (unsigned long)s_ack_duplicate_sent_count);
+                  s_test_failed = true;
+              }
           }
           return;
       }
@@ -2102,14 +2151,22 @@
       }
   }
 
-  static esp_err_t send_ack_duplicate_test_data_from_a(void)
+ static esp_err_t send_ack_duplicate_test_data_from_a(void)
  {
-     s_last_data_packet_sequence = E3_ACK_DUP_DATA_SEQ;
+     /* Allocate a fresh packet sequence for every execution. The duplicate
+      * cache is keyed by origin + packet sequence, so reusing a fixed value
+      * would make a later test run look like an old duplicate. */
+     s_last_data_packet_sequence = ++s_data_packet_sequence;
      s_last_data_application_sequence = E3_ACK_DUP_APP_SEQ;
 
+     ESP_LOGI(TAG,
+              "E3.3.5 DATA stimulus: origin=A destination=C seq=%lu app_seq=%lu",
+              (unsigned long)s_last_data_packet_sequence,
+              (unsigned long)s_last_data_application_sequence);
+
      return send_data_from_a_sequence(
-             E3_ACK_DUP_DATA_SEQ,
-             E3_ACK_DUP_APP_SEQ,
+             s_last_data_packet_sequence,
+             s_last_data_application_sequence,
              true);
  }
 
@@ -2134,20 +2191,19 @@
          return;
      }
 
+     /* A owns only A-side state. B and C maintain their own role state. */
      s_ack_duplicate_test_active = true;
      s_ack_duplicate_suppressed_count = 0U;
      s_ack_duplicate_sent_count = 0U;
-     s_ack_duplicate_forward_count = 0U;
      s_ack_duplicate_delivered_count = 0U;
-     s_ack_rx_count = 0U;
-     s_ack_forward_count = 0U;
      s_test_failed = false;
 
      ESP_LOGI(TAG, "======================================");
      ESP_LOGI(TAG, "E3.3.5 START: ACK duplicate suppression");
      ESP_LOGI(TAG, "Topology: A -> B -> C");
      ESP_LOGI(TAG, "Test: C transmits the exact same ACK packet twice");
-     ESP_LOGI(TAG, "Expected: B suppresses 1 duplicate; A receives exactly 1 ACK");
+     ESP_LOGI(TAG, "DATA application sequence: %u", (unsigned)E3_ACK_DUP_APP_SEQ);
+     ESP_LOGI(TAG, "Expected: C sends 2 identical; B forwards 1 and suppresses 1; A receives 1");
      ESP_LOGI(TAG, "======================================");
 
      if (send_ack_duplicate_test_data_from_a() != ESP_OK) {
@@ -2160,54 +2216,26 @@
      const uint32_t started = enp_context_time_ms(&s_context);
      while ((uint32_t)(enp_context_time_ms(&s_context) - started) <
             E3_ACK_DUP_SETTLE_MS) {
-         if (s_ack_duplicate_delivered_count >= 1U &&
-             s_ack_duplicate_suppressed_count >= 1U) {
+         if (s_ack_duplicate_delivered_count >= 1U) {
              break;
          }
          vTaskDelay(pdMS_TO_TICKS(50));
      }
 
-     if (s_ack_duplicate_sent_count != 2U) {
-         ESP_LOGE(TAG,
-                  "FAIL: C expected to transmit exactly 2 identical ACK packets, got %lu",
-                  (unsigned long)s_ack_duplicate_sent_count);
-         s_test_failed = true;
+     if (s_ack_duplicate_delivered_count == 1U) {
+         ESP_LOGI(TAG, "PASS: A received exactly 1 ACK for the unique DATA packet");
+         ESP_LOGI(TAG, "PASS: A received no duplicate ACK");
+         ESP_LOGI(TAG, "E3.3.5 A ROLE PASSED");
+         ESP_LOGI(TAG, "A-side E3.3.5 result: PASS");
      } else {
-         ESP_LOGI(TAG, "PASS: C transmitted the identical ACK packet twice");
-     }
-
-     if (s_ack_duplicate_suppressed_count != 1U) {
          ESP_LOGE(TAG,
-                  "FAIL: B expected exactly 1 suppressed duplicate ACK, got %lu",
-                  (unsigned long)s_ack_duplicate_suppressed_count);
-         s_test_failed = true;
-     } else {
-         ESP_LOGI(TAG, "PASS: B suppressed exactly 1 duplicate ACK");
-     }
-
-     if (s_ack_duplicate_delivered_count != 1U) {
-         ESP_LOGE(TAG,
-                  "FAIL: A expected exactly 1 ACK delivery, got %lu",
+                  "FAIL: A local E3.3.5 expected exactly 1 ACK delivery, got %lu",
                   (unsigned long)s_ack_duplicate_delivered_count);
          s_test_failed = true;
-     } else {
-         ESP_LOGI(TAG, "PASS: A received exactly 1 ACK for the unique DATA packet");
+         ESP_LOGE(TAG, "A-side E3.3.5 result: FAIL");
      }
 
-     if (s_ack_duplicate_forward_count != 1U) {
-         ESP_LOGE(TAG,
-                  "FAIL: B expected exactly 1 ACK forwarding, got %lu",
-                  (unsigned long)s_ack_duplicate_forward_count);
-         s_test_failed = true;
-     } else {
-         ESP_LOGI(TAG, "PASS: B forwarded exactly 1 unique ACK");
-     }
-
-     if (!s_test_failed) {
-         ESP_LOGI(TAG, "======================================");
-         ESP_LOGI(TAG, "ALL E3.3.5 ACK DUPLICATE TESTS PASSED");
-         ESP_LOGI(TAG, "======================================");
-     }
+     ESP_LOGI(TAG, "NOTE: B and C report their own E3.3.5 role results");
 
      s_ack_duplicate_test_active = false;
  }
