@@ -5,7 +5,7 @@
 **Version:** v0.2-r5  
 **Target:** ESP-IDF 6.0.2  
 **Milestone:** E3.3.7  
-**Status:** Approved draft / Design Freeze candidate
+**Status:** PROPOSED — approved draft; implementation and hardware validation pending
 
 ---
 

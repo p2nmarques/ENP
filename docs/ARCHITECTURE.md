@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document describes the architecture of the ENP v0.2 implementation.
+This document describes the ENP v0.2 foundation and the current higher-level E3 architecture built on that foundation.
 
 The architecture is intentionally layered so that protocol services do not depend directly on ESP-NOW.
 
@@ -15,7 +15,7 @@ The architecture is intentionally layered so that protocol services do not depen
 | Application                                          |
 +------------------------------------------------------+
 | ENP Services                                         |
-| Discovery                                            |
+| Discovery | Routing / Forwarding | E3 Data Plane    |
 +------------------------------------------------------+
 | ENP Core                                             |
 | Context | Dispatcher | Network | Neighbor | Protocol |
@@ -322,34 +322,57 @@ No dynamic allocation is required for the receive path.
 
 ## 13. Current validated topology
 
-Two physical ESP32 nodes have been tested:
+The current E3 integration topology uses three physical ESP32 nodes:
 
 ```text
-Gateway node 1  ←──── ESP-NOW ────→  Sensor node 2
-        \                           /
-         \────── Wi-Fi channel 10 /
+Gateway A  ───► Relay B ───► Sensor C
+Gateway A  ◄─── Relay B ◄─── Sensor C
 ```
 
-Both directions have been validated.
+The E3 test series has validated:
+
+```text
+A → B → C   DATA forwarding
+C → B → A   ACK return path
+```
+
+as well as DATA/ACK duplicate suppression and E3.3.6 retransmission/ACK
+recovery behavior.
 
 ---
 
-## 14. Future architecture
+## 14. Current architecture boundary
 
-The planned evolution is:
+The current architecture separates:
 
 ```text
-Discovery
+ENP Core
    ↓
-Neighbor table
+Routing / Forwarding
    ↓
-Link quality / heartbeat
+DATA / ACK data plane
    ↓
-Routing table
-   ↓
-Forwarding
-   ↓
-Multi-hop mesh
+[ E3.3.7 Reliability — PROPOSED ]
 ```
 
-Routing must not be introduced until sequence handling and duplicate suppression are defined.
+The reliability layer is intentionally not yet part of the frozen runtime
+architecture.
+
+---
+
+## 15. Future architecture
+
+The next architectural extension is the E3.3.7 reliability layer:
+
+```text
+Application
+   ↓
+Reliability [PROPOSED]
+   ↓
+Routing / Forwarding
+   ↓
+Transport
+```
+
+Reliability must remain transport-independent and must not bypass the
+existing routing or transport abstraction.

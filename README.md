@@ -8,39 +8,46 @@ ENP (ESP Network Protocol) is a lightweight, modular, transport-independent netw
 
 ENP is intended to provide a protocol and networking layer above transports such as ESP-NOW without exposing transport-specific details to services and applications.
 
-The v0.2 milestone establishes the stable one-hop protocol foundation:
-packet handling, transport, dispatch, Discovery, neighbor management,
-periodic maintenance, and duplicate suppression.
+The v0.2 milestone established the frozen one-hop protocol foundation. The project has since extended that foundation with routing, multi-hop forwarding, DATA/ACK data-plane behavior, duplicate suppression across multi-hop traffic, and a hardware-validated retransmission/ACK-recovery test path.
 
 ---
 
-**Status: ENP v0.2 baseline frozen and hardware validated.**
+**Project status: v0.2 foundation frozen; routing and E3.3 data-plane extensions hardware-validated; E3.3.7 reliability layer is an approved draft and is not yet implemented.**
+
+Status terminology used in this repository:
+
+- 🔒 **FROZEN** — approved contract/baseline that should not be changed casually.
+- ✅ **VALIDATED** — implemented and validated, including hardware validation where applicable.
+- 🟡 **PROPOSED** — specified/approved design that is not yet frozen as an implementation.
+- 🚧 **IMPLEMENTING** — implementation work is active and not yet validated.
+- 📜 **HISTORICAL** — records a previous project state and should not be interpreted as the current state.
 
 ---
 
 ## 1. v0.2 Architecture
 
 ```text
-                         ENP v0.2
-                            │
-             ┌──────────────┴──────────────┐
-             │                             │
-          ENP Core                    ESP-NOW Transport
-             │                             │
-    ┌────────┼────────┐                    │
-    │        │        │                    │
-  Packet  Dispatcher  Network          ESP-NOW 2.0
-    │        │        │
-    │        │     Neighbor Table
-    │        │        │
-    │        │     Discovery
-    │        │        │
-    │        │     Neighbor Aging
-    │        │
-    │     Duplicate Cache
-    │
-   CRC16
-```
+                         ENP v0.2 / E3
+                              │
+             ┌────────────────┴────────────────┐
+             │                                 │
+          ENP Core                        ESP-NOW Transport
+             │                                 │
+    ┌────────┼─────────────┐                   │
+    │        │             │                   │
+  Packet  Dispatcher   Discovery/Neighbor      │
+    │        │             │                   │
+    │     Duplicate Cache │                   │
+    │                      │                   │
+    └──────────── Routing / Forwarding ────────┘
+                         │
+                         ▼
+                  E3 DATA / ACK
+                  data-plane tests
+                         │
+                         ▼
+                 E3.3.7 Reliability
+                    (PROPOSED)
 
 ### Receive path
 
@@ -420,53 +427,55 @@ diagnostic.
 
 ---
 
-## 13. v0.2 Scope Boundary
+## 13. Current Project Scope
 
-The following features are **not implemented** in ENP v0.2:
+The original v0.2 one-hop foundation remains frozen.
+
+The following higher-level capabilities have subsequently been implemented and hardware-validated through the E3 test series:
 
 ```text
-Routing
 Route discovery
 Route selection
 Multi-hop forwarding
-TTL enforcement
-Route repair
-Reliable delivery
-Retransmission
+TTL handling in tested forwarding paths
+DATA multi-hop delivery
+ACK multi-hop delivery
+DATA duplicate suppression
+ACK duplicate suppression
+DATA retransmission / ACK recovery test behavior
+```
+
+The following remain outside the frozen production reliability implementation:
+
+```text
+General-purpose reliability subsystem
+Configurable ACK scheduling
+General-purpose timeout/retry management
+Retry accounting API
+Delivery failure API
 Fragmentation
 Security
 OTA
 ```
 
-In particular:
-
-> **ENP v0.2 is a validated one-hop foundation. It is not yet a
-> multi-hop mesh routing implementation.**
+E3.3.6 is a **hardware-validated reliability behavior test**. It does not by itself mean that the general ENP reliability subsystem has been implemented.
 
 ---
 
-## 14. Next Milestone — Routing Architecture
+## 14. Current Milestones
 
-The next development phase begins with a design specification rather
-than immediate implementation.
+```text
+E3.3.1  DATA wire/self-test                     VALIDATED
+E3.3.2  DATA multi-hop forwarding               VALIDATED
+E3.3.3  DATA + ACK multi-hop path               VALIDATED
+E3.3.4  DATA duplicate suppression              VALIDATED
+E3.3.5  ACK duplicate suppression               VALIDATED
+E3.3.6  DATA retransmission / ACK recovery      VALIDATED
+E3.3.7  Reliability layer architecture          PROPOSED
+```
 
-The routing specification must define:
-
-1. Route entry structure.
-2. Destination and next-hop semantics.
-3. Route state.
-4. Route lifetime and expiration.
-5. Route metric.
-6. TTL semantics.
-7. Forwarding rules.
-8. Loop prevention.
-9. Route discovery.
-10. Route invalidation and repair.
-11. Gateway/root-node behavior.
-12. Sequence-number semantics for routing.
-
-The existing v0.2 Discovery, Neighbor, and Duplicate mechanisms should be
-treated as a **frozen foundation** while routing is designed.
+The E3.3.7 specification must be reviewed against the current project
+documentation and implementation before its API and implementation are frozen.
 
 ---
 
@@ -501,7 +510,11 @@ or placeholders exist.
 
 ## 16. Project Status
 
-**ENP v0.2 — FROZEN BASELINE**
+**ENP v0.2 foundation — FROZEN**
 
-The project is ready to proceed to the **Routing Architecture
-Specification** without modifying the frozen v0.2 foundation.
+**E3.3.1–E3.3.6 — VALIDATED**
+
+**E3.3.7 Reliability Layer — APPROVED DRAFT / NOT IMPLEMENTED**
+
+The project is currently at the documentation and architecture checkpoint
+between E3.3.6 validation and E3.3.7 implementation.

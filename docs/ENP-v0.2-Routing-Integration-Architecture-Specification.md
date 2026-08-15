@@ -1,6 +1,6 @@
 # ENP v0.2 — Routing Integration Architecture Specification
 
-**Status:** Proposed integration baseline  
+**Status:** Integration baseline; routing components and E3 multi-hop integration are implemented/validated; document remains a specification baseline pending final documentation freeze  
 **Target:** ESP-IDF 6.0.2  
 **Transport:** Transport-independent; ESP-NOW is the current implementation
 

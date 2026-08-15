@@ -60,56 +60,64 @@
 - [x] Validate `NEW → DUPLICATE → EXPIRED → NEW` end-to-end.
 - [x] Freeze duplicate suppression.
 
-### v0.2 boundary
+### Current validated extensions
 
-The following are deliberately **not implemented** in the frozen v0.2
-baseline:
+The original v0.2 foundation remains frozen. Higher-level work has since
+been implemented and validated through the E3 test series:
 
-- [ ] Routing
-- [ ] Route discovery
-- [ ] Route selection
-- [ ] Multi-hop forwarding
-- [ ] TTL enforcement
-- [ ] Reliable delivery
-- [ ] Retransmission
+- [x] Routing components and route table
+- [x] Route discovery behavior used by the E3 integration tests
+- [x] Multi-hop forwarding
+- [x] Tested TTL decrement/forwarding behavior
+- [x] E3.3.1 DATA wire/self-test
+- [x] E3.3.2 DATA multi-hop forwarding
+- [x] E3.3.3 DATA + ACK multi-hop path
+- [x] E3.3.4 DATA duplicate suppression
+- [x] E3.3.5 ACK duplicate suppression
+- [x] E3.3.6 DATA retransmission / ACK recovery test behavior
+
+### Current boundary
+
+The following are **not yet implemented as the general ENP reliability subsystem**:
+
+- [ ] Reliability transaction manager
+- [ ] General ACK scheduling
+- [ ] General timeout handling
+- [ ] General retransmission management
+- [ ] Retry accounting API
+- [ ] Delivery failure reporting
 - [ ] Fragmentation
 - [ ] Security
 - [ ] OTA
 
+### E3.3.7 — Reliability architecture
 
----
+Current status: **Approved draft / not implemented**
 
-## Next milestone — Routing architecture
+Design objectives:
 
-Before implementation, define and review:
+- [ ] Define `ACK_REQUIRED` semantics.
+- [ ] Define DATA/ACK transaction correlation.
+- [ ] Define reliability transaction state machine.
+- [ ] Define timeout and retry policy.
+- [ ] Define retry accounting.
+- [ ] Define delivery success/failure reporting.
+- [ ] Define static transaction storage.
+- [ ] Define concurrency/event handling.
+- [ ] Implement reliability core.
+- [ ] Self-test reliability core.
+- [ ] Hardware-validate reliability integration.
+- [ ] Freeze E3.3.7.
 
-- [ ] Route entry structure.
-- [ ] Destination versus next-hop semantics.
-- [ ] Route state.
-- [ ] Route lifetime and expiration.
-- [ ] Route metric.
-- [ ] TTL decrement/discard semantics.
-- [ ] Sequence-number semantics for routing.
-- [ ] Forwarding rules.
-- [ ] Loop prevention.
-- [ ] Route discovery.
-- [ ] Route invalidation and repair.
-- [ ] Gateway/root-node behavior.
+### Documentation checkpoint
 
-The routing specification must not destabilize the frozen v0.2
-Discovery/Neighbor/Duplicate foundation.
+Before E3.3.7 implementation is frozen:
 
----
-
-## Later
-
-### Reliability
-
-- [ ] ACK handling
-- [ ] Retransmission
-- [ ] Retry policy
-- [ ] Fragmentation
-- [ ] Reassembly
+- [X] Synchronize README with current project state.
+- [X] Synchronize roadmap with validated E3 results.
+- [X] Clarify historical versus current freeze documents.
+- [X] Review routing documentation against implementation.
+- [X] Review E3.3.7 reliability specification against the synchronized documentation.
 
 ### v1.x
 

@@ -1,6 +1,6 @@
 # ENP Routing Architecture Specification v0.2
 
-**Status:** Architecture agreed — specification baseline for implementation review  
+**Status:** Architecture agreed; routing components and E3 multi-hop behavior subsequently validated; detailed contract remains under documentation review  
 **Routing model:** Hybrid  
 **Initial route metric:** Hop Count  
 **Primary transport:** ESP-NOW  

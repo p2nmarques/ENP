@@ -1,7 +1,7 @@
 # ENP v0.2 Core Freeze
 
 **Version:** 0.2.0  
-**Status:** v0.2 baseline frozen; Discovery, neighbor maintenance, and duplicate suppression hardware-validated
+**Status:** v0.2 foundation frozen; Discovery, neighbor maintenance, and duplicate suppression hardware-validated. Higher-level routing/E3 extensions are tracked separately.
 
 This document records the v0.2 baseline that must not be changed casually while higher-level networking features are developed.
 
@@ -214,15 +214,38 @@ The following are intentionally not implemented merely because APIs,
 enums, or placeholders exist:
 
 - Routing
-- Multi-hop forwarding
-- Multi-hop forwarding
-- Reliable delivery
-- Retransmission
+- General-purpose reliable delivery subsystem
+- General-purpose retransmission management
+- Reliability transaction API
 - Fragmentation
 - Security
 - OTA
 
 ---
+
+## Post-freeze validated extensions
+
+The frozen v0.2 foundation has subsequently been used without changing its
+core wire/API contract to validate higher-level behavior:
+
+- Routing and route-table components
+- Multi-hop forwarding
+- E3.3.1 DATA wire/self-test
+- E3.3.2 DATA multi-hop forwarding
+- E3.3.3 DATA + ACK multi-hop path
+- E3.3.4 DATA duplicate suppression
+- E3.3.5 ACK duplicate suppression
+- E3.3.6 DATA retransmission / ACK recovery test behavior
+
+These validations do **not** mean that the general-purpose reliability
+subsystem is frozen or implemented. E3.3.7 remains a separate proposed
+reliability architecture.
+
+## Historical boundary clarification
+
+The "not implemented" list below describes the original v0.2 foundation
+boundary. It should not be read as a statement that later E3 extension work
+does not exist.
 
 ## Freeze rule
 

@@ -2,7 +2,7 @@
 
 **Software version:** 0.2.0  
 **Wire protocol version:** 1  
-**Status:** v0.2 frozen core/discovery/duplicate-suppression baseline
+**Status:** v0.2 wire/core baseline frozen; routing and E3 data-plane extensions validated separately; general reliability subsystem not yet implemented.
 
 ---
 
@@ -132,7 +132,10 @@ Current flags:
 
 Flags may be combined.
 
-Reliable delivery is not yet implemented merely because `ACK_REQUIRED` exists.
+Reliable delivery is not implemented merely because `ACK_REQUIRED` exists.
+E3.3.1–E3.3.6 validate DATA/ACK wire and multi-hop behavior, duplicate
+suppression, and a retransmission/ACK-recovery test path. They do not by
+themselves define a general-purpose reliability subsystem.
 
 ---
 
@@ -296,21 +299,44 @@ The table supports expiration through its API, but an automatic periodic aging m
 
 # 14. Reliability
 
-The v0.2 packet format contains an ACK flag and ACK packet type.
+The v0.2 packet format contains:
 
-However, the complete reliable-delivery mechanism is not yet implemented.
+```text
+ACK_REQUIRED flag
+ACK packet type
+```
 
-The following are future work:
+The E3.3 test series has now validated the following reliability-related
+behavior:
+
+```text
+ACK path
+ACK duplicate suppression
+DATA retransmission / ACK recovery
+```
+
+E3.3.6 is a hardware-validated test behavior. It is **not** the general
+reliability subsystem.
+
+The general reliability layer remains a proposed E3.3.7 feature and must
+provide:
 
 ```text
 ACK scheduling
+transaction tracking
 timeout handling
 retransmission
 retry accounting
-delivery failure reporting
+delivery success/failure reporting
 ```
 
-These must be specified before being described as a v0.2 feature.
+E3.3.7 is specified separately in:
+
+```text
+docs/ENP_Reliability_Layer_Specification_E3.3.7.md
+```
+
+It remains PROPOSED until implementation and hardware validation are complete.
 
 ---
 
@@ -324,9 +350,29 @@ TTL
 route packet type
 ```
 
-but routing and forwarding are not implemented in the current v0.2 runtime.
+Routing components and the E3 multi-hop forwarding path have subsequently
+been implemented and hardware-validated.
 
-Routing is planned for a later development stage.
+The validated E3 path includes:
+
+```text
+route discovery
+route selection
+multi-hop DATA forwarding
+ACK return path
+tested TTL decrement behavior
+```
+
+The detailed routing contracts remain in:
+
+```text
+docs/ENP_ROUTING_ARCHITECTURE_v0.2.md
+docs/ENP_ROUTING_PROTOCOL_v0.2.md
+docs/ENP-v0.2-Routing-Integration-Architecture-Specification.md
+```
+
+The original v0.2 core freeze remains unchanged; routing is a higher-level
+extension built on that foundation.
 
 ---
 

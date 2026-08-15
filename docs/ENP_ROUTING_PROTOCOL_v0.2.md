@@ -1,6 +1,6 @@
 # ENP Routing Protocol Specification v0.2
 
-**Status:** Proposed protocol contract — implementation gate
+**Status:** Proposed protocol contract; core routing behavior validated through E3 integration tests; full protocol freeze remains pending documentation review
 
 **Architecture:** ENP Hybrid Routing
 
