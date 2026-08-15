@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"E3.3.3_test_enp_real_multihop_data_ack_main_RELAY_ROLE.c"
+    	#"E3.3.3_test_enp_real_multihop_data_ack_main_RELAY_ROLE_neighbor_ready_cleanup_IDF6.0.2.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
