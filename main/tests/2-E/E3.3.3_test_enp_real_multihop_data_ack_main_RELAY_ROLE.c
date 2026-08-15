@@ -1495,7 +1495,8 @@ static void process_data(
              return;
          }
 
-         (void)enp_neighbor_update(
+         /*          * Periodic discovery announcements refresh an existing neighbor.          * "Neighbor ready" is a state-transition message, not a periodic          * heartbeat message. Only log it when the logical neighbor is new.          */         const bool neighbor_is_new =                 (enp_neighbor_find_const(                          &s_context.neighbors,
+                          &header->source) == NULL);          const esp_err_t neighbor_err = enp_neighbor_update(
                  &s_context.neighbors,
                  &header->source,
                  source,
@@ -1503,14 +1504,14 @@ static void process_data(
                  discovery->capabilities,
                  header->sequence,
                  0,
-                 enp_context_time_ms(&s_context));
-
-         ESP_LOGI(
-                 TAG,
-                 "Neighbor ready: node=%lu transport-len=%u",
-                 (unsigned long)header->source.node,
-                 (unsigned)source->length);
-         return;
+                 enp_context_time_ms(&s_context));          if (neighbor_err != ESP_OK) {             ESP_LOGW(
+                     TAG,
+                     "Neighbor update failed: %s",
+                     esp_err_to_name(neighbor_err));             return;         }          if (neighbor_is_new) {             ESP_LOGI(
+                     TAG,
+                     "Neighbor ready: node=%lu transport-len=%u",
+                     (unsigned long)header->source.node,
+                     (unsigned)source->length);         }         return;
      }
 
      if (header->type == ENP_PACKET_APPLICATION) {
