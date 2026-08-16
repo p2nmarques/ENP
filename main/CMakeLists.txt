@@ -3,8 +3,8 @@
 
 idf_component_register(
     SRCS
-    	"main.c"
-    	#"tests/2-E/E3.3.6_test_enp_real_multihop_retransmission_main_RELAY_ROLE.c"
+    	#"main.c"
+    	"tests/2-E/E3.3.7_p2_test_enp_reliability_dispatcher_integration_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -16,6 +16,8 @@ idf_component_register(
         "core/protocol/enp_packet.c"
         "core/protocol/payloads/enp_data.c"
         "core/protocol/payloads/enp_routing.c"
+        "core/reliability/enp_reliability.c"
+        "core/reliability/enp_reliability_service.c"
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
         "core/routing/enp_route_table.c"
