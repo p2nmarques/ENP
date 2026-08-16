@@ -177,3 +177,20 @@ Hardware validation where applicable
   ↓
 Freeze
 ```
+
+
+## Phase 4 — Core Consolidation
+
+### P4.1 Reusable Data Plane
+- [x] Introduce reusable ENP data-plane component.
+- [x] Separate DATA and ACK duplicate caches.
+- [x] Route non-local DATA/ACK through existing routing data path.
+- [x] Preserve existing dispatcher compatibility.
+- [ ] Validate P4.1 hardware-independent self-test.
+
+### P4.2 Reliability Runtime Integration
+- [ ] Integrate reliability periodic servicing into ENP runtime maintenance.
+
+### P4.3 E3C Consolidation
+- [ ] Remove test-specific DATA/ACK forwarding from E3C.
+- [ ] Revalidate three-node reliability using reusable ENP infrastructure.

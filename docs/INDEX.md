@@ -24,7 +24,9 @@ This directory is organized by subject. The project targets **ENP v0.2-r5 / ESP-
 - `04_reliability/ENP_Reliability_Layer_Specification_E3.3.7.md`
 
 ## 05 — Validation
-Contains the E3.3.7 Phase 2/3 implementation audits and hardware validation records.
+Contains the E3.3.7 implementation audits, hardware validation records, and Phase 4 consolidation tests.
+
+- `E3.3.7_PHASE4_P4.1_DATA_PLANE.md` — reusable receive data-plane consolidation.
 
 Current validated sequence:
 

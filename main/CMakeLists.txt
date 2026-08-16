@@ -3,13 +3,14 @@
 
 idf_component_register(
     SRCS
-    	"main.c"
-    	#"tests/2-E/E3.3.7_p3_E3C_test_enp_three_node_reliability_main.c"
+    	#"main.c"
+    	"tests/2-E/E3.3.7_p4_E2_test_enp_reliability_maintenance_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
         "core/enp_maintenance.c"
         "core/enp_transport.c"
+        "core/data/enp_data_plane.c"
         "core/dispatcher/enp_dispatcher.c"
         "core/network/enp_neighbor.c"
         "core/protocol/enp_crc16.c"
