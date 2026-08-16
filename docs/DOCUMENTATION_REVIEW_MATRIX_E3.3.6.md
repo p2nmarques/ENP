@@ -1,3 +1,5 @@
+> **Historical snapshot:** This matrix records the E3.3.6 documentation review state. Later E3.3.7 implementation is tracked in the current E3.3.7 status and Phase 3 documents.
+
 # ENP Documentation Review Matrix — Post E3.3.6
 
 **Project:** ENP v0.2-r5  

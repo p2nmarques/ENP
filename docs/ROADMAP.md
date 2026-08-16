@@ -92,7 +92,7 @@ The following are **not yet implemented as the general ENP reliability subsystem
 
 ### E3.3.7 — Reliability architecture
 
-Current status: **Approved draft / not implemented**
+Current status: **Phase 1/2 validated; Phase 3 routing integration in progress**
 
 Design objectives:
 
@@ -104,9 +104,19 @@ Design objectives:
 - [ ] Define delivery success/failure reporting.
 - [ ] Define static transaction storage.
 - [ ] Define concurrency/event handling.
-- [ ] Implement reliability core.
-- [ ] Self-test reliability core.
-- [ ] Hardware-validate reliability integration.
+- [x] Implement reliability core.
+- [x] Self-test reliability core.
+- [x] Hardware-validate reliability core.
+- [x] Integrate reliability with dispatcher ACK service.
+- [x] Hardware-validate dispatcher integration.
+- [x] Implement routing DATA-path boundary.
+- [x] Hardware-validate routing DATA-path boundary.
+- [x] Integrate routing DATA path with real ENP context and neighbor table.
+- [x] Hardware-validate E2-A context/neighbor integration.
+- [x] Hardware-validate E2-B real ESP-NOW DATA path.
+- [ ] Integrate reliability submit callback with routing DATA path.
+- [ ] Hardware-validate reliability-to-routing integration.
+- [ ] Validate three-node reliability path.
 - [ ] Freeze E3.3.7.
 
 ### Documentation checkpoint

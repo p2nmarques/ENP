@@ -352,7 +352,7 @@ Routing / Forwarding
    ↓
 DATA / ACK data plane
    ↓
-[ E3.3.7 Reliability — PROPOSED ]
+[ E3.3.7 Reliability — IMPLEMENTED THROUGH PHASE 2; PHASE 3 INTEGRATION IN PROGRESS ]
 ```
 
 The reliability layer is intentionally not yet part of the frozen runtime
@@ -362,12 +362,12 @@ architecture.
 
 ## 15. Future architecture
 
-The next architectural extension is the E3.3.7 reliability layer:
+The current architectural extension is the E3.3.7 reliability layer. Phase 1/2 are validated; Phase 3 connects reliability to the validated routing DATA path:
 
 ```text
 Application
    ↓
-Reliability [PROPOSED]
+Reliability [PHASE 1/2 VALIDATED]
    ↓
 Routing / Forwarding
    ↓

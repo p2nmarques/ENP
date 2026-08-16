@@ -12,7 +12,12 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 
 ---
 
-**Project status: v0.2 foundation frozen; routing and E3.3 data-plane extensions hardware-validated; E3.3.7 reliability layer is an approved draft and is not yet implemented.**
+**Project status: 
+- v0.2 foundation frozen;
+- E3.3.1–E3.3.6 validated;
+- E3.3.7 reliability core and dispatcher integration validated;
+- Phase 3 routing DATA-path, context/neighbor and real ESP-NOW integration validated;
+- Reliability-to-routing integration is the current development step.**
 
 Status terminology used in this repository:
 
@@ -29,25 +34,25 @@ Status terminology used in this repository:
 ```text
                          ENP v0.2 / E3
                               │
-             ┌────────────────┴────────────────┐
-             │                                 │
+             ┌────────────────┴──────────────────┐
+             │                                   │
           ENP Core                        ESP-NOW Transport
-             │                                 │
-    ┌────────┼─────────────┐                   │
-    │        │             │                   │
-  Packet  Dispatcher   Discovery/Neighbor      │
-    │        │             │                   │
-    │     Duplicate Cache │                   │
-    │                      │                   │
-    └──────────── Routing / Forwarding ────────┘
-                         │
-                         ▼
-                  E3 DATA / ACK
-                  data-plane tests
-                         │
-                         ▼
-                 E3.3.7 Reliability
-                    (PROPOSED)
+             │                                   │
+    ┌────────┼─────────────┐                     │
+    │        │             │                     │
+  Packet  Dispatcher   Discovery/Neighbor        │
+    │        │             │                     │
+    │     Duplicate Cache  │                     │
+    │                      │                     │
+    └──────────── Routing / Forwarding ──────────┘
+                           │
+                           ▼
+                    E3 DATA / ACK
+                   data-plane tests
+                           │
+                           ▼
+                  E3.3.7 Reliability
+                     (PROPOSED)
 
 ### Receive path
 
@@ -264,10 +269,10 @@ A packet is considered a duplicate using:
 
 ```text
 Source Network ID
-+
-Source Node ID
-+
-Sequence Number
+       +
+ Source Node ID
+       +
+ Sequence Number
 ```
 
 The ESP-NOW MAC address is **not** part of the duplicate identity.
@@ -471,7 +476,7 @@ E3.3.3  DATA + ACK multi-hop path               VALIDATED
 E3.3.4  DATA duplicate suppression              VALIDATED
 E3.3.5  ACK duplicate suppression               VALIDATED
 E3.3.6  DATA retransmission / ACK recovery      VALIDATED
-E3.3.7  Reliability layer architecture          PROPOSED
+E3.3.7  Reliability layer                       PHASE 1/2 VALIDATED; PHASE 3 IN PROGRESS
 ```
 
 The E3.3.7 specification must be reviewed against the current project

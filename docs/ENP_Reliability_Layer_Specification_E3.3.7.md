@@ -5,7 +5,7 @@
 **Version:** v0.2-r5  
 **Target:** ESP-IDF 6.0.2  
 **Milestone:** E3.3.7  
-**Status:** PROPOSED — approved draft; implementation and hardware validation pending
+**Status:** Implementation baseline; Phase 1/2 hardware validated; Phase 3 routing integration pending
 
 ---
 
@@ -22,7 +22,7 @@ The reliability layer provides:
 - retry accounting;
 - delivery success/failure reporting.
 
-E3.3.7 does not replace the existing routing, transport, wire-format, or duplicate-suppression mechanisms.
+E3.3.7 does not replace the existing routing, transport, wire-format, or duplicate-suppression mechanisms. The implementation is being integrated incrementally: Phase 1/2 are validated and Phase 3 routing integration is the current step.
 
 The E3.3.6 hardware test remains the empirical baseline for retransmission, duplicate DATA suppression and ACK recovery.
 
@@ -694,6 +694,37 @@ These are **initial implementation parameters**, not immutable protocol constant
 They may be tuned after hardware measurements without changing the E3.3.7 architectural contract.
 
 ---
+
+# 23A. Routing Submission and Route Changes
+
+Reliability owns the end-to-end transaction. Routing owns the currently usable path.
+
+Every transmission attempt, including a retransmission, enters the same reliability
+submit callback boundary. The callback is responsible for handing the DATA packet to
+the current routing DATA path; it must not bind the reliability transaction to a
+permanent next hop.
+
+Conceptually:
+
+```text
+Reliability transaction
+        |
+        | transmission attempt
+        v
+enp_routing_data_path_submit()
+        |
+        +--> current route lookup
+        +--> current next-hop selection
+        +--> logical -> transport resolution
+        +--> transport submission
+```
+
+If a route later becomes stale or unavailable, route invalidation, discovery and
+repair remain routing responsibilities. Reliability must retain the transaction
+identity while allowing a future transmission attempt to use a different route.
+The initial E3.3.7 routing integration does not yet implement automatic route repair
+during a reliability transaction; that behavior belongs to the subsequent routing
+resilience work.
 
 # 24. Non-Goals
 

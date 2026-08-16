@@ -2,7 +2,10 @@
 
 **Software version:** 0.2.0  
 **Wire protocol version:** 1  
-**Status:** v0.2 wire/core baseline frozen; routing and E3 data-plane extensions validated separately; general reliability subsystem not yet implemented.
+**Status:** v0.2 wire/core baseline frozen; 
+			routing and E3 data-plane extensions validated separately;
+			E3.3.7 reliability core and dispatcher integration implemented and hardware-validated;
+			Routing integration remains in progress.
 
 ---
 
@@ -135,7 +138,7 @@ Flags may be combined.
 Reliable delivery is not implemented merely because `ACK_REQUIRED` exists.
 E3.3.1–E3.3.6 validate DATA/ACK wire and multi-hop behavior, duplicate
 suppression, and a retransmission/ACK-recovery test path. They do not by
-themselves define a general-purpose reliability subsystem.
+themselves define the complete E3.3.7 reliability subsystem; the E3.3.7 core and dispatcher integration are now implemented, while routing integration and final freeze remain pending.
 
 ---
 

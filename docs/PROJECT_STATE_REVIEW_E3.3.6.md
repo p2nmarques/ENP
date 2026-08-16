@@ -1,3 +1,5 @@
+> **Historical snapshot:** This document records the project state at the E3.3.6 review checkpoint. It is intentionally not rewritten to retroactively describe later E3.3.7 implementation.
+
 # ENP Project State Review — Post E3.3.6
 
 **Project:** ENP v0.2-r5  
