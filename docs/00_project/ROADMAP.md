@@ -92,42 +92,55 @@ The following are **not yet implemented as the general ENP reliability subsystem
 
 ### E3.3.7 — Reliability architecture
 
-Current status: **Phase 1/2 validated; Phase 3 routing integration in progress**
+**Current status:**
 
-Design objectives:
+- Phase 3 / E3C three-node reliability hardware validated;
+- E3.3.7 integration sequence frozen.
 
-- [ ] Define `ACK_REQUIRED` semantics.
-- [ ] Define DATA/ACK transaction correlation.
-- [ ] Define reliability transaction state machine.
-- [ ] Define timeout and retry policy.
-- [ ] Define retry accounting.
-- [ ] Define delivery success/failure reporting.
-- [ ] Define static transaction storage.
-- [ ] Define concurrency/event handling.
-- [x] Implement reliability core.
-- [x] Self-test reliability core.
-- [x] Hardware-validate reliability core.
-- [x] Integrate reliability with dispatcher ACK service.
-- [x] Hardware-validate dispatcher integration.
-- [x] Implement routing DATA-path boundary.
-- [x] Hardware-validate routing DATA-path boundary.
-- [x] Integrate routing DATA path with real ENP context and neighbor table.
-- [x] Hardware-validate E2-A context/neighbor integration.
-- [x] Hardware-validate E2-B real ESP-NOW DATA path.
-- [ ] Integrate reliability submit callback with routing DATA path.
-- [ ] Hardware-validate reliability-to-routing integration.
-- [ ] Validate three-node reliability path.
-- [ ] Freeze E3.3.7.
+Completed:
+
+- [X] Define `ACK_REQUIRED` semantics.
+- [X] Define DATA/ACK transaction correlation.
+- [X] Define reliability transaction state machine.
+- [X] Define timeout and retry policy.
+- [X] Define retry accounting.
+- [X] Define delivery success/failure reporting.
+- [X] Define static transaction storage.
+- [X] Implement reliability core.
+- [X] Self-test reliability core.
+- [X] Validate reliability core on ESP hardware.
+- [X] Validate dispatcher/ACK integration on ESP hardware.
+- [X] Validate routing data path on ESP hardware.
+- [X] Validate context + neighbor integration on ESP hardware.
+- [X] Validate real ESP-NOW origin DATA path on two ESP32 nodes.
+
+Current:
+
+- [x] Complete Phase 3 / E3A reliability-to-routing self-test.
+- [x] Hardware-validate Phase 3 / E3B reliability-to-routing integration on two ESP32 nodes.
+- [ ] Validate Phase 3 / E3C end-to-end reliability on the three-node A -> B -> C topology.
+- [ ] Freeze E3.3.7 after the validated integration sequence.
+
+Deliberately later routing-resilience work:
+
+- [ ] Stale/lost next-hop handling.
+- [ ] Link/transport failure propagation into routing.
+- [ ] RERR integration.
+- [ ] Route rediscovery/repair during an active reliability transaction.
+- [ ] Multi-path and larger-topology validation.
+
+Architectural rule established for E3: reliability owns the transaction and packet identity; routing owns the current path. Every transmission attempt, including retransmissions, enters the same routing submission interface so a future route repair can change the next hop without changing the reliability transaction.
 
 ### Documentation checkpoint
 
-Before E3.3.7 implementation is frozen:
-
-- [X] Synchronize README with current project state.
-- [X] Synchronize roadmap with validated E3 results.
-- [X] Clarify historical versus current freeze documents.
-- [X] Review routing documentation against implementation.
-- [X] Review E3.3.7 reliability specification against the synchronized documentation.
+- [X] Synchronize README with current validated project state.
+- [X] Synchronize roadmap with validated E1/E2 results.
+- [X] Record the E2-A stack-overflow correction and clean validation.
+- [X] Record the E2-B two-node ESP-NOW validation.
+- [X] Record the E3 reliability-to-routing API audit.
+- [X] Record the corrected E3 self-test validation.
+- [X] Record E3B two-node hardware validation.
+- [X] Define E3C three-node reliability validation.
 
 ### v1.x
 

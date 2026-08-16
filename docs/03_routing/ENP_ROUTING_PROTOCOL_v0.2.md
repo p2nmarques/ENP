@@ -149,9 +149,9 @@ This rule explicitly defines wrap-around behavior.
 Every routing payload starts with:
 
 ```text
-+--------+--------+--------+--------+
-| subtype| flags  | version| reserved|
-+--------+--------+--------+--------+
++--------+--------+--------+----------+
+| subtype| flags  | version| reserved |
++--------+--------+--------+----------+
 ```
 
 All fields are one byte.
@@ -200,17 +200,17 @@ RREQ discovers a route from the requesting node to a destination.
 
 ```text
 +----------------------+-------+
-| Common routing hdr   | 4     |
+| Common routing hdr   |   4   |
 +----------------------+-------+
-| Request ID           | 4     |
+| Request ID           |   4   |
 +----------------------+-------+
-| Destination address  | 6     |
+| Destination address  |   6   |
 +----------------------+-------+
-| Destination sequence | 4     |
+| Destination sequence |   4   |
 +----------------------+-------+
-| Hop count            | 1     |
+| Hop count            |   1   |
 +----------------------+-------+
-| Reserved             | 1     |
+| Reserved             |   1   |
 +----------------------+-------+
 ```
 
@@ -226,7 +226,7 @@ For an RREQ:
 
 ```text
 source      = route-discovery originator
- destination = broadcast address for network flooding
+destination = broadcast address for network flooding
 sequence    = ordinary ENP packet sequence
 TTL         = discovery ring TTL
 ```
@@ -320,17 +320,17 @@ RREP confirms a discovered route.
 
 ```text
 +----------------------+-------+
-| Common routing hdr   | 4     |
+| Common routing hdr   |   4   |
 +----------------------+-------+
-| Destination address  | 6     |
+| Destination address  |   6   |
 +----------------------+-------+
-| Destination sequence | 4     |
+| Destination sequence |   4   |
 +----------------------+-------+
-| Hop count            | 1     |
+| Hop count            |   1   |
 +----------------------+-------+
-| Route lifetime       | 4     |
+| Route lifetime       |   4   |
 +----------------------+-------+
-| Reserved             | 1     |
+| Reserved             |   1   |
 +----------------------+-------+
 ```
 
@@ -387,15 +387,15 @@ RERR informs nodes that a destination route is no longer usable.
 
 ```text
 +----------------------+-------+
-| Common routing hdr   | 4     |
+| Common routing hdr   |   4   |
 +----------------------+-------+
-| Unreachable address  | 6     |
+| Unreachable address  |   6   |
 +----------------------+-------+
-| Destination sequence | 4     |
+| Destination sequence |   4   |
 +----------------------+-------+
-| Reason               | 1     |
+| Reason               |   1   |
 +----------------------+-------+
-| Reserved             | 1     |
+| Reserved             |   1   |
 +----------------------+-------+
 ```
 
@@ -544,7 +544,7 @@ The packet's:
 
 ```text
 source
- destination
+destination
 sequence
 ```
 

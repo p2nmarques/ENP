@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	"main.c"
-    	#"tests/2-E/E3.3.7_p3_E2B_test_enp_routing_data_path_espnow_main.c"
+    	#"tests/2-E/E3.3.7_p3_E3C_test_enp_three_node_reliability_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"

@@ -12,12 +12,11 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 
 ---
 
-**Project status: 
+**Project status:**
 - v0.2 foundation frozen;
-- E3.3.1–E3.3.6 validated;
-- E3.3.7 reliability core and dispatcher integration validated;
-- Phase 3 routing DATA-path, context/neighbor and real ESP-NOW integration validated;
-- Reliability-to-routing integration is the current development step.**
+- E1/E2 validated and frozen;
+- E3A self-test and E3B two-node ESP-NOW reliability integration validated;
+- E3C three-node reliability validation is hardware validated and frozen.
 
 Status terminology used in this repository:
 
@@ -34,25 +33,25 @@ Status terminology used in this repository:
 ```text
                          ENP v0.2 / E3
                               │
-             ┌────────────────┴──────────────────┐
-             │                                   │
+             ┌────────────────┴─────────────────┐
+             │                                  │
           ENP Core                        ESP-NOW Transport
-             │                                   │
-    ┌────────┼─────────────┐                     │
-    │        │             │                     │
-  Packet  Dispatcher   Discovery/Neighbor        │
-    │        │             │                     │
-    │     Duplicate Cache  │                     │
-    │                      │                     │
-    └──────────── Routing / Forwarding ──────────┘
+             │                                  │
+    ┌────────┼─────────────┐                    │
+    │        │             │                    │
+  Packet  Dispatcher   Discovery/Neighbor       │
+    │        │             │                    │
+    │     Duplicate Cache  │                    │
+    │                      │                    │
+    └──────────── Routing / Forwarding ─────────┘
                            │
                            ▼
                     E3 DATA / ACK
-                   data-plane tests
+                    data-plane tests
                            │
                            ▼
-                  E3.3.7 Reliability
-                     (PROPOSED)
+                   E3.3.7 Reliability
+                      (IMPLEMENTED)
 
 ### Receive path
 
@@ -450,20 +449,22 @@ ACK duplicate suppression
 DATA retransmission / ACK recovery test behavior
 ```
 
-The following remain outside the frozen production reliability implementation:
+The E3.3.7 reliability subsystem is now implemented with static transaction storage,
+ACK correlation, timeout/retry processing, result reporting and a
+transport/routing-independent submit callback. E3A and E3B have validated its
+integration boundary. E3C is the current three-node validation stage.
+
+The following remain future work:
 
 ```text
-General-purpose reliability subsystem
-Configurable ACK scheduling
-General-purpose timeout/retry management
-Retry accounting API
-Delivery failure API
+Route failure / repair integration
 Fragmentation
 Security
 OTA
 ```
 
-E3.3.6 is a **hardware-validated reliability behavior test**. It does not by itself mean that the general ENP reliability subsystem has been implemented.
+E3.3.6 remains the historical hardware baseline for duplicate DATA suppression and cached-ACK recovery;
+E3C now validates those behaviours together with the generic E3.3.7 reliability transaction over the three-node topology.
 
 ---
 
@@ -476,11 +477,11 @@ E3.3.3  DATA + ACK multi-hop path               VALIDATED
 E3.3.4  DATA duplicate suppression              VALIDATED
 E3.3.5  ACK duplicate suppression               VALIDATED
 E3.3.6  DATA retransmission / ACK recovery      VALIDATED
-E3.3.7  Reliability layer                       PHASE 1/2 VALIDATED; PHASE 3 IN PROGRESS
+E3.3.7  Reliability layer + Phase 3            E3A VALIDATED / E3B VALIDATED / E3C PENDING
 ```
 
-The E3.3.7 specification must be reviewed against the current project
-documentation and implementation before its API and implementation are frozen.
+The E3.3.7 reliability API and Phase 3 E3A/E3B integration boundaries are
+validated. Final E3.3.7 freeze remains pending the three-node E3C validation.
 
 ---
 
@@ -519,7 +520,27 @@ or placeholders exist.
 
 **E3.3.1–E3.3.6 — VALIDATED**
 
-**E3.3.7 Reliability Layer — APPROVED DRAFT / NOT IMPLEMENTED**
+**E3.3.7 Reliability Layer — IMPLEMENTED; E3A self-test VALIDATED; E3B two-node hardware VALIDATED; E3C three-node validation PENDING**
 
-The project is currently at the documentation and architecture checkpoint
-between E3.3.6 validation and E3.3.7 implementation.
+The project is currently validating the complete reliability transaction over the
+existing three-node A -> B -> C routing topology. Route failure/repair remains a
+subsequent routing-resilience phase.
+
+
+## Documentation structure
+
+The `docs/` directory is organized by subject:
+
+```text
+docs/
+├── 00_project/       Current roadmap and implementation status
+├── 01_architecture/  Core architecture, API and freeze rules
+├── 02_protocol/     Wire protocol and duplicate suppression
+├── 03_routing/      Routing architecture and routing protocol
+├── 04_reliability/  Reliability specification and contracts
+├── 05_validation/   E3.3.7 implementation and hardware validation records
+├── 99_historical/   Historical reviews and snapshots
+└── INDEX.md         Documentation map
+```
+
+Historical documents are intentionally preserved and are not used as the current project-status source. Current status is maintained in `docs/00_project/E3.3.7_IMPLEMENTATION_STATUS.md` and `docs/00_project/ROADMAP.md`.

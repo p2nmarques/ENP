@@ -5,7 +5,7 @@
 **Version:** v0.2-r5  
 **Target:** ESP-IDF 6.0.2  
 **Milestone:** E3.3.7  
-**Status:** Implementation baseline; Phase 1/2 hardware validated; Phase 3 routing integration pending
+**Status:** Implementation baseline; Phase 1/2 hardware validated; Phase 3 E3A/E3B/E3C integration validated and frozen
 
 ---
 
@@ -22,7 +22,7 @@ The reliability layer provides:
 - retry accounting;
 - delivery success/failure reporting.
 
-E3.3.7 does not replace the existing routing, transport, wire-format, or duplicate-suppression mechanisms. The implementation is being integrated incrementally: Phase 1/2 are validated and Phase 3 routing integration is the current step.
+E3.3.7 does not replace the existing routing, transport, wire-format, or duplicate-suppression mechanisms. The implementation is being integrated incrementally: Phase 1/2 are validated and the Phase 3 E3A/E3B/E3C routing integration has been hardware validated and frozen.
 
 The E3.3.6 hardware test remains the empirical baseline for retransmission, duplicate DATA suppression and ACK recovery.
 

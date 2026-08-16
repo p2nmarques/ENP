@@ -15,7 +15,7 @@ The architecture is intentionally layered so that protocol services do not depen
 | Application                                          |
 +------------------------------------------------------+
 | ENP Services                                         |
-| Discovery | Routing / Forwarding | E3 Data Plane    |
+| Discovery | Routing / Forwarding | E3 Data Plane     |
 +------------------------------------------------------+
 | ENP Core                                             |
 | Context | Dispatcher | Network | Neighbor | Protocol |

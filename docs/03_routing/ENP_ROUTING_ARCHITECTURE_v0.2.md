@@ -491,7 +491,7 @@ requiring redesign of the route table or forwarding architecture.
             ┌───►│    VALID    │◄───┐
             │    └──────┬──────┘    │
             │           │           │
-       repair│      next-hop        │refresh
+      repair│       next-hop        │refresh
             │       failure         │
             │           ▼           │
             │    ┌─────────────┐    │

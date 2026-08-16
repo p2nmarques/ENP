@@ -192,7 +192,7 @@ R4-B / R4-C / R4-D
  Transport abstraction
         |
         v
- ESP-NOW
+     ESP-NOW
 ```
 
 This makes replacement of ESP-NOW possible without changing routing.
