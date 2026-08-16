@@ -1,0 +1,147 @@
+/*
+ * enp_routing_data_path.c
+ *
+ *  Created on: Aug 16, 2026
+ *      Author: Pedro Marques
+ *
+ *
+ * ENP v0.2 — E3.3.7 Phase 3 / E1 routing data-path integration.
+ * ESP-IDF 6.0.2 compatible.
+ */
+ 
+ #include "enp_routing_data_path.h"
+
+ #include "core/protocol/enp_packet.h"
+
+ static bool lookup_active_route(
+         const enp_routing_data_path_t *path,
+         const enp_address_t *destination,
+         enp_route_entry_t *entry)
+ {
+     if (path == NULL || path->routes == NULL || destination == NULL || entry == NULL) {
+         return false;
+     }
+
+     const enp_route_entry_t *found = enp_route_table_lookup_const(
+             path->routes,
+             (enp_route_destination_t){
+                 .network_id = destination->network,
+                 .node_id = destination->node
+             });
+
+     if (found == NULL || found->state != ENP_ROUTE_STATE_ACTIVE) {
+         return false;
+     }
+
+     *entry = *found;
+     return true;
+ }
+
+ static esp_err_t transmit_to_next_hop(
+         const enp_routing_data_path_t *path,
+         const enp_route_entry_t *route,
+         const enp_packet_t *packet)
+ {
+     if (path == NULL || route == NULL || packet == NULL ||
+         path->transport == NULL || path->resolve_transport == NULL) {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     enp_transport_address_t transport_address = {0};
+     if (!path->resolve_transport(
+             path->resolve_context,
+             route->next_hop,
+             &transport_address)) {
+         return ESP_ERR_NOT_FOUND;
+     }
+
+     return enp_transport_send(
+             path->transport,
+             &transport_address,
+             enp_packet_data_const(packet),
+             enp_packet_length(packet));
+ }
+
+ bool enp_routing_data_path_init(
+         enp_routing_data_path_t *path,
+         enp_route_table_t *routes,
+         enp_transport_t *transport,
+         enp_routing_resolve_transport_fn resolve_transport,
+         void *resolve_context)
+ {
+     if (path == NULL || routes == NULL || transport == NULL ||
+         transport->send == NULL || resolve_transport == NULL) {
+         return false;
+     }
+
+     path->routes = routes;
+     path->transport = transport;
+     path->resolve_transport = resolve_transport;
+     path->resolve_context = resolve_context;
+     return true;
+ }
+
+ esp_err_t enp_routing_data_path_submit(
+         enp_routing_data_path_t *path,
+         const enp_packet_t *packet)
+ {
+     if (path == NULL || packet == NULL) {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     const enp_header_t *header = enp_packet_header_const(packet);
+     if (header == NULL || !enp_packet_verify(packet)) {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     enp_route_entry_t route;
+     if (!lookup_active_route(path, &header->destination, &route)) {
+         return ESP_ERR_NOT_FOUND;
+     }
+
+     return transmit_to_next_hop(path, &route, packet);
+ }
+
+ esp_err_t enp_routing_data_path_forward(
+         enp_routing_data_path_t *path,
+         const enp_packet_t *packet)
+ {
+     if (path == NULL || packet == NULL) {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     const enp_header_t *header = enp_packet_header_const(packet);
+     if (header == NULL || !enp_packet_verify(packet)) {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     if (header->ttl <= 1U) {
+         return ESP_ERR_INVALID_STATE;
+     }
+
+     enp_route_entry_t route;
+     if (!lookup_active_route(path, &header->destination, &route)) {
+         return ESP_ERR_NOT_FOUND;
+     }
+
+     enp_packet_t forwarded = *packet;
+     enp_header_t *forwarded_header = enp_packet_header(&forwarded);
+     if (forwarded_header == NULL) {
+         return ESP_ERR_INVALID_STATE;
+     }
+
+     --forwarded_header->ttl;
+
+     const esp_err_t seal_err = enp_packet_seal(
+             &forwarded,
+             forwarded_header->payload_length);
+     if (seal_err != ESP_OK) {
+         return seal_err;
+     }
+
+     return transmit_to_next_hop(path, &route, &forwarded);
+ }
+
+
+
+
