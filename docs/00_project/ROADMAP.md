@@ -186,11 +186,14 @@ Freeze
 - [x] Separate DATA and ACK duplicate caches.
 - [x] Route non-local DATA/ACK through existing routing data path.
 - [x] Preserve existing dispatcher compatibility.
-- [ ] Validate P4.1 hardware-independent self-test.
+- [X] Validate P4/E1 hardware-independent self-test and freeze.
 
-### P4.2 Reliability Runtime Integration
-- [ ] Integrate reliability periodic servicing into ENP runtime maintenance.
+### P4/E2 Reliability Runtime Integration
+- [X] Integrate reliability periodic servicing into the existing static ENP maintenance task.
+- [X] Verify exactly one maintenance-driven retransmission and retry count.
+- [X] Verify correlated ACK completion and `DELIVERED` state.
+- [X] Freeze P4/E2.
 
-### P4.3 E3C Consolidation
+### P4/E3 E3C Consolidation
 - [ ] Remove test-specific DATA/ACK forwarding from E3C.
 - [ ] Revalidate three-node reliability using reusable ENP infrastructure.

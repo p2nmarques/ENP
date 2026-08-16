@@ -11,6 +11,7 @@
 #include "config/enp_defaults.h"
 #include "core/network/enp_neighbor.h"
 #include "core/service/discovery/enp_service_discovery.h"
+#include "core/reliability/enp_reliability.h"
 
 #include "esp_log.h"
 
@@ -59,6 +60,12 @@ static void enp_maintenance_task(
 
         const uint32_t now_ms =
                 enp_context_time_ms(context);
+
+        /*
+         * Reliability is transport/routing independent. The maintenance
+         * task owns the periodic invocation of its time-based state machine.
+         */
+        enp_reliability_tick(now_ms);
 
         const size_t expired =
                 enp_neighbor_expire(

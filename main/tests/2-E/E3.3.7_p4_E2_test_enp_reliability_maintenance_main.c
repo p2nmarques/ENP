@@ -320,8 +320,14 @@
      vTaskDelay(pdMS_TO_TICKS(2200U));
 
      pass &= expect(
-             s_reliability_submit_count == 1U,
+             s_reliability_submit_count == 2U,
              "maintenance task caused exactly one reliability retransmission");
+
+     uint8_t retry_count = 0U;
+     pass &= expect(
+             enp_reliability_get_retry_count(handle, &retry_count) &&
+             retry_count == 1U,
+             "reliability transaction recorded exactly one retry");
 
      pass &= expect(
              memcmp(
