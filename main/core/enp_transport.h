@@ -78,6 +78,25 @@ typedef void (*enp_transport_receive_callback_t)(
 	const enp_transport_address_t *source, const void *data, size_t length);
 
 /*----------------------------------------------------------
+ * Send Result Callback
+ *---------------------------------------------------------*/
+
+/**
+ * @brief Transport send-result callback.
+ *
+ * The callback reports the asynchronous result of a transport transmission
+ * attempt. The transport-specific result is translated to an ENP esp_err_t.
+ *
+ * @param destination Destination transport address associated with the send.
+ * @param result ESP_OK for successful asynchronous delivery, non-ESP_OK for
+ *               asynchronous delivery failure.
+ * @param context Callback context supplied during registration.
+ */
+typedef void (*enp_transport_send_result_callback_t)(
+	const enp_transport_address_t *destination, esp_err_t result,
+	void *context);
+
+/*----------------------------------------------------------
  * Transport Interface
  *---------------------------------------------------------*/
 
@@ -112,6 +131,12 @@ typedef struct {
 	 */
 	esp_err_t (*set_receive_callback)(
 		enp_transport_receive_callback_t callback);
+
+	/**
+	 * Register the transport send-result callback.
+	 */
+	esp_err_t (*set_send_result_callback)(
+		enp_transport_send_result_callback_t callback, void *context);
 
 } enp_transport_t;
 
@@ -176,6 +201,21 @@ esp_err_t enp_transport_send(enp_transport_t *transport,
 esp_err_t
 enp_transport_set_receive_callback(enp_transport_t *transport,
 								   enp_transport_receive_callback_t callback);
+
+/**
+ * @brief Register a transport send-result callback.
+ *
+ * @param transport Transport interface.
+ * @param callback Send-result callback.
+ * @param context Callback context passed to the callback.
+ *
+ * @return ESP_OK on success.
+ * @return ESP_ERR_INVALID_ARG for invalid arguments.
+ * @return Transport-specific error otherwise.
+ */
+esp_err_t enp_transport_set_send_result_callback(
+	enp_transport_t *transport, enp_transport_send_result_callback_t callback,
+	void *context);
 
 #ifdef __cplusplus
 }

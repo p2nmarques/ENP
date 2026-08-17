@@ -18,9 +18,10 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 - E3A self-test and E3B two-node ESP-NOW reliability integration validated;
 - E3C three-node reliability validation is hardware validated and frozen;
 - Phase 4 P4-E1 reusable data plane, P4-E2 reliability maintenance, P4-E3 E3C consolidation,
-  P4-E4A local dispatch, P4-E4B production receive path and P4-E4C production runtime wiring
+  P4-E4A local dispatch, P4-E4B production receive path and P4-E4C production runtime wiring are validated and frozen.
   P4-E4D production runtime hardware validation — HARDWARE VALIDATED / FROZEN
-  are validated and frozen.
+  P4-E5A next-hop failure detection and propagation — VALIDATED / FROZEN
+  
 
 ---
 
@@ -63,6 +64,7 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E4A dispatcher local dispatch | 🔒 Frozen / validated |
 | P4-E4B production receive path | 🔒 Frozen / validated |
 | P4-E4C production runtime wiring | 🔒 Frozen / HARDWARE VALIDATED |
+| P4-E5A next-hop failure detection | 🔒 Frozen / validated |
 
 ### Status interpretation
 
@@ -156,11 +158,16 @@ E3C then validated the complete reliability transaction over the three-node
 A → B → C routing topology, including retransmission, duplicate DATA
 suppression and cached-ACK recovery.
 
+### P4-E5A validation evidence
+
+Controlled validation evidence is recorded in `docs/05_validation/E3.3.7_PHASE4_P4-E5A_VALIDATION_RECORD.md`. P4-E5A is VALIDATED / FROZEN and is not yet HARDWARE VALIDATED.
+
 ### Phase 4 validation boundary
 
 Phase 4 P4-E1 through P4-E4D consolidated the corresponding reusable ENP core
 components and production-runtime boundaries. P4-E4C and P4-E4D are hardware
-validated; the earlier Phase 4 stages remain validated/frozen based on their
+validated; P4-E5A is validated/frozen by controlled self-test. The earlier
+Phase 4 stages remain validated/frozen based on their
 defined test evidence:
 
 ```text
@@ -244,7 +251,8 @@ P4-E3   E3C consolidation                       VALIDATED / FROZEN
 P4-E4A  Dispatcher local dispatch               VALIDATED / FROZEN
 P4-E4B  Production receive path                 VALIDATED / FROZEN
 P4-E4C  Production runtime wiring               HARDWARE VALIDATED / FROZEN
-P4-E4D  Production runtime hardware validation    HARDWARE VALIDATED / FROZEN
+P4-E4D  Production runtime hardware validation  HARDWARE VALIDATED / FROZEN
+P4-E5A  Next-hop failure detection/propagation  VALIDATED / FROZEN
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are

@@ -149,11 +149,12 @@ Architectural rule established for E3: reliability owns the transaction and pack
 ### Phase 4 validation status
 
 ```text
-P4/E1 Reusable Data Plane          PASS / FROZEN
-P4/E2 Reliability Maintenance      PASS / FROZEN
-P4/E3 E3C Consolidation            PASS / FROZEN
-P4-E4A Dispatcher Local Dispatch   PASS / FROZEN
-P4-E4B Production Receive Path     PASS / FROZEN
+P4/E1 Reusable Data Plane            PASS / FROZEN
+P4/E2 Reliability Maintenance        PASS / FROZEN
+P4/E3 E3C Consolidation              PASS / FROZEN
+P4-E4A Dispatcher Local Dispatch     PASS / FROZEN
+P4-E4B Production Receive Path       PASS / FROZEN
+P4-E5A Next-Hop Failure Observation  PASS / FROZEN
 ```
 
 P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
@@ -256,3 +257,15 @@ validated by the P4-E4D real-ESP32 / real-ESP-NOW validation.
 - [X] Freeze P4-E4D.
 
 **HARDWARE VALIDATED / FROZEN** — 2026-08-17.
+
+
+### P4-E5A — Next-Hop Failure Detection and Propagation
+
+**VALIDATED / FROZEN** — 2026-08-17.
+
+The transport send-result observation boundary is implemented and validated
+through the controlled P4-E5A self-test. Real ESP-NOW failure observation is
+not yet hardware validated.
+
+Next work is real ESP-NOW failure observation followed by the separately
+reviewed routing failure/repair integration boundaries.

@@ -48,3 +48,13 @@ enp_transport_set_receive_callback(enp_transport_t *transport,
 
 	return transport->set_receive_callback(callback);
 }
+esp_err_t enp_transport_set_send_result_callback(
+	enp_transport_t *transport, enp_transport_send_result_callback_t callback,
+	void *context) {
+	if ((transport == NULL) || (transport->set_send_result_callback == NULL) ||
+		(callback == NULL)) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	return transport->set_send_result_callback(callback, context);
+}

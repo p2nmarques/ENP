@@ -3,8 +3,8 @@
 
 idf_component_register(
     SRCS
-    	"main.c"
-    	#"tests/2-E/E3/E3.3/E3.3.7_p4_E4D_test_enp_production_runtime_hardware_main.c"
+    	#"main.c"
+    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5A_test_enp_next_hop_failure_detection_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
