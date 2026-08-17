@@ -240,6 +240,26 @@ static enp_duplicate_cache_t s_duplicate_cache;
  }
 
  /*----------------------------------------------------------
+  * Packet Dispatch Helpers
+  *---------------------------------------------------------*/
+
+ static const enp_service_t *enp_dispatcher_find_service(
+         enp_packet_type_t packet_type)
+ {
+     for (size_t index = 0U;
+          index < s_service_count;
+          ++index)
+     {
+         if (s_services[index]->packet_type == packet_type)
+         {
+             return s_services[index];
+         }
+     }
+
+     return NULL;
+ }
+
+ /*----------------------------------------------------------
   * Packet Dispatch
   *---------------------------------------------------------*/
 
@@ -329,27 +349,83 @@ static enp_duplicate_cache_t s_duplicate_cache;
       /*
        * Locate the service responsible for the packet type.
        */
-      for (size_t index = 0U;
-           index < s_service_count;
-           ++index)
-      {
-          const enp_service_t *service =
-                  s_services[index];
+      const enp_service_t *service =
+              enp_dispatcher_find_service(
+                      (enp_packet_type_t)header->type);
 
-          if (service->packet_type ==
-              (enp_packet_type_t)header->type)
-          {
-              return service->process(
-                      s_context,
-                      packet,
-                      source);
-          }
+      if (service == NULL)
+      {
+          ESP_LOGW(
+                  TAG,
+                  "No service registered for packet type %u",
+                  (unsigned)header->type);
+
+          return ESP_ERR_NOT_FOUND;
       }
 
-      ESP_LOGW(
-              TAG,
-              "No service registered for packet type %u",
-              (unsigned)header->type);
-
-      return ESP_ERR_NOT_FOUND;
+      return service->process(
+              s_context,
+              packet,
+              source);
   }
+
+ /*----------------------------------------------------------
+  * Local Packet Dispatch
+  *---------------------------------------------------------*/
+
+ esp_err_t enp_dispatcher_dispatch_local(
+         const enp_packet_t *packet,
+         const enp_transport_address_t *source)
+ {
+     if ((packet == NULL) ||
+         (source == NULL))
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     if (!s_initialized)
+     {
+         return ESP_ERR_INVALID_STATE;
+     }
+
+     /*
+      * The data plane owns DATA/ACK duplicate domains before calling
+      * this boundary. The dispatcher therefore validates the packet
+      * and dispatches it without touching s_duplicate_cache.
+      */
+     if (!enp_packet_verify(packet))
+     {
+         ESP_LOGW(
+                 TAG,
+                 "Rejected invalid local ENP packet");
+
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     const enp_header_t *header =
+             enp_packet_header_const(packet);
+
+     if (header == NULL)
+     {
+         return ESP_ERR_INVALID_ARG;
+     }
+
+     const enp_service_t *service =
+             enp_dispatcher_find_service(
+                     (enp_packet_type_t)header->type);
+
+     if (service == NULL)
+     {
+         ESP_LOGW(
+                 TAG,
+                 "No local service registered for packet type %u",
+                 (unsigned)header->type);
+
+         return ESP_ERR_NOT_FOUND;
+     }
+
+     return service->process(
+             s_context,
+             packet,
+             source);
+ }

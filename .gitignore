@@ -42,6 +42,7 @@
 build/
 Build/
 build-*/
+.settings/
 
 # CMake generated files
 CMakeFiles/

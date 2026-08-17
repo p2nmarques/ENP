@@ -113,6 +113,27 @@
           const enp_packet_t *packet,
           const enp_transport_address_t *source);
 
+  /**
+   * @brief Dispatch a validated local ENP packet to its registered service.
+   *
+   * This entry point is intended for packets that have already been
+   * classified and duplicate-suppressed by a higher-level ENP data plane.
+   * It validates the packet and invokes the registered service without
+   * applying the dispatcher's generic duplicate cache a second time.
+   *
+   * @param packet Complete ENP packet addressed to the local node.
+   * @param source Transport address from which the packet was received.
+   *
+   * @return ESP_OK if the registered service processed the packet.
+   * @return ESP_ERR_INVALID_ARG if arguments or the packet are invalid.
+   * @return ESP_ERR_INVALID_STATE if the dispatcher is not initialized.
+   * @return ESP_ERR_NOT_FOUND if no service handles the packet.
+   * @return Service-specific error otherwise.
+   */
+  esp_err_t enp_dispatcher_dispatch_local(
+          const enp_packet_t *packet,
+          const enp_transport_address_t *source);
+
  #ifdef __cplusplus
  }
  #endif
