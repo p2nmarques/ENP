@@ -343,26 +343,47 @@ recovery behavior.
 
 ## 14. Current architecture boundary
 
-The current architecture separates:
+The current validated runtime architecture separates the ENP core,
+routing/forwarding, reusable DATA/ACK data plane, reliability maintenance,
+dispatcher local delivery, and the production receive-path boundary:
 
 ```text
-ENP Core
-   ↓
-Routing / Forwarding
-   ↓
-DATA / ACK data plane
-   ↓
-[ E3.3.7 Reliability — IMPLEMENTED THROUGH PHASE 2; PHASE 3 INTEGRATION IN PROGRESS ]
+Transport RX
+    |
+    v
+ENP Production Receive Path
+    |
+    +-- DATA / ACK ----------------------+
+    |                                    |
+    |                                    v
+    |                             ENP Data Plane
+    |                                    |
+    |                         +----------+----------+
+    |                         |                     |
+    |                       local                 remote
+    |                         |                     |
+    |                         v                     v
+    |                  Dispatcher Local       Routing Data Path
+    |                     Dispatch                  |
+    |                                               v
+    |                                            Transport
+    |
+    +-- Other packets --> Normal Dispatcher --> Generic Duplicate Cache --> Service
 ```
 
-The reliability layer is intentionally not yet part of the frozen runtime
-architecture.
+E3A/E3B/E3C validated the reliability-to-routing and real ESP-NOW integration,
+including the three-node A -> B -> C reliability transaction. Phase 4 then
+consolidated that validated behavior into the reusable data plane, reliability
+maintenance, local-dispatch boundary, and production receive path. These
+validated stages are frozen.
 
 ---
 
 ## 15. Future architecture
 
-The current architectural extension is the E3.3.7 reliability layer. Phase 1/2 are validated; Phase 3 connects reliability to the validated routing DATA path:
+The current architecture is validated through P4-E4B. Future work extends
+routing resilience and other capabilities without changing the frozen
+interfaces unless a new contract is explicitly approved and validated.
 
 ```text
 Application

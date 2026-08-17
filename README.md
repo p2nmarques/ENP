@@ -16,7 +16,9 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 - v0.2 foundation frozen;
 - E1/E2 validated and frozen;
 - E3A self-test and E3B two-node ESP-NOW reliability integration validated;
-- E3C three-node reliability validation is hardware validated and frozen.
+- E3C three-node reliability validation is hardware validated and frozen;
+- Phase 4 P4-E1 reusable data plane, P4-E2 reliability maintenance, P4-E3 E3C consolidation,
+  P4-E4A local dispatch and P4-E4B production receive path are validated and frozen.
 
 Status terminology used in this repository:
 
@@ -55,6 +57,8 @@ Status terminology used in this repository:
 
 ### Receive path
 
+The validated production receive path is:
+
 ```text
 ESP-NOW RX
     │
@@ -62,23 +66,28 @@ ESP-NOW RX
 Transport receive path
     │
     ▼
-ENP packet validation
+ENP production receive path
     │
-    ▼
-Duplicate detection
+    ├── DATA / ACK ──► ENP Data Plane
+    │                    │
+    │                    ├── local ──► Dispatcher Local Dispatch ──► Service
+    │                    │
+    │                    └── remote ─► Routing Data Path ──► Transport
     │
-    ├── DUPLICATE ──► DROP
-    │
-    └── NEW
-         │
-         ▼
-      Dispatcher
-         │
-         ▼
-       Service
+    └── Other packets ─► Normal Dispatcher
+                         │
+                         ▼
+                    Generic Duplicate Cache
+                         │
+                         ▼
+                       Service
 ```
 
-The duplicate check occurs before service dispatch.
+DATA and ACK duplicate suppression belongs to the reusable data plane.
+Packets that remain on the normal dispatcher path use the dispatcher-owned
+generic duplicate cache. Local DATA/ACK delivery uses
+`enp_dispatcher_dispatch_local()` so the generic dispatcher duplicate cache
+is not applied a second time.
 
 ---
 
@@ -477,11 +486,12 @@ E3.3.3  DATA + ACK multi-hop path               VALIDATED
 E3.3.4  DATA duplicate suppression              VALIDATED
 E3.3.5  ACK duplicate suppression               VALIDATED
 E3.3.6  DATA retransmission / ACK recovery      VALIDATED
-E3.3.7  Reliability layer + Phase 3            E3A VALIDATED / E3B VALIDATED / E3C PENDING
+E3.3.7  Reliability layer + Phase 3             VALIDATED
 ```
 
-The E3.3.7 reliability API and Phase 3 E3A/E3B integration boundaries are
-validated. Final E3.3.7 freeze remains pending the three-node E3C validation.
+The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are
+validated and frozen. The validated behavior has subsequently been consolidated
+through P4/E1, P4/E2, P4/E3, P4-E4A and P4-E4B.
 
 ---
 
@@ -520,11 +530,20 @@ or placeholders exist.
 
 **E3.3.1–E3.3.6 — VALIDATED**
 
-**E3.3.7 Reliability Layer — IMPLEMENTED; E3A self-test VALIDATED; E3B two-node hardware VALIDATED; E3C three-node validation PENDING**
+**E3.3.7 Reliability Layer — IMPLEMENTED / FROZEN THROUGH VALIDATED PHASE 3 AND PHASE 4 INTEGRATION**
+- E3A self-test VALIDATED
+- E3B two-node hardware VALIDATED
+- E3C three-node validation PASS / FROZEN
+- P4/E1 reusable data plane PASS / FROZEN
+- P4/E2 reliability maintenance PASS / FROZEN
+- P4/E3 E3C consolidation PASS / FROZEN
+- P4-E4A dispatcher local dispatch PASS / FROZEN
+- P4-E4B production receive path PASS / FROZEN
 
-The project is currently validating the complete reliability transaction over the
-existing three-node A -> B -> C routing topology. Route failure/repair remains a
-subsequent routing-resilience phase.
+The project has validated the complete reliability transaction over the existing
+three-node A -> B -> C routing topology and has consolidated the validated DATA/ACK
+receive behavior into the production ENP receive path. Route failure/repair remains
+a subsequent routing-resilience phase.
 
 
 ## Documentation structure

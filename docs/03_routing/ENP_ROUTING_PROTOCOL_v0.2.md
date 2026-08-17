@@ -1,6 +1,6 @@
 # ENP Routing Protocol Specification v0.2
 
-**Status:** Proposed protocol contract; core routing behavior validated through E3 integration tests; full protocol freeze remains pending documentation review
+**Status:** Core routing behavior validated through E3/P4 integration tests; complete routing-control protocol contract remains under documentation review
 
 **Architecture:** ENP Hybrid Routing
 
@@ -832,8 +832,7 @@ specification:
 9. Route-table tie-breaking.
 10. Hardware test plan.
 
-No routing code should be treated as frozen until these points are resolved
-and the first Gateway/Sensor hardware tests pass.
+No new routing-control behavior covered by this protocol specification should be treated as frozen until the remaining routing-control contract points are resolved and the corresponding hardware validation passes. Existing E3/P4 routing data-path behavior has already been hardware validated and frozen.
 
 ---
 

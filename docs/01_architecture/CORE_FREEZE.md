@@ -208,7 +208,7 @@ The ESP-NOW transport installs the broadcast peer during initialization.
 
 ---
 
-## What is NOT frozen as a completed feature
+## Historical v0.2 foundation boundary — what was NOT frozen at the original foundation freeze
 
 The following are intentionally not implemented merely because APIs,
 enums, or placeholders exist:
@@ -237,15 +237,16 @@ core wire/API contract to validate higher-level behavior:
 - E3.3.5 ACK duplicate suppression
 - E3.3.6 DATA retransmission / ACK recovery test behavior
 
-These validations do **not** mean that the general-purpose reliability
-subsystem is frozen or implemented. E3.3.7 remains a separate proposed
-reliability architecture.
+The statements above describe the original v0.2 foundation boundary.
+Subsequent E3.3.7 and Phase 4 work implemented and validated the reliability
+and data-plane extensions. The current validated status is recorded in
+E3A/E3B/E3C and P4/E1–P4-E4B validation records.
 
 ## Historical boundary clarification
 
-The "not implemented" list below describes the original v0.2 foundation
-boundary. It should not be read as a statement that later E3 extension work
-does not exist.
+The "not implemented" list describes the original v0.2 foundation boundary.
+It is historical and must not be interpreted as the current implementation
+status of the later E3.3.7 and Phase 4 extensions.
 
 ## Freeze rule
 

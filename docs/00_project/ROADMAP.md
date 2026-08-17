@@ -152,6 +152,8 @@ Architectural rule established for E3: reliability owns the transaction and pack
 P4/E1 Reusable Data Plane          PASS / FROZEN
 P4/E2 Reliability Maintenance      PASS / FROZEN
 P4/E3 E3C Consolidation            PASS / FROZEN
+P4-E4A Dispatcher Local Dispatch   PASS / FROZEN
+P4-E4B Production Receive Path     PASS / FROZEN
 ```
 
 P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
@@ -169,6 +171,19 @@ requirement.
 - Mesh optimization
 
 ---
+
+### P4-E4A Dispatcher Local Dispatch
+- [X] Validate local data-plane dispatch boundary.
+- [X] Verify local DATA/ACK bypass the generic dispatcher duplicate cache.
+- [X] Verify normal dispatcher duplicate suppression remains unchanged.
+- [X] Freeze P4-E4A.
+
+### P4-E4B Production Receive-Path Integration
+- [X] Integrate DATA/ACK routing into the reusable production receive path.
+- [X] Keep non-DATA/ACK traffic on the normal dispatcher path.
+- [X] Validate local DATA/ACK delivery and duplicate-domain ownership.
+- [X] Validate non-local DATA forwarding through the routing data path.
+- [X] Freeze P4-E4B.
 
 ## Development rule
 

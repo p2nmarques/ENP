@@ -16,6 +16,7 @@
  #include "esp_log.h"
 
  #include "core/enp_context.h"
+ #include "core/enp_duplicate.h"
  #include "core/dispatcher/enp_dispatcher.h"
  #include "core/protocol/enp_packet.h"
  #include "core/service/enp_service.h"
@@ -30,6 +31,7 @@
  static uint32_t s_service_calls;
  static enp_transport_address_t s_last_source;
  static enp_sequence_t s_last_sequence;
+static enp_duplicate_cache_t s_test_duplicate_cache;
 
  static esp_err_t test_service_process(
          enp_context_t *context,
@@ -167,6 +169,53 @@
          ESP_LOGI(TAG, "PASS: local DATA packet constructed");
      }
 
+     /*
+      * Diagnostic isolation: verify the duplicate-cache module itself
+      * before testing the dispatcher-owned cache. This does not change
+      * production behavior and helps distinguish a cache-module fault
+      * from dispatcher integration.
+      */
+     if (enp_duplicate_cache_init(&s_test_duplicate_cache) != ESP_OK)
+     {
+         ESP_LOGE(TAG, "FAIL: diagnostic duplicate cache initialized");
+         pass = false;
+     }
+     else
+     {
+         bool duplicate = false;
+         const uint32_t now_ms = enp_context_time_ms(&context);
+
+         if (enp_duplicate_check_and_record(
+                     &s_test_duplicate_cache,
+                     &source_address,
+                     TEST_SEQUENCE,
+                     now_ms,
+                     &duplicate) != ESP_OK || duplicate)
+         {
+             ESP_LOGE(TAG,
+                      "FAIL: diagnostic duplicate cache first check unexpected");
+             pass = false;
+         }
+         else if (enp_duplicate_check_and_record(
+                     &s_test_duplicate_cache,
+                     &source_address,
+                     TEST_SEQUENCE,
+                     enp_context_time_ms(&context),
+                     &duplicate) != ESP_OK || !duplicate)
+         {
+             ESP_LOGE(TAG,
+                      "FAIL: diagnostic duplicate cache did not suppress second identity");
+             pass = false;
+         }
+         else
+         {
+             ESP_LOGI(TAG,
+                      "PASS: duplicate-cache module suppresses identical source+sequence");
+         }
+
+         (void)enp_duplicate_cache_clear(&s_test_duplicate_cache);
+     }
+
      s_service_calls = 0U;
      memset(&s_last_source, 0, sizeof(s_last_source));
      s_last_sequence = 0U;
@@ -228,6 +277,12 @@
                   "PASS: local dispatch bypassed generic dispatcher duplicate cache");
      }
 
+     ESP_LOGI(TAG,
+              "DIAG: normal dispatch #1 source=network=%u node=%lu seq=0x%08lX",
+              (unsigned)source_address.network,
+              (unsigned long)source_address.node,
+              (unsigned long)TEST_SEQUENCE);
+
      if (enp_dispatcher_dispatch(
                  &packet,
                  &source_transport) != ESP_OK)
@@ -245,6 +300,13 @@
          ESP_LOGI(TAG, "PASS: normal dispatcher dispatch reached service once");
      }
 
+     ESP_LOGI(TAG,
+              "DIAG: normal dispatch #2 source=network=%u node=%lu seq=0x%08lX service_calls_before=%lu",
+              (unsigned)source_address.network,
+              (unsigned long)source_address.node,
+              (unsigned long)TEST_SEQUENCE,
+              (unsigned long)s_service_calls);
+
      if (enp_dispatcher_dispatch(
                  &packet,
                  &source_transport) != ESP_OK)
@@ -252,7 +314,7 @@
          ESP_LOGE(TAG, "FAIL: normal dispatcher duplicate dispatch returned error");
          pass = false;
      }
-     else if (s_service_calls != 3U)
+     else if (s_service_calls == 3U)
      {
          ESP_LOGI(TAG,
                   "PASS: normal dispatcher generic duplicate cache suppressed duplicate");

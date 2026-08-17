@@ -5,7 +5,7 @@
 **Status:** v0.2 wire/core baseline frozen; 
 			routing and E3 data-plane extensions validated separately;
 			E3.3.7 reliability core and dispatcher integration implemented and hardware-validated;
-			Routing integration remains in progress.
+			Routing and reliability integration have been validated through E3C and subsequently consolidated through Phase 4.
 
 ---
 
@@ -138,7 +138,7 @@ Flags may be combined.
 Reliable delivery is not implemented merely because `ACK_REQUIRED` exists.
 E3.3.1–E3.3.6 validate DATA/ACK wire and multi-hop behavior, duplicate
 suppression, and a retransmission/ACK-recovery test path. They do not by
-themselves define the complete E3.3.7 reliability subsystem; the E3.3.7 core and dispatcher integration are now implemented, while routing integration and final freeze remain pending.
+themselves define the complete E3.3.7 reliability subsystem; the E3.3.7 core, dispatcher integration, routing integration and Phase 3 E3A/E3B/E3C validation are implemented and frozen.
 
 ---
 
@@ -321,8 +321,7 @@ DATA retransmission / ACK recovery
 E3.3.6 is a hardware-validated test behavior. It is **not** the general
 reliability subsystem.
 
-The general reliability layer remains a proposed E3.3.7 feature and must
-provide:
+The validated E3.3.7 reliability layer provides:
 
 ```text
 ACK scheduling
@@ -339,7 +338,7 @@ E3.3.7 is specified separately in:
 docs/ENP_Reliability_Layer_Specification_E3.3.7.md
 ```
 
-It remains PROPOSED until implementation and hardware validation are complete.
+The E3.3.7 reliability layer is implemented and hardware validated through E3C; the validated Phase 3 integration is frozen.
 
 ---
 

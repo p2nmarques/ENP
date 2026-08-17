@@ -4,11 +4,12 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"tests/2-E/E3/E3.3/E3.3.7_p4_E4A_test_enp_dispatcher_local_dispatch_main.c"
+    	"tests/2-E/E3/E3.3/E3.3.7_p4_E4B_test_enp_production_receive_path_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
         "core/enp_maintenance.c"
+        "core/enp_receive_path.c"
         "core/enp_transport.c"
         "core/data/enp_data_plane.c"
         "core/dispatcher/enp_dispatcher.c"
