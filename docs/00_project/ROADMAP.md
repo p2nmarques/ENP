@@ -234,3 +234,8 @@ Freeze
 - [X] Validate exactly-once application delivery at the sensor.
 - [X] Validate final `DELIVERED` completion at the gateway.
 - [X] Freeze P4/E3.
+
+
+### P4-E4C — Production Runtime Wiring
+
+**PASS / FROZEN** — Production bootstrap composition boundary validated on ESP-IDF 6.0.2.

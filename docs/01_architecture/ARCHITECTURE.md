@@ -397,3 +397,8 @@ Transport
 
 Reliability must remain transport-independent and must not bypass the
 existing routing or transport abstraction.
+
+
+## Current production bootstrap boundary — P4-E4C
+
+P4-E4C validates the composition of the production runtime bootstrap. The production application composes the ENP context, dispatcher, discovery service, route table, routing data path, production receive path, and transport receive callback using the already validated interfaces. This is **PASS / FROZEN**.

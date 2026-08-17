@@ -18,433 +18,171 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 - E3A self-test and E3B two-node ESP-NOW reliability integration validated;
 - E3C three-node reliability validation is hardware validated and frozen;
 - Phase 4 P4-E1 reusable data plane, P4-E2 reliability maintenance, P4-E3 E3C consolidation,
-  P4-E4A local dispatch and P4-E4B production receive path are validated and frozen.
-
-Status terminology used in this repository:
-
-- 🔒 **FROZEN** — approved contract/baseline that should not be changed casually.
-- ✅ **VALIDATED** — implemented and validated, including hardware validation where applicable.
-- 🟡 **PROPOSED** — specified/approved design that is not yet frozen as an implementation.
-- 🚧 **IMPLEMENTING** — implementation work is active and not yet validated.
-- 📜 **HISTORICAL** — records a previous project state and should not be interpreted as the current state.
+  P4-E4A local dispatch, P4-E4B production receive path and P4-E4C production runtime wiring
+  are validated and frozen.
 
 ---
 
-## 1. v0.2 Architecture
+## 2. Frozen and Validated Features
 
-```text
-                         ENP v0.2 / E3
-                              │
-             ┌────────────────┴─────────────────┐
-             │                                  │
-          ENP Core                        ESP-NOW Transport
-             │                                  │
-    ┌────────┼─────────────┐                    │
-    │        │             │                    │
-  Packet  Dispatcher   Discovery/Neighbor       │
-    │        │             │                    │
-    │     Duplicate Cache  │                    │
-    │                      │                    │
-    └──────────── Routing / Forwarding ─────────┘
-                           │
-                           ▼
-                    E3 DATA / ACK
-                    data-plane tests
-                           │
-                           ▼
-                   E3.3.7 Reliability
-                      (IMPLEMENTED)
+ENP development distinguishes between **FROZEN** contracts, **VALIDATED**
+implementation, and **HARDWARE VALIDATED** behavior.
 
-### Receive path
-
-The validated production receive path is:
-
-```text
-ESP-NOW RX
-    │
-    ▼
-Transport receive path
-    │
-    ▼
-ENP production receive path
-    │
-    ├── DATA / ACK ──► ENP Data Plane
-    │                    │
-    │                    ├── local ──► Dispatcher Local Dispatch ──► Service
-    │                    │
-    │                    └── remote ─► Routing Data Path ──► Transport
-    │
-    └── Other packets ─► Normal Dispatcher
-                         │
-                         ▼
-                    Generic Duplicate Cache
-                         │
-                         ▼
-                       Service
-```
-
-DATA and ACK duplicate suppression belongs to the reusable data plane.
-Packets that remain on the normal dispatcher path use the dispatcher-owned
-generic duplicate cache. Local DATA/ACK delivery uses
-`enp_dispatcher_dispatch_local()` so the generic dispatcher duplicate cache
-is not applied a second time.
-
----
-
-## 2. Frozen and Hardware-Validated Features
-
-| Component | Status |
+| Component / Feature | Status |
 |---|---|
 | ENP core types | 🔒 Frozen |
 | Logical addressing | 🔒 Frozen |
 | Packet format | 🔒 Frozen |
 | CRC16 | 🔒 Frozen |
 | Transport abstraction | 🔒 Frozen |
+| Service contract | 🔒 Frozen |
+| Sequence-number identity | 🔒 Frozen |
 | ESP-NOW 2.0 transport | ✅ Hardware validated |
 | Static receive path | ✅ Hardware validated |
 | Dispatcher | ✅ Hardware validated |
-| Service contract | 🔒 Frozen |
 | Discovery | ✅ Hardware validated |
 | Neighbor table | ✅ Hardware validated |
 | Periodic Discovery | ✅ Hardware validated |
 | Neighbor aging | ✅ Hardware validated |
 | Neighbor stale/recovery | ✅ Hardware validated |
-| Sequence number | 🔒 Frozen |
 | Duplicate cache | ✅ Hardware validated |
 | Duplicate suppression | 🔒 Frozen / hardware validated |
+| DATA wire format / validation | ☑️ Validated |
+| DATA multi-hop forwarding | ☑️ Validated |
+| ACK multi-hop forwarding | ☑️ Validated |
+| DATA duplicate suppression in multi-hop path | ☑️ Validated |
+| ACK duplicate suppression | ☑️ Validated |
+| DATA retransmission / ACK recovery | ✅ Hardware validated |
+| E3A reliability → routing integration | ☑️ Validated |
+| E3B reliability → routing → ESP-NOW | ✅ Hardware validated |
+| E3C three-node reliability | ✅ Hardware validated |
+| P4-E1 reusable DATA/ACK data plane | 🔒 Frozen / validated |
+| P4-E2 reliability maintenance | 🔒 Frozen / validated |
+| P4-E3 E3C consolidation | 🔒 Frozen / validated |
+| P4-E4A dispatcher local dispatch | 🔒 Frozen / validated |
+| P4-E4B production receive path | 🔒 Frozen / validated |
+| P4-E4C production runtime wiring | 🔒 Frozen / validated |
 
----
+### Status interpretation
 
-## 3. ESP-NOW Transport
+- 🔒 **FROZEN** — approved contract or validated implementation baseline that
+  should not be changed casually.
+- ☑️ **VALIDATED** — implemented and validated through a controlled self-test
+  or integration test, but not necessarily a hardware-validation milestone.
+- ✅ **HARDWARE VALIDATED** — behavior demonstrated on real ESP32 hardware.
+- 🟡 **PROPOSED** — specified/approved design that is not yet frozen as an
+  implementation.
+- 🚧 **IMPLEMENTING** — implementation work is active and not yet validated.
+- 📜 **HISTORICAL** — records a previous project state and should not be
+  interpreted as the current state.
 
-The current implementation targets:
+The status table above is the authoritative current feature/status summary for
+this README. Validation records in `docs/05_validation/` provide the detailed
+evidence for individual milestones.
 
-```text
-ESP-IDF: 6.0.2
-ESP-NOW: 2.0
-```
+### Validation-level rule
 
-The transport provides the ENP link between nodes while keeping the
-higher-level protocol independent of the ESP-NOW API.
+For ENP, **VALIDATED** means that the defined behavior has been demonstrated
+through a controlled self-test or integration test. **HARDWARE VALIDATED** is a
+stricter status: the feature must run on the real target ESP32 hardware, use the
+real relevant hardware interface and production path, satisfy its acceptance
+criteria, produce observable evidence, and have a reproducible documented
+hardware test.
 
-The validated hardware configuration uses Wi-Fi station mode and keeps
-the ESP-NOW channel aligned with the connected Wi-Fi network.
+**FROZEN** is independent of the test level: it means the validated contract or
+implementation has been accepted as the project baseline. Therefore a feature
+may legitimately be **VALIDATED / FROZEN** without yet being **HARDWARE
+VALIDATED**.
 
-Broadcast Discovery is supported through the configured ESP-NOW broadcast
-peer.
+The complete criteria are defined in
+`docs/05_validation/HARDWARE_VALIDATION_AND_FREEZE_CRITERIA.md`.
 
----
 
-## 4. Logical Addressing
 
-ENP uses logical addresses rather than exposing transport MAC addresses
-to the higher protocol layers.
+## 3. Hardware Validation Summary
 
-A node is identified by:
+Hardware validation has been performed incrementally as ENP moved from the
+frozen v0.2 one-hop foundation into routing, multi-hop forwarding and
+reliability integration.
 
-```text
-Network ID
-Node ID
-```
+### v0.2 foundation hardware validation
 
-Node roles are represented independently of the transport address.
-
-Example validated configuration:
-
-```text
-Gateway:
-    Network = 1
-    Node    = 1
-    Role    = Gateway
-
-Sensor:
-    Network = 1
-    Node    = 2
-    Role    = Sensor
-```
-
----
-
-## 5. Packet Processing
-
-A received packet follows this sequence:
-
-```text
-Receive
-   ↓
-Frame validation
-   ↓
-CRC validation
-   ↓
-Duplicate detection
-   ↓
-Dispatcher
-   ↓
-Service
-```
-
-Invalid packets are rejected before they can reach a service or poison
-the duplicate cache.
-
----
-
-## 6. Discovery
-
-Discovery is the first ENP network service.
-
-A Discovery announcement communicates:
+The Gateway/Sensor hardware validation confirmed:
 
 ```text
-Network ID
-Node ID
-Node role
-Capabilities
+Gateway ↔ Sensor communication          ✅
+ESP-NOW transport                       ✅
+Packet reception                        ✅
+Discovery TX/RX                         ✅
+Bidirectional Discovery                 ✅
+Periodic Discovery                      ✅
+Neighbor table updates                  ✅
+Neighbor aging                          ✅
+STALE transition                        ✅
+STALE → ACTIVE recovery                 ✅
+Duplicate cache                         ✅
+Dispatcher duplicate suppression        ✅
+NEW → DUPLICATE → EXPIRED → NEW         ✅
+Normal Discovery after duplicate test   ✅
 ```
 
-Discovery is transported using ESP-NOW broadcast.
+The normal Gateway and Sensor firmware were subsequently flashed again and
+confirmed operational after removal of the temporary replay diagnostic.
 
-The receiving node updates its neighbor table.
+### E3 hardware validation
 
-Hardware validation confirmed bidirectional Discovery between:
+The E3 hardware validation extended the validated behavior beyond the original
+one-hop foundation:
 
 ```text
-Gateway ↔ Sensor
+Real ESP-NOW DATA transmission           ✅
+Reliability → routing integration        ✅
+Reliability → routing → ESP-NOW          ✅
+Two-node reliability transaction         ✅
+DATA retransmission                      ✅
+ACK generation and correlation           ✅
+ACK loss / recovery                      ✅
+Three-node A → B → C DATA path           ✅
+Three-node C → B → A ACK path            ✅
+Duplicate DATA suppression at B          ✅
+Cached-ACK recovery at B                 ✅
+Exactly-once application delivery        ✅
+Final reliability result = DELIVERED     ✅
 ```
 
----
+E3B validated the real ESP-NOW reliability integration between two nodes.
+E3C then validated the complete reliability transaction over the three-node
+A → B → C routing topology, including retransmission, duplicate DATA
+suppression and cached-ACK recovery.
 
-## 7. Periodic Discovery
+### Phase 4 validation boundary
 
-The ENP maintenance subsystem periodically sends Discovery announcements.
-
-Current validated interval:
+Phase 4 P4-E1 through P4-E4C subsequently consolidated and validated the
+corresponding reusable ENP core components and production-runtime boundaries:
 
 ```text
-Discovery interval = 2000 ms
+P4-E1  Reusable DATA/ACK data plane        ☑️ Validated / frozen
+P4-E2  Reliability maintenance             ☑️ Validated / frozen
+P4-E3  E3C consolidation                   ☑️ Validated / frozen
+P4-E4A Dispatcher local dispatch           ☑️ Validated / frozen
+P4-E4B Production receive path             ☑️ Validated / frozen
+P4-E4C Production runtime wiring           ☑️ Validated / frozen
 ```
 
-Periodic work is performed outside the ESP-NOW receive callback using
-statically allocated FreeRTOS resources.
+These Phase 4 stages are primarily controlled self-test and integration
+validation milestones. They should not be described as additional hardware
+validation milestones unless a dedicated hardware test has been performed.
 
-Hardware validation confirmed that periodic Discovery continues to
-refresh neighbors during normal operation.
+E3C is therefore the current three-node hardware-validation milestone; it is
+already **PASS / FROZEN**, not pending.
 
----
 
-## 8. Neighbor Management
-
-Neighbors are maintained using logical ENP addresses.
-
-Current validated stale policy:
-
-```text
-Neighbor stale threshold = 6000 ms
-```
-
-The neighbor lifecycle is:
-
-```text
-Discovery received
-       │
-       ▼
-    ACTIVE
-       │
-       │ no Discovery
-       ▼
-     STALE
-       │
-       │ Discovery resumes
-       ▼
-    ACTIVE
-```
-
-Hardware testing confirmed:
-
-- neighbor discovery;
-- periodic refresh;
-- transition to `STALE`;
-- recovery after Discovery resumes.
-
----
-
-## 9. Duplicate Suppression
-
-Duplicate suppression is part of the frozen v0.2 runtime.
-
-### Duplicate identity
-
-A packet is considered a duplicate using:
-
-```text
-Source Network ID
-       +
- Source Node ID
-       +
- Sequence Number
-```
-
-The ESP-NOW MAC address is **not** part of the duplicate identity.
-
-This is intentional because future multi-hop forwarding must preserve
-the identity of the originating ENP packet independently of the
-transport peer through which it arrives.
-
-### Cache policy
-
-```text
-Capacity = 32 entries
-Lifetime = 10000 ms
-Allocation = static
-Owner = Dispatcher
-```
-
-The dispatcher checks the duplicate cache after packet validation and
-before service dispatch.
-
-A duplicate is consumed and dropped:
-
-```text
-VALID PACKET
-    │
-    ▼
-Duplicate check
-    │
-    ├── duplicate ──► DROP
-    │
-    └── new ────────► SERVICE
-```
-
-### Hardware validation
-
-The same serialized Discovery frame was transmitted three times using:
-
-```text
-Sequence = 0x7E000001
-```
-
-Observed behavior:
-
-```text
-Frame #1
-    NEW
-    ↓
-Discovery service
-
-Frame #2
-    DUPLICATE
-    ↓
-Dispatcher DROP
-
-wait 11000 ms
-
-Frame #3
-    NEW
-    ↓
-Discovery service
-```
-
-The Sensor hardware log confirmed:
-
-```text
-enp_discovery: Neighbor discovered: network=1 node=1 ...
-enp_dispatcher: Dropped duplicate packet: network=1 node=1 seq=2113929217
-enp_discovery: Neighbor discovered: network=1 node=1 ...
-```
-
-`2113929217` is `0x7E000001`.
-
-The normal periodic Discovery traffic continued during the test.
-
-### Isolated duplicate-cache validation
-
-The duplicate-cache module was also independently tested for:
-
-- first packet / duplicate behavior;
-- different sequence numbers;
-- different sources;
-- expiration;
-- 32-bit millisecond clock wrap-around;
-- 32-entry capacity;
-- oldest-entry replacement;
-- cache clear.
-
-All tests passed.
-
----
-
-## 10. Sequence Number Boundary
-
-The ENP packet contains a 32-bit sequence number.
-
-For v0.2 it is frozen as a component of duplicate identity.
-
-However, **sequence-number ordering is not yet defined**.
-
-In particular, routing has not yet established a serial-number comparison
-rule for values crossing:
-
-```text
-0xFFFFFFFF → 0x00000000
-```
-
-That decision belongs to the routing architecture specification and is
-therefore deliberately outside the frozen v0.2 duplicate-suppression
-contract.
-
----
-
-## 11. Static Resource Policy
-
-The current ENP implementation follows a static-resource policy for
-core runtime paths.
-
-The project uses:
-
-```text
-Static FreeRTOS queues
-Static FreeRTOS tasks
-Fixed-size protocol buffers/tables
-Bounded neighbor table
-Bounded duplicate cache
-```
-
-This is intended to make memory ownership and runtime behavior
-predictable on embedded nodes.
-
----
-
-## 12. Hardware Validation Summary
-
-The v0.2 Gateway/Sensor hardware validation has confirmed:
-
-```text
-Gateway ↔ Sensor communication               ✅
-ESP-NOW transport                            ✅
-Packet reception                             ✅
-Discovery TX/RX                              ✅
-Bidirectional Discovery                      ✅
-Periodic Discovery                           ✅
-Neighbor table updates                       ✅
-Neighbor aging                               ✅
-STALE transition                             ✅
-STALE → ACTIVE recovery                      ✅
-Duplicate cache                              ✅
-Dispatcher duplicate suppression             ✅
-NEW → DUPLICATE → EXPIRED → NEW              ✅
-Normal Discovery after duplicate testing     ✅
-```
-
-The normal Gateway and Sensor firmware were subsequently flashed again
-and confirmed operational after removal of the temporary replay
-diagnostic.
-
----
-
-## 13. Current Project Scope
+## 4. Current Project Scope
 
 The original v0.2 one-hop foundation remains frozen.
 
-The following higher-level capabilities have subsequently been implemented and hardware-validated through the E3 test series:
+The following higher-level capabilities have subsequently been implemented
+and validated through the E3 test series:
 
 ```text
 Route discovery
@@ -455,29 +193,38 @@ DATA multi-hop delivery
 ACK multi-hop delivery
 DATA duplicate suppression
 ACK duplicate suppression
-DATA retransmission / ACK recovery test behavior
+DATA retransmission / ACK recovery
 ```
 
-The E3.3.7 reliability subsystem is now implemented with static transaction storage,
+The E3.3.7 reliability subsystem is implemented with static transaction storage,
 ACK correlation, timeout/retry processing, result reporting and a
-transport/routing-independent submit callback. E3A and E3B have validated its
-integration boundary. E3C is the current three-node validation stage.
+transport/routing-independent submit callback.
+
+E3A and E3B validated its integration boundaries, while E3C hardware validation
+validated the complete reliability transaction over the three-node topology.
+
+Phase 4 subsequently consolidated this validated behavior into the reusable
+DATA/ACK data plane, reliability maintenance, dispatcher local-dispatch
+boundary, production receive path and production runtime wiring.
 
 The following remain future work:
 
 ```text
 Route failure / repair integration
+RERR integration
+Route rediscovery during reliability
+Multi-path / larger-topology validation
 Fragmentation
 Security
 OTA
 ```
 
-E3.3.6 remains the historical hardware baseline for duplicate DATA suppression and cached-ACK recovery;
-E3C now validates those behaviours together with the generic E3.3.7 reliability transaction over the three-node topology.
+E3.3.6 remains the historical hardware baseline for duplicate DATA suppression
+and cached-ACK recovery; E3C validates those behaviors together with the
+generic E3.3.7 reliability transaction over the three-node topology.
 
----
 
-## 14. Current Milestones
+## 5. Current Milestones
 
 ```text
 E3.3.1  DATA wire/self-test                     VALIDATED
@@ -486,16 +233,22 @@ E3.3.3  DATA + ACK multi-hop path               VALIDATED
 E3.3.4  DATA duplicate suppression              VALIDATED
 E3.3.5  ACK duplicate suppression               VALIDATED
 E3.3.6  DATA retransmission / ACK recovery      VALIDATED
-E3.3.7  Reliability layer + Phase 3             VALIDATED
+E3.3.7  Reliability layer + Phase 3             VALIDATED / FROZEN
+
+P4-E1   Reusable DATA/ACK data plane            VALIDATED / FROZEN
+P4-E2   Reliability maintenance                 VALIDATED / FROZEN
+P4-E3   E3C consolidation                       VALIDATED / FROZEN
+P4-E4A  Dispatcher local dispatch               VALIDATED / FROZEN
+P4-E4B  Production receive path                 VALIDATED / FROZEN
+P4-E4C  Production runtime wiring               VALIDATED / FROZEN
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are
 validated and frozen. The validated behavior has subsequently been consolidated
-through P4/E1, P4/E2, P4/E3, P4-E4A and P4-E4B.
+through P4-E1, P4-E2, P4-E3, P4-E4A, P4-E4B and P4-E4C.
 
----
 
-## 15. Development / Freeze Rule
+## 6. Development / Freeze Rule
 
 ENP development follows:
 
@@ -524,29 +277,7 @@ or placeholders exist.
 
 ---
 
-## 16. Project Status
-
-**ENP v0.2 foundation — FROZEN**
-
-**E3.3.1–E3.3.6 — VALIDATED**
-
-**E3.3.7 Reliability Layer — IMPLEMENTED / FROZEN THROUGH VALIDATED PHASE 3 AND PHASE 4 INTEGRATION**
-- E3A self-test VALIDATED
-- E3B two-node hardware VALIDATED
-- E3C three-node validation PASS / FROZEN
-- P4/E1 reusable data plane PASS / FROZEN
-- P4/E2 reliability maintenance PASS / FROZEN
-- P4/E3 E3C consolidation PASS / FROZEN
-- P4-E4A dispatcher local dispatch PASS / FROZEN
-- P4-E4B production receive path PASS / FROZEN
-
-The project has validated the complete reliability transaction over the existing
-three-node A -> B -> C routing topology and has consolidated the validated DATA/ACK
-receive behavior into the production ENP receive path. Route failure/repair remains
-a subsequent routing-resilience phase.
-
-
-## Documentation structure
+## 7. Documentation Structure
 
 The `docs/` directory is organized by subject:
 
@@ -554,12 +285,15 @@ The `docs/` directory is organized by subject:
 docs/
 ├── 00_project/       Current roadmap and implementation status
 ├── 01_architecture/  Core architecture, API and freeze rules
-├── 02_protocol/     Wire protocol and duplicate suppression
-├── 03_routing/      Routing architecture and routing protocol
-├── 04_reliability/  Reliability specification and contracts
-├── 05_validation/   E3.3.7 implementation and hardware validation records
-├── 99_historical/   Historical reviews and snapshots
-└── INDEX.md         Documentation map
+├── 02_protocol/      Wire protocol and duplicate suppression
+├── 03_routing/       Routing architecture and routing protocol
+├── 04_reliability/   Reliability specification and contracts
+├── 05_validation/    E3.3.7 implementation and hardware validation records
+├── 99_historical/    Historical reviews and snapshots
+└── INDEX.md          Documentation map
 ```
 
-Historical documents are intentionally preserved and are not used as the current project-status source. Current status is maintained in `docs/00_project/E3.3.7_IMPLEMENTATION_STATUS.md` and `docs/00_project/ROADMAP.md`.
+Historical documents are intentionally preserved and are not used as the
+current project-status source. Current status is maintained in
+`docs/00_project/E3.3.7_IMPLEMENTATION_STATUS.md` and
+`docs/00_project/ROADMAP.md`.

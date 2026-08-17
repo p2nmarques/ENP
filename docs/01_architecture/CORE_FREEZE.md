@@ -259,3 +259,8 @@ Changes to frozen protocol structures or public APIs require:
 5. hardware validation where applicable;
 6. a new freeze revision if the wire/API contract changes.
 
+
+
+## Current validated extensions beyond the original foundation freeze
+
+The original v0.2 foundation boundary above is historical. Subsequent validated work is frozen through E3C and P4-E1/P4-E2/P4-E3/P4-E4A/P4-E4B/P4-E4C. In particular, **P4-E4C — Production Runtime Wiring — is PASS / FROZEN**.
