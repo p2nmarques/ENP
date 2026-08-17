@@ -237,5 +237,22 @@ Freeze
 
 
 ### P4-E4C — Production Runtime Wiring
+- [X] Validate the production bootstrap composition boundary on ESP-IDF 6.0.2.
+- [X] Validate production Discovery through the normal dispatcher path.
+- [X] Freeze P4-E4C.
+- [X] Close hardware-validation status through P4-E4D.
 
-**PASS / FROZEN** — Production bootstrap composition boundary validated on ESP-IDF 6.0.2.
+**HARDWARE VALIDATED / FROZEN** — P4-E4C production runtime wiring is hardware
+validated by the P4-E4D real-ESP32 / real-ESP-NOW validation.
+
+### P4-E4D — Production Runtime Hardware Validation
+- [X] Validate production ENP runtime on real Gateway hardware.
+- [X] Validate production ENP runtime on real Sensor hardware.
+- [X] Validate real ESP-NOW DATA delivery to the Sensor application.
+- [X] Validate correlated ACK transmission over real ESP-NOW.
+- [X] Validate correlated ACK delivery through the production receive path.
+- [X] Validate exactly-once DATA delivery at the Sensor application.
+- [X] Record Gateway and Sensor hardware evidence.
+- [X] Freeze P4-E4D.
+
+**HARDWARE VALIDATED / FROZEN** — 2026-08-17.

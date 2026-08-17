@@ -10,64 +10,41 @@
  * Public API
  *---------------------------------------------------------*/
 
-esp_err_t enp_transport_init(
-        enp_transport_t *transport,
-        const enp_config_t *config)
-{
-    if ((transport == NULL) ||
-        (config == NULL) ||
-        (transport->init == NULL))
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+esp_err_t enp_transport_init(enp_transport_t *transport,
+							 const enp_config_t *config) {
+	if ((transport == NULL) || (config == NULL) || (transport->init == NULL)) {
+		return ESP_ERR_INVALID_ARG;
+	}
 
-    return transport->init(config);
+	return transport->init(config);
 }
 
-esp_err_t enp_transport_deinit(
-        enp_transport_t *transport)
-{
-    if ((transport == NULL) ||
-        (transport->deinit == NULL))
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+esp_err_t enp_transport_deinit(enp_transport_t *transport) {
+	if ((transport == NULL) || (transport->deinit == NULL)) {
+		return ESP_ERR_INVALID_ARG;
+	}
 
-    return transport->deinit();
+	return transport->deinit();
 }
 
-esp_err_t enp_transport_send(
-        enp_transport_t *transport,
-        const enp_transport_address_t *destination,
-        const void *data,
-        size_t length)
-{
-    if ((transport == NULL) ||
-        (transport->send == NULL) ||
-        (destination == NULL) ||
-        (data == NULL) ||
-        (length == 0U))
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+esp_err_t enp_transport_send(enp_transport_t *transport,
+							 const enp_transport_address_t *destination,
+							 const void *data, size_t length) {
+	if ((transport == NULL) || (transport->send == NULL) ||
+		(destination == NULL) || (data == NULL) || (length == 0U)) {
+		return ESP_ERR_INVALID_ARG;
+	}
 
-    return transport->send(
-            destination,
-            data,
-            length);
+	return transport->send(destination, data, length);
 }
 
-esp_err_t enp_transport_set_receive_callback(
-        enp_transport_t *transport,
-        enp_transport_receive_callback_t callback)
-{
-    if ((transport == NULL) ||
-        (transport->set_receive_callback == NULL) ||
-        (callback == NULL))
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
+esp_err_t
+enp_transport_set_receive_callback(enp_transport_t *transport,
+								   enp_transport_receive_callback_t callback) {
+	if ((transport == NULL) || (transport->set_receive_callback == NULL) ||
+		(callback == NULL)) {
+		return ESP_ERR_INVALID_ARG;
+	}
 
-    return transport->set_receive_callback(
-            callback);
+	return transport->set_receive_callback(callback);
 }

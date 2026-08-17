@@ -5,12 +5,12 @@
  *      Author: Pedro Marques
  */
 
- #ifndef ENP_BUILD_H
- #define ENP_BUILD_H
+#ifndef ENP_BUILD_H
+#define ENP_BUILD_H
 
- #define ENP_BUILD_DATE      __DATE__
- #define ENP_BUILD_TIME      __TIME__
+#define ENP_BUILD_DATE __DATE__
+#define ENP_BUILD_TIME __TIME__
 
- #define ENP_COMPILER        __VERSION__
+#define ENP_COMPILER __VERSION__
 
- #endif
+#endif

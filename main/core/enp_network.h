@@ -5,53 +5,51 @@
  *      Author: Pedro Marques
  */
 
- /**
-  * @file enp_network.h
-  *
-  * @brief ENP network runtime representation.
-  */
+/**
+ * @file enp_network.h
+ *
+ * @brief ENP network runtime representation.
+ */
 
- #ifndef ENP_NETWORK_H
- #define ENP_NETWORK_H
+#ifndef ENP_NETWORK_H
+#define ENP_NETWORK_H
 
- #include "enp_node.h"
- #include "enp_types.h"
+#include "enp_node.h"
+#include "enp_types.h"
 
- #ifdef __cplusplus
- extern "C"
- {
- #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
- /*----------------------------------------------------------
-  * ENP Network
-  *---------------------------------------------------------*/
+/*----------------------------------------------------------
+ * ENP Network
+ *---------------------------------------------------------*/
 
- /**
-  * @brief ENP network runtime state.
-  *
-  * Represents the local ENP network identity and the local
-  * node participating in that network.
-  *
-  * Routing information, neighbor tables and topology state
-  * are intentionally not part of this structure. Those
-  * responsibilities belong to higher-level ENP services.
-  */
- typedef struct
- {
-     /**
-      * Logical ENP network identifier.
-      */
-     enp_network_id_t id;
+/**
+ * @brief ENP network runtime state.
+ *
+ * Represents the local ENP network identity and the local
+ * node participating in that network.
+ *
+ * Routing information, neighbor tables and topology state
+ * are intentionally not part of this structure. Those
+ * responsibilities belong to higher-level ENP services.
+ */
+typedef struct {
+	/**
+	 * Logical ENP network identifier.
+	 */
+	enp_network_id_t id;
 
-     /**
-      * Local node runtime state.
-      */
-     enp_node_t local;
+	/**
+	 * Local node runtime state.
+	 */
+	enp_node_t local;
 
- } enp_network_t;
+} enp_network_t;
 
- #ifdef __cplusplus
- }
- #endif
+#ifdef __cplusplus
+}
+#endif
 
- #endif /* ENP_NETWORK_H */
+#endif /* ENP_NETWORK_H */

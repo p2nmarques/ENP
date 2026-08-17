@@ -19,8 +19,7 @@
 #include "core/enp_context.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -37,8 +36,7 @@ extern "C"
  *
  * @return ESP_OK on success.
  */
-esp_err_t enp_maintenance_init(
-        enp_context_t *context);
+esp_err_t enp_maintenance_init(enp_context_t *context);
 
 /**
  * @brief Stop the ENP periodic maintenance task.

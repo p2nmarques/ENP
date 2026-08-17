@@ -5,14 +5,12 @@
  *      Author: Pedro Marques
  */
 
- #ifndef UTILS_H
- #define UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
- #include <stdbool.h>
- #include <stdint.h>
+#include <stdbool.h>
+#include <stdint.h>
 
- bool enp_parse_mac_address(
-         const char *text,
-         uint8_t mac[6]);
+bool enp_parse_mac_address(const char *text, uint8_t mac[6]);
 
- #endif
+#endif

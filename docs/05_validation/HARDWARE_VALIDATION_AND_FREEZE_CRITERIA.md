@@ -109,8 +109,10 @@ P4-E4B Production receive path
 P4-E4C Production runtime wiring
 ```
 
-These phases are validated and frozen, but their individual Phase 4 self-tests
-must not automatically be labelled hardware validation.
+P4-E1, P4-E2, P4-E3 and P4-E4A/E4B remain VALIDATED / FROZEN based on their
+defined controlled or integration evidence. P4-E4C was initially in that
+category, but its hardware-validation boundary was subsequently closed by
+P4-E4D and is now HARDWARE VALIDATED / FROZEN.
 
 ---
 

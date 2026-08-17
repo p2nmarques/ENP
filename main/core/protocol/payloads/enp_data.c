@@ -5,115 +5,82 @@
  *      Author: Pedro Marques
  *
  */
- 
- #include "enp_data.h"
 
- #include <string.h>
+#include "enp_data.h"
 
- void enp_data_header_init(
-     enp_data_header_t *header,
-     enp_data_subtype_t subtype,
-     uint16_t flags,
-     uint32_t application_sequence,
-     uint16_t payload_length)
- {
-     if (header == NULL)
-     {
-         return;
-     }
+#include <string.h>
 
-     memset(
-         header,
-         0,
-         sizeof(*header));
+void enp_data_header_init(enp_data_header_t *header, enp_data_subtype_t subtype,
+						  uint16_t flags, uint32_t application_sequence,
+						  uint16_t payload_length) {
+	if (header == NULL) {
+		return;
+	}
 
-     header->payload_version =
-         ENP_DATA_PAYLOAD_VERSION;
+	memset(header, 0, sizeof(*header));
 
-     header->subtype =
-         (uint8_t)subtype;
+	header->payload_version = ENP_DATA_PAYLOAD_VERSION;
 
-     header->flags =
-         flags;
+	header->subtype = (uint8_t)subtype;
 
-     header->application_sequence =
-         application_sequence;
+	header->flags = flags;
 
-     header->payload_length =
-         payload_length;
+	header->application_sequence = application_sequence;
 
-     header->reserved = 0U;
- }
+	header->payload_length = payload_length;
 
- bool enp_data_header_valid(
-     const enp_data_header_t *header)
- {
-     if (header == NULL)
-     {
-         return false;
-     }
+	header->reserved = 0U;
+}
 
-     /*
-      * Version validation.
-      */
-     if (header->payload_version !=
-         ENP_DATA_PAYLOAD_VERSION)
-     {
-         return false;
-     }
+bool enp_data_header_valid(const enp_data_header_t *header) {
+	if (header == NULL) {
+		return false;
+	}
 
-     /*
-      * At E3.3.1 we only support application DATA.
-      */
-     if (header->subtype !=
-         ENP_DATA_SUBTYPE_APPLICATION)
-     {
-         return false;
-     }
+	/*
+	 * Version validation.
+	 */
+	if (header->payload_version != ENP_DATA_PAYLOAD_VERSION) {
+		return false;
+	}
 
-     /*
-      * Reject unknown flags.
-      */
-     if ((header->flags &
-          (uint16_t)~ENP_DATA_KNOWN_FLAGS) != 0U)
-     {
-         return false;
-     }
+	/*
+	 * At E3.3.1 we only support application DATA.
+	 */
+	if (header->subtype != ENP_DATA_SUBTYPE_APPLICATION) {
+		return false;
+	}
 
-     /*
-      * Reserved field must currently be zero.
-      */
-     if (header->reserved != 0U)
-     {
-         return false;
-     }
+	/*
+	 * Reject unknown flags.
+	 */
+	if ((header->flags & (uint16_t)~ENP_DATA_KNOWN_FLAGS) != 0U) {
+		return false;
+	}
 
-     /*
-      * Zero is reserved as an invalid application
-      * sequence number.
-      */
-     if (header->application_sequence == 0U)
-     {
-         return false;
-     }
+	/*
+	 * Reserved field must currently be zero.
+	 */
+	if (header->reserved != 0U) {
+		return false;
+	}
 
-     return true;
- }
+	/*
+	 * Zero is reserved as an invalid application
+	 * sequence number.
+	 */
+	if (header->application_sequence == 0U) {
+		return false;
+	}
 
- bool enp_data_payload_length_valid(
-     const enp_data_header_t *header,
-     size_t available_payload_length)
- {
-     if (!enp_data_header_valid(header))
-     {
-         return false;
-     }
+	return true;
+}
 
-     return
-         (size_t)header->payload_length ==
-         available_payload_length;
- }
+bool enp_data_payload_length_valid(const enp_data_header_t *header,
+								   size_t available_payload_length) {
+	if (!enp_data_header_valid(header)) {
+		return false;
+	}
 
-
-
-
+	return (size_t)header->payload_length == available_payload_length;
+}

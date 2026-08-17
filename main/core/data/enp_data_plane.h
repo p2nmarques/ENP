@@ -4,141 +4,132 @@
  *  Created on: Aug 16, 2026
  *      Author: Pedro Marques
  */
- 
- /**
-  * @file enp_data_plane.h
-  *
-  * @brief ENP receive data-plane and packet forwarding integration.
-  *
-  * The data plane owns receive-time duplicate suppression for DATA and
-  * ACK packet domains and forwards non-local DATA/ACK packets through
-  * the transport-independent routing data path.
-  */
 
- #ifndef ENP_DATA_PLANE_H
- #define ENP_DATA_PLANE_H
+/**
+ * @file enp_data_plane.h
+ *
+ * @brief ENP receive data-plane and packet forwarding integration.
+ *
+ * The data plane owns receive-time duplicate suppression for DATA and
+ * ACK packet domains and forwards non-local DATA/ACK packets through
+ * the transport-independent routing data path.
+ */
 
- #include <stdbool.h>
- #include <stddef.h>
- #include <stdint.h>
+#ifndef ENP_DATA_PLANE_H
+#define ENP_DATA_PLANE_H
 
- #include "esp_err.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
- #include "core/enp_context.h"
- #include "core/enp_duplicate.h"
- #include "core/enp_transport.h"
- #include "core/protocol/payloads/enp_ack.h"
- #include "core/protocol/enp_packet.h"
- #include "core/routing/enp_routing_data_path.h"
+#include "esp_err.h"
 
- #ifdef __cplusplus
- extern "C"
- {
- #endif
+#include "core/enp_context.h"
+#include "core/enp_duplicate.h"
+#include "core/enp_transport.h"
+#include "core/protocol/enp_packet.h"
+#include "core/protocol/payloads/enp_ack.h"
+#include "core/routing/enp_routing_data_path.h"
 
- #define ENP_DATA_PLANE_ACK_CACHE_SIZE 8U
- #define ENP_DATA_PLANE_ACK_CACHE_TIMEOUT_MS 10000U
+#ifdef __cplusplus
+extern "C" {
+#endif
 
- typedef struct
- {
-     bool valid;
-     enp_address_t data_origin;
-     enp_sequence_t data_sequence;
-     uint32_t stored_at_ms;
-     enp_packet_t ack_packet;
- } enp_data_plane_ack_cache_entry_t;
+#define ENP_DATA_PLANE_ACK_CACHE_SIZE 8U
+#define ENP_DATA_PLANE_ACK_CACHE_TIMEOUT_MS 10000U
 
- /**
-  * @brief Local packet processing callback.
-  *
-  * The data plane invokes this callback only after packet validation,
-  * destination-locality checking and duplicate suppression.
-  *
-  * The callback is transport-independent. A dispatcher adapter can be
-  * supplied by the integration owner without making the data plane depend
-  * on the dispatcher implementation.
-  */
- typedef esp_err_t (*enp_data_plane_local_process_fn)(
-         void *context,
-         const enp_packet_t *packet,
-         const enp_transport_address_t *source);
+typedef struct {
+	bool valid;
+	enp_address_t data_origin;
+	enp_sequence_t data_sequence;
+	uint32_t stored_at_ms;
+	enp_packet_t ack_packet;
+} enp_data_plane_ack_cache_entry_t;
 
- /**
-  * @brief ENP receive data-plane runtime state.
-  *
-  * All storage is supplied by this object. No dynamic allocation is used.
-  */
- typedef struct
- {
-     enp_context_t *context;
-     enp_routing_data_path_t *routing_path;
+/**
+ * @brief Local packet processing callback.
+ *
+ * The data plane invokes this callback only after packet validation,
+ * destination-locality checking and duplicate suppression.
+ *
+ * The callback is transport-independent. A dispatcher adapter can be
+ * supplied by the integration owner without making the data plane depend
+ * on the dispatcher implementation.
+ */
+typedef esp_err_t (*enp_data_plane_local_process_fn)(
+	void *context, const enp_packet_t *packet,
+	const enp_transport_address_t *source);
 
-     enp_duplicate_cache_t data_duplicates;
-     enp_duplicate_cache_t ack_duplicates;
+/**
+ * @brief ENP receive data-plane runtime state.
+ *
+ * All storage is supplied by this object. No dynamic allocation is used.
+ */
+typedef struct {
+	enp_context_t *context;
+	enp_routing_data_path_t *routing_path;
 
-     enp_data_plane_ack_cache_entry_t
-             ack_cache[ENP_DATA_PLANE_ACK_CACHE_SIZE];
+	enp_duplicate_cache_t data_duplicates;
+	enp_duplicate_cache_t ack_duplicates;
 
-     enp_data_plane_local_process_fn local_process;
+	enp_data_plane_ack_cache_entry_t ack_cache[ENP_DATA_PLANE_ACK_CACHE_SIZE];
 
- } enp_data_plane_t;
+	enp_data_plane_local_process_fn local_process;
 
- /**
-  * @brief Initialize the ENP receive data plane.
-  *
-  * @param plane Data-plane runtime object.
-  * @param context ENP runtime context.
-  * @param routing_path Routing data path used for forwarding.
-  * @param local_process Optional callback for packets addressed to this node.
-  *
-  * @return ESP_OK on success.
-  */
- esp_err_t enp_data_plane_init(
-         enp_data_plane_t *plane,
-         enp_context_t *context,
-         enp_routing_data_path_t *routing_path,
-         enp_data_plane_local_process_fn local_process);
+} enp_data_plane_t;
 
- /**
-  * @brief Deinitialize the ENP receive data plane.
-  *
-  * The data plane does not own the context or routing path.
-  *
-  * @return ESP_OK on success.
-  */
- esp_err_t enp_data_plane_deinit(
-         enp_data_plane_t *plane);
+/**
+ * @brief Initialize the ENP receive data plane.
+ *
+ * @param plane Data-plane runtime object.
+ * @param context ENP runtime context.
+ * @param routing_path Routing data path used for forwarding.
+ * @param local_process Optional callback for packets addressed to this node.
+ *
+ * @return ESP_OK on success.
+ */
+esp_err_t enp_data_plane_init(enp_data_plane_t *plane, enp_context_t *context,
+							  enp_routing_data_path_t *routing_path,
+							  enp_data_plane_local_process_fn local_process);
 
- /**
-  * @brief Process one validated transport-received ENP frame.
-  *
-  * The function validates the complete packet, applies packet-domain
-  * duplicate suppression, delivers local packets through the optional
-  * callback, and forwards non-local DATA/ACK packets through the routing
-  * data path.
-  *
-  * DATA and ACK packets intentionally use separate duplicate domains.
-  * Non-local ACK packets are retained in a bounded static cache so that a
-  * duplicate ACK-required DATA packet can trigger ACK recovery without
-  * involving the application or reliability layer at the relay.
-  * Duplicate identity remains source logical address + sequence number.
-  *
-  * @param plane ENP data-plane runtime object.
-  * @param packet Complete ENP packet.
-  * @param source Transport address from which the packet was received.
-  *
-  * @return ESP_OK when the packet was delivered or forwarded successfully.
-  * @return ESP_ERR_NOT_FOUND when no local callback exists for a local packet.
-  * @return ESP_ERR_NOT_SUPPORTED for non-local packet types not handled by
-  *         this data plane.
-  */
- esp_err_t enp_data_plane_process(
-         enp_data_plane_t *plane,
-         const enp_packet_t *packet,
-         const enp_transport_address_t *source);
+/**
+ * @brief Deinitialize the ENP receive data plane.
+ *
+ * The data plane does not own the context or routing path.
+ *
+ * @return ESP_OK on success.
+ */
+esp_err_t enp_data_plane_deinit(enp_data_plane_t *plane);
 
- #ifdef __cplusplus
- }
- #endif
+/**
+ * @brief Process one validated transport-received ENP frame.
+ *
+ * The function validates the complete packet, applies packet-domain
+ * duplicate suppression, delivers local packets through the optional
+ * callback, and forwards non-local DATA/ACK packets through the routing
+ * data path.
+ *
+ * DATA and ACK packets intentionally use separate duplicate domains.
+ * Non-local ACK packets are retained in a bounded static cache so that a
+ * duplicate ACK-required DATA packet can trigger ACK recovery without
+ * involving the application or reliability layer at the relay.
+ * Duplicate identity remains source logical address + sequence number.
+ *
+ * @param plane ENP data-plane runtime object.
+ * @param packet Complete ENP packet.
+ * @param source Transport address from which the packet was received.
+ *
+ * @return ESP_OK when the packet was delivered or forwarded successfully.
+ * @return ESP_ERR_NOT_FOUND when no local callback exists for a local packet.
+ * @return ESP_ERR_NOT_SUPPORTED for non-local packet types not handled by
+ *         this data plane.
+ */
+esp_err_t enp_data_plane_process(enp_data_plane_t *plane,
+								 const enp_packet_t *packet,
+								 const enp_transport_address_t *source);
 
- #endif /* ENP_DATA_PLANE_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ENP_DATA_PLANE_H */

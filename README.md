@@ -19,6 +19,7 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
 - E3C three-node reliability validation is hardware validated and frozen;
 - Phase 4 P4-E1 reusable data plane, P4-E2 reliability maintenance, P4-E3 E3C consolidation,
   P4-E4A local dispatch, P4-E4B production receive path and P4-E4C production runtime wiring
+  P4-E4D production runtime hardware validation — HARDWARE VALIDATED / FROZEN
   are validated and frozen.
 
 ---
@@ -61,7 +62,7 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E3 E3C consolidation | 🔒 Frozen / validated |
 | P4-E4A dispatcher local dispatch | 🔒 Frozen / validated |
 | P4-E4B production receive path | 🔒 Frozen / validated |
-| P4-E4C production runtime wiring | 🔒 Frozen / validated |
+| P4-E4C production runtime wiring | 🔒 Frozen / HARDWARE VALIDATED |
 
 ### Status interpretation
 
@@ -157,8 +158,10 @@ suppression and cached-ACK recovery.
 
 ### Phase 4 validation boundary
 
-Phase 4 P4-E1 through P4-E4C subsequently consolidated and validated the
-corresponding reusable ENP core components and production-runtime boundaries:
+Phase 4 P4-E1 through P4-E4D consolidated the corresponding reusable ENP core
+components and production-runtime boundaries. P4-E4C and P4-E4D are hardware
+validated; the earlier Phase 4 stages remain validated/frozen based on their
+defined test evidence:
 
 ```text
 P4-E1  Reusable DATA/ACK data plane        ☑️ Validated / frozen
@@ -166,15 +169,15 @@ P4-E2  Reliability maintenance             ☑️ Validated / frozen
 P4-E3  E3C consolidation                   ☑️ Validated / frozen
 P4-E4A Dispatcher local dispatch           ☑️ Validated / frozen
 P4-E4B Production receive path             ☑️ Validated / frozen
-P4-E4C Production runtime wiring           ☑️ Validated / frozen
+P4-E4C Production runtime wiring           ✅ Hardware validated / frozen
 ```
 
 These Phase 4 stages are primarily controlled self-test and integration
 validation milestones. They should not be described as additional hardware
 validation milestones unless a dedicated hardware test has been performed.
 
-E3C is therefore the current three-node hardware-validation milestone; it is
-already **PASS / FROZEN**, not pending.
+E3C remains the validated three-node reliability hardware milestone and is
+already **PASS / FROZEN**. P4-E4C is now hardware validated through P4-E4D.
 
 
 ## 4. Current Project Scope
@@ -240,12 +243,14 @@ P4-E2   Reliability maintenance                 VALIDATED / FROZEN
 P4-E3   E3C consolidation                       VALIDATED / FROZEN
 P4-E4A  Dispatcher local dispatch               VALIDATED / FROZEN
 P4-E4B  Production receive path                 VALIDATED / FROZEN
-P4-E4C  Production runtime wiring               VALIDATED / FROZEN
+P4-E4C  Production runtime wiring               HARDWARE VALIDATED / FROZEN
+P4-E4D  Production runtime hardware validation    HARDWARE VALIDATED / FROZEN
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are
-validated and frozen. The validated behavior has subsequently been consolidated
-through P4-E1, P4-E2, P4-E3, P4-E4A, P4-E4B and P4-E4C.
+validated and frozen. The validated behavior has subsequently been consolidated through P4-E1, P4-E2,
+P4-E3, P4-E4A, P4-E4B and P4-E4C, with P4-E4D providing the production-runtime
+hardware validation.
 
 
 ## 6. Development / Freeze Rule

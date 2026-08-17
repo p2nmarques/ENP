@@ -26,23 +26,14 @@ This directory is organized by subject. The project targets **ENP v0.2-r5 / ESP-
 ## 05 — Validation
 Contains the implementation audits, hardware validation records, and consolidation tests.
 
-- `05_validation/HARDWARE_VALIDATION_AND_FREEZE_CRITERIA.md` - hardware validation and freeze criteria.
-- `05_validation/E3.3.7_PHASE4_E1_DATA_PLANE.md` — reusable receive data-plane consolidation.
-- `05_validation/E3.3.7_PHASE4_E2_RELIABILITY_MAINTENANCE_IDF6.0.2.md` — maintenance-driven reliability tick.
-- `05_validation/E3.3.7_PHASE4_E3_E3C_CONSOLIDATION_IDF6.0.2.md` — three-node E3C consolidation into reusable ENP infrastructure.
-- `05_validation/E3.3.7_PHASE4_E4A_DISPATCHER_LOCAL_DISPATCH_IDF6.0.2.md` — PASS / FROZEN
-- `05_validation/E3.3.7_PHASE4_E4B_PRODUCTION_RECEIVE_PATH_IDF6.0.2.md` — PASS / FROZEN
+- `05_validation/HARDWARE_VALIDATION_AND_FREEZE_CRITERIA.md`
+- `05_validation/E3.3.7_PHASE4_E1_DATA_PLANE.md` 
+- `05_validation/E3.3.7_PHASE4_E2_RELIABILITY_MAINTENANCE_IDF6.0.2.md`
+- `05_validation/E3.3.7_PHASE4_E3_E3C_CONSOLIDATION_IDF6.0.2.md`
+- `05_validation/E3.3.7_PHASE4_E4A_DISPATCHER_LOCAL_DISPATCH_IDF6.0.2.md`
+- `05_validation/E3.3.7_PHASE4_E4B_PRODUCTION_RECEIVE_PATH_IDF6.0.2.md`
+- `05_validation/E3.3.7_PHASE4_E4D_PRODUCTION_RUNTIME_HARDWARE_VALIDATION_IDF6.0.2.md` 
 
-Current validated sequence:
-
-```text
-E1  Routing Data Path                         PASS / FROZEN
-E2A Context + Neighbor                        PASS / FROZEN
-E2B Real ESP-NOW                              PASS / FROZEN
-E3A Reliability -> Routing                    PASS / FROZEN
-E3B Reliability -> Routing -> ESP-NOW         PASS / FROZEN
-E3C Three-node Reliability                    PASS / FROZEN
-```
 
 ## 99 — Historical
 Historical reviews and snapshots are preserved here and should not be interpreted as current project status.

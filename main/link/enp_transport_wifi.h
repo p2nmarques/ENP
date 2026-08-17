@@ -5,26 +5,26 @@
  *      Author: Pedro Marques
  */
 
- #ifndef WIFI_H
- #define WIFI_H
+#ifndef WIFI_H
+#define WIFI_H
 
- #include <stdbool.h>
- #include <stdint.h>
+#include <stdbool.h>
+#include <stdint.h>
 
- #include "esp_err.h"
+#include "esp_err.h"
 
- #ifdef __cplusplus
- extern "C" {
- #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
- esp_err_t enp_wifi_init(void);
+esp_err_t enp_wifi_init(void);
 
- bool enp_wifi_is_connected(void);
+bool enp_wifi_is_connected(void);
 
- uint8_t enp_wifi_get_channel(void);
+uint8_t enp_wifi_get_channel(void);
 
- #ifdef __cplusplus
- }
- #endif
+#ifdef __cplusplus
+}
+#endif
 
- #endif
+#endif

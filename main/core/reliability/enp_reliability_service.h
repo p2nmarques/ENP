@@ -7,28 +7,26 @@
  * ENP v0.2 — E3.3.7 Phase 2 dispatcher integration.
  * ESP-IDF 6.0.2 compatible.
  */
-  
-  
- #ifndef ENP_RELIABILITY_SERVICE_H
- #define ENP_RELIABILITY_SERVICE_H
 
- #include "core/service/enp_service.h"
+#ifndef ENP_RELIABILITY_SERVICE_H
+#define ENP_RELIABILITY_SERVICE_H
 
- #ifdef __cplusplus
- extern "C" {
- #endif
+#include "core/service/enp_service.h"
 
- /**
-  * @brief Return the ENP ACK service descriptor used by the dispatcher.
-  *
-  * The service forwards validated ACK packets to the E3.3.7 reliability
-  * transaction manager. It does not own routing or transport.
-  */
- const enp_service_t *enp_reliability_service_get(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
- #ifdef __cplusplus
- }
- #endif
+/**
+ * @brief Return the ENP ACK service descriptor used by the dispatcher.
+ *
+ * The service forwards validated ACK packets to the E3.3.7 reliability
+ * transaction manager. It does not own routing or transport.
+ */
+const enp_service_t *enp_reliability_service_get(void);
 
- #endif /* ENP_RELIABILITY_SERVICE_H */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* ENP_RELIABILITY_SERVICE_H */

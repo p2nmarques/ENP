@@ -31,8 +31,7 @@
 #include "core/enp_types.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*----------------------------------------------------------
@@ -42,12 +41,12 @@ extern "C"
 /**
  * @brief Maximum number of recently seen packets retained.
  */
-#define ENP_DUPLICATE_CACHE_SIZE        32U
+#define ENP_DUPLICATE_CACHE_SIZE 32U
 
 /**
  * @brief Lifetime of a duplicate-cache entry in milliseconds.
  */
-#define ENP_DUPLICATE_CACHE_TIMEOUT_MS  10000U
+#define ENP_DUPLICATE_CACHE_TIMEOUT_MS 10000U
 
 /*----------------------------------------------------------
  * Duplicate Entry
@@ -60,12 +59,11 @@ extern "C"
  * Duplicate identity is based on the originating logical
  * ENP address and the packet sequence number.
  */
-typedef struct
-{
-    enp_address_t source;
-    enp_sequence_t sequence;
-    uint32_t seen_at_ms;
-    bool valid;
+typedef struct {
+	enp_address_t source;
+	enp_sequence_t sequence;
+	uint32_t seen_at_ms;
+	bool valid;
 
 } enp_duplicate_entry_t;
 
@@ -80,13 +78,11 @@ typedef struct
  * is also statically allocated so that the module does not
  * require heap allocation.
  */
-typedef struct
-{
-    enp_duplicate_entry_t entries[
-            ENP_DUPLICATE_CACHE_SIZE];
+typedef struct {
+	enp_duplicate_entry_t entries[ENP_DUPLICATE_CACHE_SIZE];
 
-    SemaphoreHandle_t mutex;
-    StaticSemaphore_t mutex_storage;
+	SemaphoreHandle_t mutex;
+	StaticSemaphore_t mutex_storage;
 
 } enp_duplicate_cache_t;
 
@@ -103,8 +99,7 @@ typedef struct
  * @return ESP_ERR_INVALID_ARG for a NULL cache.
  * @return ESP_FAIL if the static mutex cannot be created.
  */
-esp_err_t enp_duplicate_cache_init(
-        enp_duplicate_cache_t *cache);
+esp_err_t enp_duplicate_cache_init(enp_duplicate_cache_t *cache);
 
 /**
  * @brief Clear all duplicate-cache entries.
@@ -115,8 +110,7 @@ esp_err_t enp_duplicate_cache_init(
  * @return ESP_ERR_INVALID_ARG for a NULL cache.
  * @return ESP_ERR_INVALID_STATE if the cache is not initialized.
  */
-esp_err_t enp_duplicate_cache_clear(
-        enp_duplicate_cache_t *cache);
+esp_err_t enp_duplicate_cache_clear(enp_duplicate_cache_t *cache);
 
 /*----------------------------------------------------------
  * Duplicate Detection
@@ -149,12 +143,10 @@ esp_err_t enp_duplicate_cache_clear(
  * @return ESP_ERR_INVALID_ARG for invalid arguments.
  * @return ESP_ERR_INVALID_STATE if the cache is not initialized.
  */
-esp_err_t enp_duplicate_check_and_record(
-        enp_duplicate_cache_t *cache,
-        const enp_address_t *source,
-        enp_sequence_t sequence,
-        uint32_t now_ms,
-        bool *duplicate);
+esp_err_t enp_duplicate_check_and_record(enp_duplicate_cache_t *cache,
+										 const enp_address_t *source,
+										 enp_sequence_t sequence,
+										 uint32_t now_ms, bool *duplicate);
 
 /*----------------------------------------------------------
  * Information
@@ -170,9 +162,7 @@ esp_err_t enp_duplicate_check_and_record(
  * @return Number of non-expired entries.
  * @return Zero for invalid/uninitialized caches.
  */
-size_t enp_duplicate_count(
-        enp_duplicate_cache_t *cache,
-        uint32_t now_ms);
+size_t enp_duplicate_count(enp_duplicate_cache_t *cache, uint32_t now_ms);
 
 #ifdef __cplusplus
 }
