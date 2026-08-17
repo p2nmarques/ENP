@@ -20,12 +20,14 @@
 
  #include <stdbool.h>
  #include <stddef.h>
+ #include <stdint.h>
 
  #include "esp_err.h"
 
  #include "core/enp_context.h"
  #include "core/enp_duplicate.h"
  #include "core/enp_transport.h"
+ #include "core/protocol/payloads/enp_ack.h"
  #include "core/protocol/enp_packet.h"
  #include "core/routing/enp_routing_data_path.h"
 
@@ -33,6 +35,18 @@
  extern "C"
  {
  #endif
+
+ #define ENP_DATA_PLANE_ACK_CACHE_SIZE 8U
+ #define ENP_DATA_PLANE_ACK_CACHE_TIMEOUT_MS 10000U
+
+ typedef struct
+ {
+     bool valid;
+     enp_address_t data_origin;
+     enp_sequence_t data_sequence;
+     uint32_t stored_at_ms;
+     enp_packet_t ack_packet;
+ } enp_data_plane_ack_cache_entry_t;
 
  /**
   * @brief Local packet processing callback.
@@ -61,6 +75,9 @@
 
      enp_duplicate_cache_t data_duplicates;
      enp_duplicate_cache_t ack_duplicates;
+
+     enp_data_plane_ack_cache_entry_t
+             ack_cache[ENP_DATA_PLANE_ACK_CACHE_SIZE];
 
      enp_data_plane_local_process_fn local_process;
 
@@ -101,6 +118,9 @@
   * data path.
   *
   * DATA and ACK packets intentionally use separate duplicate domains.
+  * Non-local ACK packets are retained in a bounded static cache so that a
+  * duplicate ACK-required DATA packet can trigger ACK recovery without
+  * involving the application or reliability layer at the relay.
   * Duplicate identity remains source logical address + sequence number.
   *
   * @param plane ENP data-plane runtime object.
@@ -122,13 +142,3 @@
  #endif
 
  #endif /* ENP_DATA_PLANE_H */
-
-
-#ifndef ENP_DATA_PLANE_H_
-#define ENP_DATA_PLANE_H_
-
-
-
-
-
-#endif /* ENP_DATA_PLANE_H_ */

@@ -32,6 +32,7 @@
 #include "core/data/enp_data_plane.h"
 #include "core/enp_transport.h"
 #include "core/protocol/enp_packet.h"
+#include "core/protocol/payloads/enp_ack.h"
 #include "core/routing/enp_route_table.h"
 #include "core/routing/enp_routing_data_path.h"
 
@@ -138,6 +139,26 @@ static bool make_packet(
     header->flags = ENP_FLAG_NONE;
     header->ttl = ttl;
     header->sequence = sequence;
+
+    if (type == ENP_PACKET_ACK)
+    {
+        enp_ack_payload_t *ack =
+                (enp_ack_payload_t *)enp_packet_payload(packet);
+
+        if (ack == NULL)
+        {
+            return false;
+        }
+
+        enp_ack_payload_init(
+                ack,
+                sequence,
+                0x00000001U);
+
+        return enp_packet_seal(
+                       packet,
+                       ENP_ACK_WIRE_SIZE) == ESP_OK;
+    }
 
     const uint8_t payload[] = {0xA4U, 0x01U};
 

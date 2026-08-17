@@ -78,14 +78,15 @@ been implemented and validated through the E3 test series:
 
 ### Current boundary
 
-The following are **not yet implemented as the general ENP reliability subsystem**:
+The following reliability capabilities are now implemented in the ENP v0.2-r5
+core and validated through the E3 series:
 
-- [ ] Reliability transaction manager
-- [ ] General ACK scheduling
-- [ ] General timeout handling
-- [ ] General retransmission management
-- [ ] Retry accounting API
-- [ ] Delivery failure reporting
+- [x] Reliability transaction manager
+- [x] General ACK correlation
+- [x] General timeout handling
+- [x] General retransmission management
+- [x] Retry accounting API
+- [x] Delivery failure reporting
 - [ ] Fragmentation
 - [ ] Security
 - [ ] OTA
@@ -118,8 +119,11 @@ Current:
 
 - [x] Complete Phase 3 / E3A reliability-to-routing self-test.
 - [x] Hardware-validate Phase 3 / E3B reliability-to-routing integration on two ESP32 nodes.
-- [ ] Validate Phase 3 / E3C end-to-end reliability on the three-node A -> B -> C topology.
-- [ ] Freeze E3.3.7 after the validated integration sequence.
+- [x] Hardware-validate Phase 3 / E3C end-to-end reliability on the three-node A -> B -> C topology.
+- [x] Freeze the Phase 3 E3 integration sequence.
+- [x] Phase 4 / P4-E1 reusable data plane.
+- [x] Phase 4 / P4-E2 reliability maintenance integration.
+- [X] Hardware-validate Phase 4 / P4-E3 E3C consolidation.
 
 Deliberately later routing-resilience work:
 
@@ -141,6 +145,18 @@ Architectural rule established for E3: reliability owns the transaction and pack
 - [X] Record the corrected E3 self-test validation.
 - [X] Record E3B two-node hardware validation.
 - [X] Define E3C three-node reliability validation.
+
+### Phase 4 validation status
+
+```text
+P4/E1 Reusable Data Plane          PASS / FROZEN
+P4/E2 Reliability Maintenance      PASS / FROZEN
+P4/E3 E3C Consolidation            PASS / FROZEN
+```
+
+P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
+test-harness readiness requirement only; it is not an ENP routing or protocol
+requirement.
 
 ### v1.x
 
@@ -195,5 +211,11 @@ Freeze
 - [X] Freeze P4/E2.
 
 ### P4/E3 E3C Consolidation
-- [ ] Remove test-specific DATA/ACK forwarding from E3C.
-- [ ] Revalidate three-node reliability using reusable ENP infrastructure.
+- [X] Move reusable DATA/ACK forwarding and duplicate-domain ownership into the ENP data plane.
+- [X] Add reusable cached-ACK storage and recovery to the data plane.
+- [X] Exclude non-DATA/ACK traffic such as Discovery from data-plane processing.
+- [X] Revalidate three-node reliability using reusable ENP infrastructure.
+- [X] Validate DATA duplicate suppression and cached-ACK recovery at the relay.
+- [X] Validate exactly-once application delivery at the sensor.
+- [X] Validate final `DELIVERED` completion at the gateway.
+- [X] Freeze P4/E3.

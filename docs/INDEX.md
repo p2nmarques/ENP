@@ -26,7 +26,9 @@ This directory is organized by subject. The project targets **ENP v0.2-r5 / ESP-
 ## 05 — Validation
 Contains the E3.3.7 implementation audits, hardware validation records, and Phase 4 consolidation tests.
 
-- `E3.3.7_PHASE4_P4.1_DATA_PLANE.md` — reusable receive data-plane consolidation.
+- `E3.3.7_PHASE4_E1_DATA_PLANE.md` — reusable receive data-plane consolidation.
+- `E3.3.7_PHASE4_E2_RELIABILITY_MAINTENANCE_IDF6.0.2.md` — maintenance-driven reliability tick.
+- `E3.3.7_PHASE4_E3_E3C_CONSOLIDATION_IDF6.0.2.md` — three-node E3C consolidation into reusable ENP infrastructure.
 
 Current validated sequence:
 
