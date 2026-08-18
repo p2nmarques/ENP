@@ -117,18 +117,18 @@ Completed:
 
 Current:
 
-- [x] Complete Phase 3 / E3A reliability-to-routing self-test.
-- [x] Hardware-validate Phase 3 / E3B reliability-to-routing integration on two ESP32 nodes.
-- [x] Hardware-validate Phase 3 / E3C end-to-end reliability on the three-node A -> B -> C topology.
-- [x] Freeze the Phase 3 E3 integration sequence.
-- [x] Phase 4 / P4-E1 reusable data plane.
-- [x] Phase 4 / P4-E2 reliability maintenance integration.
+- [X] Complete Phase 3 / E3A reliability-to-routing self-test.
+- [X] Hardware-validate Phase 3 / E3B reliability-to-routing integration on two ESP32 nodes.
+- [X] Hardware-validate Phase 3 / E3C end-to-end reliability on the three-node A -> B -> C topology.
+- [X] Freeze the Phase 3 E3 integration sequence.
+- [X] Phase 4 / P4-E1 reusable data plane.
+- [X] Phase 4 / P4-E2 reliability maintenance integration.
 - [X] Hardware-validate Phase 4 / P4-E3 E3C consolidation.
 
 Deliberately later routing-resilience work:
 
 - [ ] Stale/lost next-hop handling.
-- [ ] Link/transport failure propagation into routing.
+- [X] Link/transport failure propagation into routing (P4-E5C).
 - [ ] RERR integration.
 - [ ] Route rediscovery/repair during an active reliability transaction.
 - [ ] Multi-path and larger-topology validation.
@@ -149,14 +149,14 @@ Architectural rule established for E3: reliability owns the transaction and pack
 ### Phase 4 validation status
 
 ```text
-P4/E1 Reusable Data Plane                         PASS / FROZEN
-P4/E2 Reliability Maintenance                     PASS / FROZEN
-P4/E3 E3C Consolidation                           PASS / FROZEN
-P4-E4A Dispatcher Local Dispatch                  PASS / FROZEN
-P4-E4B Production Receive Path                    PASS / FROZEN
-P4-E5A Next-Hop Failure Observation               PASS / FROZEN
-P4-E5B Real ESP-NOW TX-Result Observation  HARDWARE VALIDATED / FROZEN
-P4-E5C Transport Failure → Route Invalidation  VALIDATED / FROZEN (controlled)
+P4/E1 Reusable Data Plane                            PASS / FROZEN
+P4/E2 Reliability Maintenance                        PASS / FROZEN
+P4/E3 E3C Consolidation                              PASS / FROZEN
+P4-E4A Dispatcher Local Dispatch                     PASS / FROZEN
+P4-E4B Production Receive Path                       PASS / FROZEN
+P4-E5A Next-Hop Failure Observation                  PASS / FROZEN
+P4-E5B Real ESP-NOW TX-Result Observation      HARDWARE VALIDATED / FROZEN
+P4-E5C Transport Failure → Route Invalidation  HARDWARE VALIDATED / FROZEN
 ```
 
 P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
@@ -289,3 +289,12 @@ all ACTIVE routes using the failed logical next hop from ACTIVE to STALE.
 The controlled self-test passed the defined acceptance criteria.
 
 Real ESP-NOW hardware validation remains the next validation milestone.
+
+
+### P4-E5C — Transport Failure → Route Invalidation
+
+- [X] Controlled implementation and self-test.
+- [X] Real ESP-NOW production-runtime hardware validation.
+- [X] Freeze P4-E5C.
+
+**Status: HARDWARE VALIDATED / FROZEN.**

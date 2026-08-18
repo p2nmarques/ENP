@@ -22,7 +22,7 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
   P4-E4D production runtime hardware validation — HARDWARE VALIDATED / FROZEN
   P4-E5A next-hop failure detection and propagation — VALIDATED / FROZEN
   P4-E5B real ESP-NOW TX-result observation — HARDWARE VALIDATED / FROZEN
-  P4-E5C transport failure → route invalidation — VALIDATED / FROZEN (controlled)
+  P4-E5C transport failure → route invalidation — HARDWARE VALIDATED / FROZEN
   
 
 ---
@@ -65,10 +65,10 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E3 E3C consolidation | 🔒 Frozen / validated |
 | P4-E4A dispatcher local dispatch | 🔒 Frozen / validated |
 | P4-E4B production receive path | 🔒 Frozen / validated |
-| P4-E4C production runtime wiring | 🔒 Frozen / HARDWARE VALIDATED |
+| P4-E4C production runtime wiring | 🔒 Frozen / Hardware validated |
 | P4-E5A next-hop failure detection | 🔒 Frozen / validated |
-| P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / hardware validated |
-| P4-E5C transport failure → route invalidation | 🔒 Frozen / validated (controlled) |
+| P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / Hardware validated |
+| P4-E5C transport failure → route invalidation | 🔒 Frozen / Hardware validated |
 
 ### Status interpretation
 
@@ -174,7 +174,7 @@ recorded in
 
 Controlled P4-E5C evidence is recorded in
 `docs/05_validation/E3.3.7_PHASE4_P4-E5C_IMPLEMENTATION.md`.
-P4-E5C is **VALIDATED / FROZEN** at the controlled-test level; real ESP-NOW
+P4-E5C is **HARDWARE VALIDATED / FROZEN**; real ESP-NOW
 hardware validation remains pending as a separate milestone.
 
 ### Phase 4 validation boundary
@@ -270,7 +270,7 @@ P4-E4C  Production runtime wiring               HARDWARE VALIDATED / FROZEN
 P4-E4D  Production runtime hardware validation  HARDWARE VALIDATED / FROZEN
 P4-E5A  Next-hop failure detection/propagation  VALIDATED / FROZEN
 P4-E5B  Real ESP-NOW TX-result observation      HARDWARE VALIDATED / FROZEN
-P4-E5C  Transport failure → route invalidation  VALIDATED / FROZEN (controlled)
+P4-E5C  Transport failure → route invalidation  HARDWARE VALIDATED / FROZEN
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are
@@ -328,3 +328,16 @@ Historical documents are intentionally preserved and are not used as the
 current project-status source. Current status is maintained in
 `docs/00_project/E3.3.7_IMPLEMENTATION_STATUS.md` and
 `docs/00_project/ROADMAP.md`.
+
+
+## P4-E5C Hardware Validation
+
+P4-E5C Transport Failure → Route Invalidation is **HARDWARE VALIDATED / FROZEN**.
+
+The production runtime was validated on one real ESP32 using a real ESP-NOW
+transmission to an unreachable next-hop. The resulting asynchronous transport
+failure invalidated all routes sharing that next-hop while preserving the
+unrelated active route.
+
+See:
+`docs/05_validation/E3.3.7_PHASE4_P4-E5C_HARDWARE_VALIDATION_RECORD.md`
