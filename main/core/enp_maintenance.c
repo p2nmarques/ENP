@@ -56,7 +56,7 @@ static void enp_maintenance_task(void *argument) {
 		enp_reliability_tick(now_ms);
 
 		const size_t expired = enp_neighbor_expire(&context->neighbors, now_ms,
-												   ENP_DISCOVERY_TIMEOUT_MS);
+												   ENP_NEIGHBOR_TIMEOUT_MS);
 
 		if (expired > 0U) {
 			ESP_LOGI(TAG, "Neighbor aging: %u neighbor(s) became STALE",
@@ -104,7 +104,7 @@ esp_err_t enp_maintenance_init(enp_context_t *context) {
 
 	ESP_LOGI(TAG, "Maintenance started: discovery=%u ms timeout=%u ms",
 			 (unsigned)ENP_DISCOVERY_INTERVAL_MS,
-			 (unsigned)ENP_DISCOVERY_TIMEOUT_MS);
+			 (unsigned)ENP_NEIGHBOR_TIMEOUT_MS);
 
 	return ESP_OK;
 }

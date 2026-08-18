@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5C_test_enp_production_runtime_hardware_main.c"
+    	"tests/2-E/E3/E3.2/E3.2.4_test_enp_neighbor_identity_main_RELAY.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"

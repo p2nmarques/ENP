@@ -12,6 +12,7 @@
  */
 
 #include "enp_route_discovery.h"
+#include "config/enp_defaults.h"
 
 #include <string.h>
 

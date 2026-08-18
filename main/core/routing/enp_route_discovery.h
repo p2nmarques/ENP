@@ -31,12 +31,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "config/enp_defaults.h"
+
 #ifndef ENP_MAX_RETRIES
 #define ENP_MAX_RETRIES 3U
-#endif
-
-#ifndef ENP_DISCOVERY_TIMEOUT_MS
-#define ENP_DISCOVERY_TIMEOUT_MS 2000U
 #endif
 
 #ifndef ENP_DISCOVERY_DEFAULT_TTL
