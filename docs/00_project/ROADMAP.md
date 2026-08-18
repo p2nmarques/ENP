@@ -149,12 +149,13 @@ Architectural rule established for E3: reliability owns the transaction and pack
 ### Phase 4 validation status
 
 ```text
-P4/E1 Reusable Data Plane            PASS / FROZEN
-P4/E2 Reliability Maintenance        PASS / FROZEN
-P4/E3 E3C Consolidation              PASS / FROZEN
-P4-E4A Dispatcher Local Dispatch     PASS / FROZEN
-P4-E4B Production Receive Path       PASS / FROZEN
-P4-E5A Next-Hop Failure Observation  PASS / FROZEN
+P4/E1 Reusable Data Plane                         PASS / FROZEN
+P4/E2 Reliability Maintenance                     PASS / FROZEN
+P4/E3 E3C Consolidation                           PASS / FROZEN
+P4-E4A Dispatcher Local Dispatch                  PASS / FROZEN
+P4-E4B Production Receive Path                    PASS / FROZEN
+P4-E5A Next-Hop Failure Observation               PASS / FROZEN
+P4-E5B Real ESP-NOW TX-Result Observation  HARDWARE VALIDATED / FROZEN
 ```
 
 P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
@@ -264,8 +265,15 @@ validated by the P4-E4D real-ESP32 / real-ESP-NOW validation.
 **VALIDATED / FROZEN** — 2026-08-17.
 
 The transport send-result observation boundary is implemented and validated
-through the controlled P4-E5A self-test. Real ESP-NOW failure observation is
-not yet hardware validated.
+through the controlled P4-E5A self-test. P4-E5A remains a controlled validation
+milestone; its real ESP-NOW hardware exercise is recorded separately as P4-E5B.
 
-Next work is real ESP-NOW failure observation followed by the separately
-reviewed routing failure/repair integration boundaries.
+### P4-E5B — Real ESP-NOW TX-Result Observation
+
+**HARDWARE VALIDATED / FROZEN** — 2026-08-18.
+
+Real ESP-NOW TX-result observation was demonstrated on ESP32 hardware, including
+a real `ESP_FAIL`, exactly one result observation, destination preservation,
+and delivery through the `enp_espnow` task context.
+
+The next boundary is P4-E5C: transport failure to route invalidation.

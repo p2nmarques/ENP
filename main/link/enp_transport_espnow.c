@@ -58,7 +58,8 @@ static const uint8_t s_broadcast_mac[ENP_ESPNOW_MAC_LENGTH] = {
 
 typedef enum {
 	ENP_ESPNOW_EVENT_STOP = 0,
-	ENP_ESPNOW_EVENT_RECEIVE
+	ENP_ESPNOW_EVENT_RECEIVE,
+	ENP_ESPNOW_EVENT_SEND_RESULT
 
 } enp_espnow_event_type_t;
 
@@ -73,6 +74,8 @@ typedef struct {
 	size_t length;
 
 	uint8_t data[ENP_MAX_FRAME_SIZE];
+
+	esp_err_t send_result;
 
 } enp_espnow_event_t;
 
@@ -107,6 +110,10 @@ static bool s_task_running = false;
 
 static enp_transport_receive_callback_t s_receive_callback = NULL;
 
+static enp_transport_send_result_callback_t s_send_result_callback = NULL;
+
+static void *s_send_result_context = NULL;
+
 /*----------------------------------------------------------
  * Forward Declarations
  *---------------------------------------------------------*/
@@ -121,6 +128,9 @@ enp_transport_espnow_send(const enp_transport_address_t *destination,
 
 static esp_err_t enp_transport_espnow_set_receive_callback(
 	enp_transport_receive_callback_t callback);
+
+static esp_err_t enp_transport_espnow_set_send_result_callback(
+	enp_transport_send_result_callback_t callback, void *context);
 
 static esp_err_t enp_transport_espnow_add_peer(const uint8_t *mac);
 
@@ -147,7 +157,9 @@ static enp_transport_t s_transport = {
 
 	.send = enp_transport_espnow_send,
 
-	.set_receive_callback = enp_transport_espnow_set_receive_callback};
+	.set_receive_callback = enp_transport_espnow_set_receive_callback,
+
+	.set_send_result_callback = enp_transport_espnow_set_send_result_callback};
 
 /*----------------------------------------------------------
  * Public API
@@ -288,6 +300,8 @@ static esp_err_t enp_transport_espnow_deinit(void) {
 	 * Prevent new application-level receive callbacks.
 	 */
 	s_receive_callback = NULL;
+	s_send_result_callback = NULL;
+	s_send_result_context = NULL;
 
 	/*
 	 * Stop ESP-NOW callbacks.
@@ -426,6 +440,22 @@ static esp_err_t enp_transport_espnow_set_receive_callback(
 	return ESP_OK;
 }
 
+static esp_err_t enp_transport_espnow_set_send_result_callback(
+	enp_transport_send_result_callback_t callback, void *context) {
+	if (callback == NULL) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	if (!s_initialized) {
+		return ESP_ERR_INVALID_STATE;
+	}
+
+	s_send_result_callback = callback;
+	s_send_result_context = context;
+
+	return ESP_OK;
+}
+
 /*----------------------------------------------------------
  * Peer Management
  *---------------------------------------------------------*/
@@ -533,6 +563,14 @@ static void enp_transport_espnow_task(void *argument) {
 			if (callback != NULL) {
 				callback(&event.source, event.data, event.length);
 			}
+		} else if (event.type == ENP_ESPNOW_EVENT_SEND_RESULT) {
+			enp_transport_send_result_callback_t callback =
+				s_send_result_callback;
+
+			if (callback != NULL) {
+				callback(&event.source, event.send_result,
+						 s_send_result_context);
+			}
 		}
 	}
 
@@ -600,14 +638,29 @@ enp_transport_espnow_receive_callback(const esp_now_recv_info_t *info,
 static void
 enp_transport_espnow_send_callback(const esp_now_send_info_t *tx_info,
 								   esp_now_send_status_t status) {
+	if ((tx_info == NULL) || (tx_info->des_addr == NULL) ||
+		(s_queue == NULL)) {
+		return;
+	}
+
+	enp_espnow_event_t event;
+
+	memset(&event, 0, sizeof(event));
+
+	event.type = ENP_ESPNOW_EVENT_SEND_RESULT;
+
+	event.source.length = ENP_ESPNOW_MAC_LENGTH;
+
+	memcpy(event.source.value, tx_info->des_addr, ENP_ESPNOW_MAC_LENGTH);
+
+	event.send_result =
+		(status == ESP_NOW_SEND_SUCCESS) ? ESP_OK : ESP_FAIL;
+
 	/*
-	 * The send callback executes in the ESP-NOW context.
+	 * Never block in the ESP-NOW callback context.
 	 *
-	 * Do not perform lengthy processing here.
-	 *
-	 * Future ENP TX statistics/retry handling should post
-	 * an event to a lower-priority task.
+	 * The existing static worker task delivers the ENP-level
+	 * result callback outside the ESP-NOW callback context.
 	 */
-	(void)tx_info;
-	(void)status;
+	(void)xQueueSend(s_queue, &event, 0);
 }

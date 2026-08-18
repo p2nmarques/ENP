@@ -21,6 +21,7 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
   P4-E4A local dispatch, P4-E4B production receive path and P4-E4C production runtime wiring are validated and frozen.
   P4-E4D production runtime hardware validation — HARDWARE VALIDATED / FROZEN
   P4-E5A next-hop failure detection and propagation — VALIDATED / FROZEN
+  P4-E5B real ESP-NOW TX-result observation — HARDWARE VALIDATED / FROZEN
   
 
 ---
@@ -65,6 +66,7 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E4B production receive path | 🔒 Frozen / validated |
 | P4-E4C production runtime wiring | 🔒 Frozen / HARDWARE VALIDATED |
 | P4-E5A next-hop failure detection | 🔒 Frozen / validated |
+| P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / hardware validated |
 
 ### Status interpretation
 
@@ -158,15 +160,22 @@ E3C then validated the complete reliability transaction over the three-node
 A → B → C routing topology, including retransmission, duplicate DATA
 suppression and cached-ACK recovery.
 
-### P4-E5A validation evidence
+### P4-E5A / P4-E5B validation evidence
 
-Controlled validation evidence is recorded in `docs/05_validation/E3.3.7_PHASE4_P4-E5A_VALIDATION_RECORD.md`. P4-E5A is VALIDATED / FROZEN and is not yet HARDWARE VALIDATED.
+Controlled P4-E5A evidence is recorded in
+`docs/05_validation/E3.3.7_PHASE4_P4-E5A_VALIDATION_RECORD.md`.
+P4-E5A remains **VALIDATED / FROZEN** at its controlled-test level.
+
+P4-E5B is **HARDWARE VALIDATED / FROZEN**. Its exact real-ESP32 evidence is
+recorded in
+`docs/05_validation/E3.3.7_PHASE4_P4-E5B_VALIDATION_RECORD.md`.
 
 ### Phase 4 validation boundary
 
 Phase 4 P4-E1 through P4-E4D consolidated the corresponding reusable ENP core
 components and production-runtime boundaries. P4-E4C and P4-E4D are hardware
-validated; P4-E5A is validated/frozen by controlled self-test. The earlier
+validated. P4-E5A is validated/frozen by controlled self-test, and P4-E5B is
+hardware validated/frozen on real ESP32 hardware. The earlier
 Phase 4 stages remain validated/frozen based on their
 defined test evidence:
 
@@ -253,6 +262,7 @@ P4-E4B  Production receive path                 VALIDATED / FROZEN
 P4-E4C  Production runtime wiring               HARDWARE VALIDATED / FROZEN
 P4-E4D  Production runtime hardware validation  HARDWARE VALIDATED / FROZEN
 P4-E5A  Next-hop failure detection/propagation  VALIDATED / FROZEN
+P4-E5B  Real ESP-NOW TX-result observation      HARDWARE VALIDATED / FROZEN
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are
