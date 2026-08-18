@@ -22,6 +22,7 @@ The v0.2 milestone established the frozen one-hop protocol foundation. The proje
   P4-E4D production runtime hardware validation — HARDWARE VALIDATED / FROZEN
   P4-E5A next-hop failure detection and propagation — VALIDATED / FROZEN
   P4-E5B real ESP-NOW TX-result observation — HARDWARE VALIDATED / FROZEN
+  P4-E5C transport failure → route invalidation — VALIDATED / FROZEN (controlled)
   
 
 ---
@@ -67,6 +68,7 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E4C production runtime wiring | 🔒 Frozen / HARDWARE VALIDATED |
 | P4-E5A next-hop failure detection | 🔒 Frozen / validated |
 | P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / hardware validated |
+| P4-E5C transport failure → route invalidation | 🔒 Frozen / validated (controlled) |
 
 ### Status interpretation
 
@@ -170,6 +172,11 @@ P4-E5B is **HARDWARE VALIDATED / FROZEN**. Its exact real-ESP32 evidence is
 recorded in
 `docs/05_validation/E3.3.7_PHASE4_P4-E5B_VALIDATION_RECORD.md`.
 
+Controlled P4-E5C evidence is recorded in
+`docs/05_validation/E3.3.7_PHASE4_P4-E5C_IMPLEMENTATION.md`.
+P4-E5C is **VALIDATED / FROZEN** at the controlled-test level; real ESP-NOW
+hardware validation remains pending as a separate milestone.
+
 ### Phase 4 validation boundary
 
 Phase 4 P4-E1 through P4-E4D consolidated the corresponding reusable ENP core
@@ -263,6 +270,7 @@ P4-E4C  Production runtime wiring               HARDWARE VALIDATED / FROZEN
 P4-E4D  Production runtime hardware validation  HARDWARE VALIDATED / FROZEN
 P4-E5A  Next-hop failure detection/propagation  VALIDATED / FROZEN
 P4-E5B  Real ESP-NOW TX-result observation      HARDWARE VALIDATED / FROZEN
+P4-E5C  Transport failure → route invalidation  VALIDATED / FROZEN (controlled)
 ```
 
 The E3.3.7 reliability API and Phase 3 E3A/E3B/E3C integration boundaries are

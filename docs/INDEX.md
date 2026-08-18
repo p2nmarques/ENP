@@ -33,6 +33,7 @@ Contains the implementation audits, hardware validation records, and consolidati
 - `05_validation/E3.3.7_PHASE4_E4A_DISPATCHER_LOCAL_DISPATCH_IDF6.0.2.md`
 - `05_validation/E3.3.7_PHASE4_E4B_PRODUCTION_RECEIVE_PATH_IDF6.0.2.md`
 - `05_validation/E3.3.7_PHASE4_E4D_PRODUCTION_RUNTIME_HARDWARE_VALIDATION_IDF6.0.2.md` 
+- `05_validation/E3.3.7_PHASE4_P4-E5C_IMPLEMENTATION.md`
 
 
 ## 99 — Historical

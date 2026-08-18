@@ -156,6 +156,7 @@ P4-E4A Dispatcher Local Dispatch                  PASS / FROZEN
 P4-E4B Production Receive Path                    PASS / FROZEN
 P4-E5A Next-Hop Failure Observation               PASS / FROZEN
 P4-E5B Real ESP-NOW TX-Result Observation  HARDWARE VALIDATED / FROZEN
+P4-E5C Transport Failure → Route Invalidation  VALIDATED / FROZEN (controlled)
 ```
 
 P4/E3 hardware acceptance uses the startup order `C -> B -> A`. This is a
@@ -276,4 +277,15 @@ Real ESP-NOW TX-result observation was demonstrated on ESP32 hardware, including
 a real `ESP_FAIL`, exactly one result observation, destination preservation,
 and delivery through the `enp_espnow` task context.
 
-The next boundary is P4-E5C: transport failure to route invalidation.
+The next boundary is real ESP-NOW hardware validation of P4-E5C, followed by the separately approved routing-resilience boundaries.
+
+
+### P4-E5C — Transport Failure → Route Invalidation
+
+**VALIDATED / FROZEN (controlled self-test)** — 2026-08-18.
+
+P4-E5C consumes the frozen P4-E5B transport failure result and transitions
+all ACTIVE routes using the failed logical next hop from ACTIVE to STALE.
+The controlled self-test passed the defined acceptance criteria.
+
+Real ESP-NOW hardware validation remains the next validation milestone.

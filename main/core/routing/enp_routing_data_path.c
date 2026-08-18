@@ -13,6 +13,53 @@
 
 #include "core/protocol/enp_packet.h"
 
+#include <string.h>
+
+static bool transport_address_equal(const enp_transport_address_t *lhs,
+								const enp_transport_address_t *rhs) {
+	if (lhs == NULL || rhs == NULL || lhs->length != rhs->length) {
+		return false;
+	}
+
+	return memcmp(lhs->value, rhs->value, lhs->length) == 0;
+}
+
+static void transport_send_result_callback(
+	const enp_transport_address_t *destination, esp_err_t result,
+	void *context) {
+	enp_routing_data_path_t *path = (enp_routing_data_path_t *)context;
+
+	if (path == NULL || path->routes == NULL || destination == NULL ||
+		result == ESP_OK || path->resolve_transport == NULL) {
+		return;
+	}
+
+	/*
+	 * The transport reports only a transport address. Resolve each active
+	 * logical next-hop through the existing routing integration boundary and
+	 * invalidate every route whose next-hop resolves to the failed address.
+	 * No transport or reliability policy is implemented here.
+	 */
+	for (size_t i = 0U; i < path->routes->count; ++i) {
+		enp_route_entry_t *entry = &path->routes->entries[i];
+
+		if (entry->state != ENP_ROUTE_STATE_ACTIVE) {
+			continue;
+		}
+
+		enp_transport_address_t resolved = {0};
+		if (!path->resolve_transport(path->resolve_context, entry->next_hop,
+									 &resolved)) {
+			continue;
+		}
+
+		if (transport_address_equal(&resolved, destination)) {
+			(void)enp_route_table_invalidate(path->routes, entry->destination);
+		}
+	}
+}
+
+
 static bool lookup_active_route(const enp_routing_data_path_t *path,
 								const enp_address_t *destination,
 								enp_route_entry_t *entry) {
@@ -62,10 +109,24 @@ bool enp_routing_data_path_init(
 		return false;
 	}
 
+	if (transport->set_send_result_callback == NULL) {
+		return false;
+	}
+
 	path->routes = routes;
 	path->transport = transport;
 	path->resolve_transport = resolve_transport;
 	path->resolve_context = resolve_context;
+
+	if (enp_transport_set_send_result_callback(
+			transport, transport_send_result_callback, path) != ESP_OK) {
+		path->routes = NULL;
+		path->transport = NULL;
+		path->resolve_transport = NULL;
+		path->resolve_context = NULL;
+		return false;
+	}
+
 	return true;
 }
 
