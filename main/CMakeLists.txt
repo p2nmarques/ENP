@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"tests/2-E/E3/E3.2/E3.2.4_test_enp_neighbor_identity_main_RELAY.c"
+    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5D_step2_test_enp_e5c_repair_event_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -23,6 +23,7 @@ idf_component_register(
         "core/routing/enp_routing_data_path.c"
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
+        "core/routing/enp_route_repair.c"
         "core/routing/enp_route_table.c"
         "core/routing/enp_rerr_processor.c"
         "core/routing/enp_rrep_processor.c"

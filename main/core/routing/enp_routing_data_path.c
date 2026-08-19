@@ -16,7 +16,7 @@
 #include <string.h>
 
 static bool transport_address_equal(const enp_transport_address_t *lhs,
-								const enp_transport_address_t *rhs) {
+									const enp_transport_address_t *rhs) {
 	if (lhs == NULL || rhs == NULL || lhs->length != rhs->length) {
 		return false;
 	}
@@ -24,9 +24,9 @@ static bool transport_address_equal(const enp_transport_address_t *lhs,
 	return memcmp(lhs->value, rhs->value, lhs->length) == 0;
 }
 
-static void transport_send_result_callback(
-	const enp_transport_address_t *destination, esp_err_t result,
-	void *context) {
+static void
+transport_send_result_callback(const enp_transport_address_t *destination,
+							   esp_err_t result, void *context) {
 	enp_routing_data_path_t *path = (enp_routing_data_path_t *)context;
 
 	if (path == NULL || path->routes == NULL || destination == NULL ||
@@ -54,11 +54,15 @@ static void transport_send_result_callback(
 		}
 
 		if (transport_address_equal(&resolved, destination)) {
-			(void)enp_route_table_invalidate(path->routes, entry->destination);
+			const enp_route_destination_t failed_next_hop = entry->next_hop;
+			if (enp_route_table_invalidate(path->routes, entry->destination) &&
+				path->route_failure != NULL) {
+				path->route_failure(path->route_failure_context,
+									entry->destination, failed_next_hop);
+			}
 		}
 	}
 }
-
 
 static bool lookup_active_route(const enp_routing_data_path_t *path,
 								const enp_address_t *destination,
@@ -184,4 +188,16 @@ esp_err_t enp_routing_data_path_forward(enp_routing_data_path_t *path,
 	}
 
 	return transmit_to_next_hop(path, &route, &forwarded);
+}
+
+bool enp_routing_data_path_set_route_failure_callback(
+	enp_routing_data_path_t *path, enp_routing_route_failure_fn callback,
+	void *context) {
+	if (path == NULL) {
+		return false;
+	}
+
+	path->route_failure = callback;
+	path->route_failure_context = context;
+	return true;
 }

@@ -37,17 +37,33 @@ typedef bool (*enp_routing_resolve_transport_fn)(
 	void *context, enp_route_destination_t next_hop,
 	enp_transport_address_t *transport_address);
 
+typedef void (*enp_routing_route_failure_fn)(
+	void *context, enp_route_destination_t destination,
+	enp_route_destination_t failed_next_hop);
+
 typedef struct {
 	enp_route_table_t *routes;
 	enp_transport_t *transport;
 	enp_routing_resolve_transport_fn resolve_transport;
 	void *resolve_context;
+	enp_routing_route_failure_fn route_failure;
+	void *route_failure_context;
 } enp_routing_data_path_t;
 
 bool enp_routing_data_path_init(
 	enp_routing_data_path_t *path, enp_route_table_t *routes,
 	enp_transport_t *transport,
 	enp_routing_resolve_transport_fn resolve_transport, void *resolve_context);
+
+/*
+ * Register the E5D route-repair notification boundary. The callback is
+ * invoked once for each ACTIVE route transitioned to STALE by a transport
+ * failure. The callback is notification-only and executes in the transport
+ * send-result callback context.
+ */
+bool enp_routing_data_path_set_route_failure_callback(
+	enp_routing_data_path_t *path, enp_routing_route_failure_fn callback,
+	void *context);
 
 /*
  * Submit an originator DATA packet using the active route to its logical
