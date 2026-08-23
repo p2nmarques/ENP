@@ -298,3 +298,26 @@ Real ESP-NOW hardware validation remains the next validation milestone.
 - [X] Freeze P4-E5C.
 
 **Status: HARDWARE VALIDATED / FROZEN.**
+
+
+### P4-E5D — Route Repair / R4 Rediscovery
+
+- [X] Freeze conservative Step-3 interface semantics (v2).
+- [X] Resolve Step-3 implementation audit gates.
+- [X] Implement the E5D → R4 orchestration adapter.
+- [X] Validate RREQ/next-hop selection and failed-next-hop exclusion.
+- [X] Validate RREP-originator correlation and RREP → R4-A completion.
+- [X] Expand controlled validation: old RREP, duplicate repair, queued
+  destinations, timeout/retries and unrelated-route isolation.
+- [X] Record E3.2.2 regression synchronization.
+- [X] Record E5A controlled validation.
+- [X] Record E5B hardware validation.
+- [X] Record E5C hardware validation.
+- [X] Execute P4-E5D Step-3 V3.4 three-node hardware validation.
+- [X] Freeze P4-E5D Step-3 implementation.
+
+**P4-E5D Step-3: HARDWARE VALIDATED / FROZEN — 2026-08-23.**
+
+The frozen Step-3 baseline is now the regression reference for subsequent
+routing work. No additional functionality should be added to Step-3 without
+opening a new revision/phase.
