@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5D_hardware_validation_main_v3.4.c"
+    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5E_gate2_reliability_controlled_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"

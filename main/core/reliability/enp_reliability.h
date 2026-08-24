@@ -48,10 +48,20 @@ typedef uint16_t enp_reliability_handle_t;
 
 #define ENP_RELIABILITY_INVALID_HANDLE ((enp_reliability_handle_t)0U)
 
+/*
+ * Bounded identity for one route-repair operation. Reliability does not
+ * allocate or own repair operations; it only retains the identity supplied
+ * by the integration layer while a transaction is REPAIR_PENDING.
+ */
+typedef uint32_t enp_reliability_repair_id_t;
+
+#define ENP_RELIABILITY_INVALID_REPAIR_ID ((enp_reliability_repair_id_t)0U)
+
 typedef enum {
 	ENP_RELIABILITY_STATE_INVALID = 0,
 	ENP_RELIABILITY_STATE_CREATED,
 	ENP_RELIABILITY_STATE_WAITING_FOR_ACK,
+	ENP_RELIABILITY_STATE_REPAIR_PENDING,
 	ENP_RELIABILITY_STATE_RETRYING,
 	ENP_RELIABILITY_STATE_DELIVERED,
 	ENP_RELIABILITY_STATE_FAILED,
@@ -111,6 +121,26 @@ bool enp_reliability_send(const enp_packet_t *packet, uint32_t now_ms,
 
 bool enp_reliability_process_ack(const enp_packet_t *ack_packet,
 								 uint32_t now_ms);
+
+/*
+ * Hold an active DATA transaction while an externally-owned route repair is
+ * in progress. Reliability retains ownership of the transaction, packet,
+ * retry budget and final result.
+ */
+bool enp_reliability_begin_repair(
+		enp_reliability_handle_t handle,
+		enp_reliability_repair_id_t repair_id);
+
+/*
+ * Release a REPAIR_PENDING transaction after the identified repair operation
+ * completes. SUCCESS resumes through the normal Reliability retransmission
+ * path; FAILURE completes the transaction as FAILED.
+ */
+bool enp_reliability_repair_result(
+		enp_reliability_handle_t handle,
+		enp_reliability_repair_id_t repair_id,
+		bool success,
+		uint32_t now_ms);
 
 void enp_reliability_tick(uint32_t now_ms);
 

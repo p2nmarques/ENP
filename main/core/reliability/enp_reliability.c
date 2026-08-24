@@ -34,6 +34,8 @@ typedef struct {
 	uint8_t retry_count;
 	uint32_t deadline_ms;
 
+	enp_reliability_repair_id_t repair_id;
+
 	enp_reliability_state_t state;
 
 	/* Static retransmission copy. */
@@ -131,8 +133,9 @@ static bool packet_is_reliable_data(const enp_packet_t *packet) {
 static bool
 ack_matches_transaction(const enp_reliability_transaction_t *transaction,
 						const enp_packet_t *ack_packet) {
-	if ((transaction == NULL) || !transaction->active || (ack_packet == NULL) ||
-		!enp_packet_verify(ack_packet)) {
+	if ((transaction == NULL) || !transaction->active ||
+		transaction->state != ENP_RELIABILITY_STATE_WAITING_FOR_ACK ||
+		(ack_packet == NULL) || !enp_packet_verify(ack_packet)) {
 		return false;
 	}
 
@@ -174,6 +177,7 @@ static void complete_transaction(enp_reliability_transaction_t *transaction,
 
 	transaction->state = state;
 	transaction->active = false;
+	transaction->repair_id = ENP_RELIABILITY_INVALID_REPAIR_ID;
 
 	notify_result(handle, result);
 }
@@ -343,6 +347,80 @@ bool enp_reliability_process_ack(const enp_packet_t *ack_packet,
 	 * anything a second time.
 	 */
 	return false;
+}
+
+bool enp_reliability_begin_repair(
+		enp_reliability_handle_t handle,
+		enp_reliability_repair_id_t repair_id) {
+	if (!s_initialized || !s_started ||
+		repair_id == ENP_RELIABILITY_INVALID_REPAIR_ID) {
+		return false;
+	}
+
+	enp_reliability_transaction_t *transaction = find_transaction(handle);
+
+	if ((transaction == NULL) ||
+		transaction->state != ENP_RELIABILITY_STATE_WAITING_FOR_ACK) {
+		return false;
+	}
+
+	transaction->repair_id = repair_id;
+	transaction->state = ENP_RELIABILITY_STATE_REPAIR_PENDING;
+
+	/* The existing deadline is intentionally retained but suspended by the
+	 * state machine. It is replaced when the normal retransmission path
+	 * resumes after a successful repair. */
+	return true;
+}
+
+bool enp_reliability_repair_result(
+		enp_reliability_handle_t handle,
+		enp_reliability_repair_id_t repair_id,
+		bool success,
+		uint32_t now_ms) {
+	if (!s_initialized || !s_started ||
+		repair_id == ENP_RELIABILITY_INVALID_REPAIR_ID) {
+		return false;
+	}
+
+	enp_reliability_transaction_t *transaction = find_transaction(handle);
+
+	if ((transaction == NULL) ||
+		transaction->state != ENP_RELIABILITY_STATE_REPAIR_PENDING ||
+		transaction->repair_id != repair_id) {
+		return false;
+	}
+
+	if (!success) {
+		complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
+						 ENP_RELIABILITY_RESULT_FAILED);
+		return true;
+	}
+
+	/* Repair itself does not consume retry budget. The first actual DATA
+	 * retransmission after repair is a normal Reliability retry. */
+	if (transaction->retry_count >= ENP_RELIABILITY_MAX_RETRIES) {
+		complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
+						 ENP_RELIABILITY_RESULT_FAILED);
+		return true;
+	}
+
+	transaction->retry_count++;
+	transaction->state = ENP_RELIABILITY_STATE_RETRYING;
+
+	const esp_err_t err = s_submit(&transaction->packet, s_submit_context);
+
+	if (err != ESP_OK) {
+		complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
+						 ENP_RELIABILITY_RESULT_FAILED);
+		return true;
+	}
+
+	transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
+	transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
+	transaction->repair_id = ENP_RELIABILITY_INVALID_REPAIR_ID;
+
+	return true;
 }
 
 void enp_reliability_tick(uint32_t now_ms) {
@@ -633,6 +711,92 @@ bool enp_reliability_self_test(void) {
 
 	if (s_selftest_submit_count != 6U || s_selftest_result_count != 1U ||
 		s_selftest_last_result != ENP_RELIABILITY_RESULT_FAILED) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* Test 5: a correlated repair suspends timeout/retry progression. */
+	handle = ENP_RELIABILITY_INVALID_HANDLE;
+	s_selftest_result_count = 0U;
+	s_selftest_last_result = ENP_RELIABILITY_RESULT_NONE;
+
+	if (!enp_reliability_send(&data, 8000U, &handle) ||
+		!enp_reliability_begin_repair(handle, 0xE5E50001U)) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	if (!enp_reliability_get_state(handle, &state) ||
+		state != ENP_RELIABILITY_STATE_REPAIR_PENDING) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	if (!enp_reliability_get_retry_count(handle, &retry_count) ||
+		retry_count != 0U) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	enp_reliability_tick(10000U);
+	if (s_selftest_submit_count != 7U ||
+		!enp_reliability_get_retry_count(handle, &retry_count) ||
+		retry_count != 0U) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* ACK cannot complete a transaction while repair is pending. */
+	if (enp_reliability_process_ack(&ack, 10001U) ||
+		s_selftest_result_count != 0U) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* Wrong repair identity is rejected and leaves the transaction pending. */
+	if (enp_reliability_repair_result(handle, 0xE5E50002U, true, 10010U) ||
+		!enp_reliability_get_state(handle, &state) ||
+		state != ENP_RELIABILITY_STATE_REPAIR_PENDING) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* Successful repair resumes through the normal retry path. */
+	if (!enp_reliability_repair_result(handle, 0xE5E50001U, true, 10100U) ||
+		s_selftest_submit_count != 8U ||
+		!enp_reliability_get_state(handle, &state) ||
+		state != ENP_RELIABILITY_STATE_WAITING_FOR_ACK ||
+		!enp_reliability_get_retry_count(handle, &retry_count) ||
+		retry_count != 1U) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* Duplicate completion for the old repair operation is rejected. */
+	if (enp_reliability_repair_result(handle, 0xE5E50001U, true, 10200U)) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	/* Test 6: multiple transactions may attach to one repair operation. */
+	enp_reliability_handle_t handle_b = ENP_RELIABILITY_INVALID_HANDLE;
+	if (!enp_reliability_send(&data, 11000U, &handle_b) ||
+		!enp_reliability_begin_repair(handle, 0xE5E50010U) ||
+		!enp_reliability_begin_repair(handle_b, 0xE5E50010U)) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	if (!enp_reliability_repair_result(handle, 0xE5E50010U, false, 11100U) ||
+		!enp_reliability_repair_result(handle_b, 0xE5E50010U, true, 11100U) ||
+		s_selftest_result_count != 1U ||
+		s_selftest_last_result != ENP_RELIABILITY_RESULT_FAILED) {
+		enp_reliability_deinit();
+		return false;
+	}
+
+	if (!enp_reliability_get_state(handle_b, &state) ||
+		state != ENP_RELIABILITY_STATE_WAITING_FOR_ACK) {
 		enp_reliability_deinit();
 		return false;
 	}
