@@ -86,6 +86,15 @@ typedef esp_err_t (*enp_reliability_submit_fn)(const enp_packet_t *packet,
 											   void *user_context);
 
 /*
+ * Extended submit callback used by integration layers that need the exact
+ * Reliability transaction handle at the asynchronous transport boundary.
+ * The legacy callback above remains supported for existing integrations.
+ */
+typedef esp_err_t (*enp_reliability_submit_ex_fn)(
+	const enp_packet_t *packet, enp_reliability_handle_t handle,
+	void *user_context);
+
+/*
  * Optional transaction result callback.
  */
 typedef void (*enp_reliability_result_fn)(enp_reliability_handle_t handle,
@@ -108,6 +117,10 @@ void enp_reliability_deinit(void);
 
 bool enp_reliability_set_submit_callback(enp_reliability_submit_fn submit,
 										 void *user_context);
+
+/* Register the handle-aware submit boundary used by E5E. */
+bool enp_reliability_set_submit_callback_ex(
+	enp_reliability_submit_ex_fn submit, void *user_context);
 
 bool enp_reliability_set_result_callback(enp_reliability_result_fn result,
 										 void *user_context);

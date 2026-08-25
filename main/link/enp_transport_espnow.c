@@ -36,6 +36,9 @@
 #define ENP_ESPNOW_QUEUE_LENGTH 8U
 #define ENP_ESPNOW_TASK_STACK_SIZE 4096U
 #define ENP_ESPNOW_TASK_PRIORITY 5U
+#define ENP_ESPNOW_TX_QUEUE_LENGTH 8U
+#define ENP_ESPNOW_TX_TASK_STACK_SIZE 4096U
+#define ENP_ESPNOW_TX_TASK_PRIORITY 5U
 
 #define ENP_ESPNOW_MAC_LENGTH ESP_NOW_ETH_ALEN
 
@@ -76,8 +79,16 @@ typedef struct {
 	uint8_t data[ENP_MAX_FRAME_SIZE];
 
 	esp_err_t send_result;
+	enp_transport_correlation_id_t correlation_id;
 
 } enp_espnow_event_t;
+
+typedef struct {
+	enp_transport_address_t destination;
+	size_t length;
+	uint8_t data[ENP_MAX_FRAME_SIZE];
+	enp_transport_correlation_id_t correlation_id;
+} enp_espnow_tx_request_t;
 
 /*----------------------------------------------------------
  * Static Queue
@@ -90,6 +101,10 @@ static uint8_t
 
 static QueueHandle_t s_queue = NULL;
 
+static StaticQueue_t s_tx_queue_control;
+static uint8_t s_tx_queue_storage[ENP_ESPNOW_TX_QUEUE_LENGTH * sizeof(enp_espnow_tx_request_t)];
+static QueueHandle_t s_tx_queue = NULL;
+
 /*----------------------------------------------------------
  * Static Task
  *---------------------------------------------------------*/
@@ -99,6 +114,10 @@ static StackType_t s_task_stack[ENP_ESPNOW_TASK_STACK_SIZE];
 static StaticTask_t s_task_control;
 
 static TaskHandle_t s_task = NULL;
+
+static StackType_t s_tx_task_stack[ENP_ESPNOW_TX_TASK_STACK_SIZE];
+static StaticTask_t s_tx_task_control;
+static TaskHandle_t s_tx_task = NULL;
 
 /*----------------------------------------------------------
  * Runtime State
@@ -111,8 +130,16 @@ static bool s_task_running = false;
 static enp_transport_receive_callback_t s_receive_callback = NULL;
 
 static enp_transport_send_result_callback_t s_send_result_callback = NULL;
+static enp_transport_send_result_ex_callback_t s_send_result_ex_callback = NULL;
 
 static void *s_send_result_context = NULL;
+
+static volatile bool s_tx_pending = false;
+static volatile bool s_tx_stop = false;
+static volatile esp_now_send_status_t s_pending_status = ESP_NOW_SEND_FAIL;
+static enp_transport_address_t s_pending_destination = {0};
+static enp_transport_address_t s_pending_expected_destination = {0};
+static enp_transport_correlation_id_t s_pending_correlation_id = ENP_TRANSPORT_INVALID_CORRELATION_ID;
 
 /*----------------------------------------------------------
  * Forward Declarations
@@ -126,17 +153,26 @@ static esp_err_t
 enp_transport_espnow_send(const enp_transport_address_t *destination,
 						  const void *data, size_t length);
 
+static esp_err_t enp_transport_espnow_send_ex(
+	const enp_transport_address_t *destination, const void *data, size_t length,
+	enp_transport_correlation_id_t correlation_id);
+
 static esp_err_t enp_transport_espnow_set_receive_callback(
 	enp_transport_receive_callback_t callback);
 
 static esp_err_t enp_transport_espnow_set_send_result_callback(
 	enp_transport_send_result_callback_t callback, void *context);
 
+static esp_err_t enp_transport_espnow_set_send_result_callback_ex(
+	enp_transport_send_result_ex_callback_t callback, void *context);
+
 static esp_err_t enp_transport_espnow_add_peer(const uint8_t *mac);
 
 static esp_err_t enp_transport_espnow_add_broadcast_peer(void);
 
 static void enp_transport_espnow_task(void *argument);
+
+static void enp_transport_espnow_tx_task(void *argument);
 
 static void
 enp_transport_espnow_receive_callback(const esp_now_recv_info_t *info,
@@ -159,7 +195,9 @@ static enp_transport_t s_transport = {
 
 	.set_receive_callback = enp_transport_espnow_set_receive_callback,
 
-	.set_send_result_callback = enp_transport_espnow_set_send_result_callback};
+	.set_send_result_callback = enp_transport_espnow_set_send_result_callback,
+	.set_send_result_callback_ex = enp_transport_espnow_set_send_result_callback_ex,
+	.send_ex = enp_transport_espnow_send_ex};
 
 /*----------------------------------------------------------
  * Public API
@@ -256,6 +294,20 @@ static esp_err_t enp_transport_espnow_init(const enp_config_t *config) {
 		return ESP_FAIL;
 	}
 
+	/* Create the static TX request queue. */
+	s_tx_queue = xQueueCreateStatic(
+		ENP_ESPNOW_TX_QUEUE_LENGTH, sizeof(enp_espnow_tx_request_t),
+		s_tx_queue_storage, &s_tx_queue_control);
+
+	if (s_tx_queue == NULL) {
+		ESP_LOGE(TAG, "Failed to create static TX queue");
+		s_queue = NULL;
+		(void)esp_now_unregister_send_cb();
+		(void)esp_now_unregister_recv_cb();
+		(void)esp_now_deinit();
+		return ESP_FAIL;
+	}
+
 	/*
 	 * Create the static worker task.
 	 */
@@ -270,11 +322,30 @@ static esp_err_t enp_transport_espnow_init(const enp_config_t *config) {
 
 		s_task_running = false;
 		s_queue = NULL;
+		s_tx_queue = NULL;
 
 		(void)esp_now_unregister_send_cb();
 		(void)esp_now_unregister_recv_cb();
 		(void)esp_now_deinit();
 
+		return ESP_FAIL;
+	}
+
+	s_tx_stop = false;
+	s_tx_pending = false;
+	s_tx_task = xTaskCreateStatic(
+		enp_transport_espnow_tx_task, "enp_espnow_tx",
+		ENP_ESPNOW_TX_TASK_STACK_SIZE, NULL, ENP_ESPNOW_TX_TASK_PRIORITY,
+		s_tx_task_stack, &s_tx_task_control);
+
+	if (s_tx_task == NULL) {
+		ESP_LOGE(TAG, "Failed to create static TX worker task");
+		s_task_running = false;
+		s_queue = NULL;
+		s_tx_queue = NULL;
+		(void)esp_now_unregister_send_cb();
+		(void)esp_now_unregister_recv_cb();
+		(void)esp_now_deinit();
 		return ESP_FAIL;
 	}
 
@@ -301,7 +372,21 @@ static esp_err_t enp_transport_espnow_deinit(void) {
 	 */
 	s_receive_callback = NULL;
 	s_send_result_callback = NULL;
+	s_send_result_ex_callback = NULL;
 	s_send_result_context = NULL;
+
+	/* Stop the TX worker before unregistering the ESP-NOW send callback. */
+	s_tx_stop = true;
+	if (s_tx_task != NULL) {
+		(void)xTaskNotifyGive(s_tx_task);
+		for (uint32_t i = 0U; i < 20U && s_tx_task != NULL; ++i) {
+			vTaskDelay(pdMS_TO_TICKS(1U));
+		}
+		if (s_tx_task != NULL) {
+			vTaskDelete(s_tx_task);
+			s_tx_task = NULL;
+		}
+	}
 
 	/*
 	 * Stop ESP-NOW callbacks.
@@ -354,8 +439,12 @@ static esp_err_t enp_transport_espnow_deinit(void) {
 	}
 
 	s_queue = NULL;
+	s_tx_queue = NULL;
 	s_task = NULL;
+	s_tx_task = NULL;
 	s_task_running = false;
+	s_tx_pending = false;
+	s_tx_stop = false;
 	s_initialized = false;
 
 	ESP_LOGI(TAG, "ESP-NOW transport deinitialized");
@@ -370,6 +459,13 @@ static esp_err_t enp_transport_espnow_deinit(void) {
 static esp_err_t
 enp_transport_espnow_send(const enp_transport_address_t *destination,
 						  const void *data, size_t length) {
+	return enp_transport_espnow_send_ex(
+		destination, data, length, ENP_TRANSPORT_INVALID_CORRELATION_ID);
+}
+
+static esp_err_t enp_transport_espnow_send_ex(
+	const enp_transport_address_t *destination, const void *data, size_t length,
+	enp_transport_correlation_id_t correlation_id) {
 	if ((destination == NULL) || (data == NULL) || (length == 0U)) {
 		return ESP_ERR_INVALID_ARG;
 	}
@@ -382,43 +478,36 @@ enp_transport_espnow_send(const enp_transport_address_t *destination,
 		return ESP_ERR_INVALID_SIZE;
 	}
 
-	/*
-	 * Transport-level broadcast.
-	 *
-	 * ENP defines:
-	 *
-	 *     destination->length == 0
-	 *
-	 * as broadcast.
-	 *
-	 * The ESP-NOW implementation maps this to:
-	 *
-	 *     FF:FF:FF:FF:FF:FF
-	 *
-	 * The broadcast peer was already installed during
-	 * transport initialization.
-	 */
-	if (destination->length == 0U) {
-		return esp_now_send(s_broadcast_mac, (const uint8_t *)data, length);
-	}
-
-	/*
-	 * ESP-NOW unicast addresses are six bytes.
-	 */
-	if (destination->length != ENP_ESPNOW_MAC_LENGTH) {
+	if (destination->length != 0U &&
+		destination->length != ENP_ESPNOW_MAC_LENGTH) {
 		return ESP_ERR_INVALID_ARG;
 	}
 
-	/*
-	 * Add the unicast peer if necessary.
-	 */
-	esp_err_t err = enp_transport_espnow_add_peer(destination->value);
+	const uint8_t *mac = (destination->length == 0U)
+		? s_broadcast_mac
+		: destination->value;
 
-	if (err != ESP_OK) {
-		return err;
+	const esp_err_t peer_err = enp_transport_espnow_add_peer(mac);
+	if (peer_err != ESP_OK) {
+		return peer_err;
 	}
 
-	return esp_now_send(destination->value, (const uint8_t *)data, length);
+	if (s_tx_queue == NULL) {
+		return ESP_ERR_INVALID_STATE;
+	}
+
+	enp_espnow_tx_request_t request;
+	memset(&request, 0, sizeof(request));
+	request.destination = *destination;
+	request.length = length;
+	request.correlation_id = correlation_id;
+	memcpy(request.data, data, length);
+
+	if (xQueueSend(s_tx_queue, &request, 0) != pdTRUE) {
+		return ESP_ERR_NO_MEM;
+	}
+
+	return ESP_OK;
 }
 
 /*----------------------------------------------------------
@@ -453,6 +542,21 @@ static esp_err_t enp_transport_espnow_set_send_result_callback(
 	s_send_result_callback = callback;
 	s_send_result_context = context;
 
+	return ESP_OK;
+}
+
+static esp_err_t enp_transport_espnow_set_send_result_callback_ex(
+	enp_transport_send_result_ex_callback_t callback, void *context) {
+	if (callback == NULL) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	if (!s_initialized) {
+		return ESP_ERR_INVALID_STATE;
+	}
+
+	s_send_result_ex_callback = callback;
+	s_send_result_context = context;
 	return ESP_OK;
 }
 
@@ -566,10 +670,16 @@ static void enp_transport_espnow_task(void *argument) {
 		} else if (event.type == ENP_ESPNOW_EVENT_SEND_RESULT) {
 			enp_transport_send_result_callback_t callback =
 				s_send_result_callback;
+			enp_transport_send_result_ex_callback_t callback_ex =
+				s_send_result_ex_callback;
 
 			if (callback != NULL) {
 				callback(&event.source, event.send_result,
 						 s_send_result_context);
+			}
+			if (callback_ex != NULL) {
+				callback_ex(&event.source, event.send_result,
+						 event.correlation_id, s_send_result_context);
 			}
 		}
 	}
@@ -637,30 +747,98 @@ enp_transport_espnow_receive_callback(const esp_now_recv_info_t *info,
 
 static void
 enp_transport_espnow_send_callback(const esp_now_send_info_t *tx_info,
-								   esp_now_send_status_t status) {
+									   esp_now_send_status_t status) {
 	if ((tx_info == NULL) || (tx_info->des_addr == NULL) ||
-		(s_queue == NULL)) {
+		(s_tx_task == NULL) || !s_tx_pending) {
 		return;
 	}
 
-	enp_espnow_event_t event;
+	/* ESP-NOW exposes no application callback context. Exactly one physical
+	 * transmission is in flight, so this resolves to its pending record. */
+	const uint8_t *expected = (s_pending_expected_destination.length == 0U)
+		? s_broadcast_mac
+		: s_pending_expected_destination.value;
+	if (memcmp(expected, tx_info->des_addr, ENP_ESPNOW_MAC_LENGTH) != 0) {
+		ESP_LOGW(TAG, "Ignoring TX callback for unexpected destination");
+		return;
+	}
 
-	memset(&event, 0, sizeof(event));
+	memset(&s_pending_destination, 0, sizeof(s_pending_destination));
+	s_pending_destination.length = ENP_ESPNOW_MAC_LENGTH;
+	memcpy(s_pending_destination.value, tx_info->des_addr,
+		   ENP_ESPNOW_MAC_LENGTH);
+	s_pending_status = status;
+	(void)xTaskNotifyGive(s_tx_task);
+}
 
-	event.type = ENP_ESPNOW_EVENT_SEND_RESULT;
+/*----------------------------------------------------------
+ * TX Worker
+ *---------------------------------------------------------*/
 
-	event.source.length = ENP_ESPNOW_MAC_LENGTH;
+static void enp_transport_espnow_tx_task(void *argument) {
+	(void)argument;
+	enp_espnow_tx_request_t request;
 
-	memcpy(event.source.value, tx_info->des_addr, ENP_ESPNOW_MAC_LENGTH);
+	while (!s_tx_stop) {
+		if (xQueueReceive(s_tx_queue, &request, portMAX_DELAY) != pdTRUE) {
+			continue;
+		}
 
-	event.send_result =
-		(status == ESP_NOW_SEND_SUCCESS) ? ESP_OK : ESP_FAIL;
+		if (s_tx_stop) {
+			break;
+		}
 
-	/*
-	 * Never block in the ESP-NOW callback context.
-	 *
-	 * The existing static worker task delivers the ENP-level
-	 * result callback outside the ESP-NOW callback context.
-	 */
-	(void)xQueueSend(s_queue, &event, 0);
+		s_pending_destination = request.destination;
+		s_pending_expected_destination = request.destination;
+		s_pending_correlation_id = request.correlation_id;
+		s_pending_status = ESP_NOW_SEND_FAIL;
+		s_tx_pending = true;
+
+		const uint8_t *mac = (request.destination.length == 0U)
+			? s_broadcast_mac
+			: request.destination.value;
+
+		const esp_err_t submit_result =
+			esp_now_send(mac, request.data, request.length);
+
+		if (submit_result != ESP_OK) {
+			enp_espnow_event_t event;
+			memset(&event, 0, sizeof(event));
+			event.type = ENP_ESPNOW_EVENT_SEND_RESULT;
+			event.source = request.destination;
+			event.send_result = submit_result;
+			event.correlation_id = request.correlation_id;
+			s_tx_pending = false;
+			s_pending_correlation_id = ENP_TRANSPORT_INVALID_CORRELATION_ID;
+			memset(&s_pending_expected_destination, 0, sizeof(s_pending_expected_destination));
+			(void)xQueueSend(s_queue, &event, 0);
+			continue;
+		}
+
+		(void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		if (s_tx_stop) {
+			s_tx_pending = false;
+			s_pending_correlation_id = ENP_TRANSPORT_INVALID_CORRELATION_ID;
+			memset(&s_pending_expected_destination, 0, sizeof(s_pending_expected_destination));
+			break;
+		}
+
+		enp_espnow_event_t event;
+		memset(&event, 0, sizeof(event));
+		event.type = ENP_ESPNOW_EVENT_SEND_RESULT;
+		event.source = s_pending_destination;
+		event.send_result =
+			(s_pending_status == ESP_NOW_SEND_SUCCESS) ? ESP_OK : ESP_FAIL;
+		event.correlation_id = s_pending_correlation_id;
+
+		s_tx_pending = false;
+		s_pending_correlation_id = ENP_TRANSPORT_INVALID_CORRELATION_ID;
+		memset(&s_pending_expected_destination, 0, sizeof(s_pending_expected_destination));
+		(void)xQueueSend(s_queue, &event, 0);
+	}
+
+	s_tx_pending = false;
+	s_tx_task = NULL;
+	vTaskDelete(NULL);
 }

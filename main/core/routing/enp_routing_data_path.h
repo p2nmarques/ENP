@@ -41,6 +41,10 @@ typedef void (*enp_routing_route_failure_fn)(
 	void *context, enp_route_destination_t destination,
 	enp_route_destination_t failed_next_hop);
 
+typedef void (*enp_routing_correlated_failure_fn)(
+	void *context, const enp_transport_address_t *destination,
+	esp_err_t result, enp_transport_correlation_id_t correlation_id);
+
 typedef struct {
 	enp_route_table_t *routes;
 	enp_transport_t *transport;
@@ -48,6 +52,8 @@ typedef struct {
 	void *resolve_context;
 	enp_routing_route_failure_fn route_failure;
 	void *route_failure_context;
+	enp_routing_correlated_failure_fn correlated_failure;
+	void *correlated_failure_context;
 } enp_routing_data_path_t;
 
 bool enp_routing_data_path_init(
@@ -64,6 +70,22 @@ bool enp_routing_data_path_init(
 bool enp_routing_data_path_set_route_failure_callback(
 	enp_routing_data_path_t *path, enp_routing_route_failure_fn callback,
 	void *context);
+
+/* Register the correlated transport-failure observation boundary used by
+ * E5E. Routing still performs its normal route invalidation first. */
+bool enp_routing_data_path_set_correlated_failure_callback(
+	enp_routing_data_path_t *path, enp_routing_correlated_failure_fn callback,
+	void *context);
+
+/* Resolve the currently ACTIVE logical route to its next hop. */
+bool enp_routing_data_path_get_next_hop(
+	const enp_routing_data_path_t *path, const enp_address_t *destination,
+	enp_route_destination_t *next_hop);
+
+/* Submit an originator DATA packet with an opaque transport correlation. */
+esp_err_t enp_routing_data_path_submit_correlated(
+	enp_routing_data_path_t *path, const enp_packet_t *packet,
+	enp_transport_correlation_id_t correlation_id);
 
 /*
  * Submit an originator DATA packet using the active route to its logical

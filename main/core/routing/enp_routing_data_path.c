@@ -24,22 +24,14 @@ static bool transport_address_equal(const enp_transport_address_t *lhs,
 	return memcmp(lhs->value, rhs->value, lhs->length) == 0;
 }
 
-static void
-transport_send_result_callback(const enp_transport_address_t *destination,
-							   esp_err_t result, void *context) {
-	enp_routing_data_path_t *path = (enp_routing_data_path_t *)context;
-
+static void invalidate_routes_for_transport_failure(
+	enp_routing_data_path_t *path, const enp_transport_address_t *destination,
+	bool notify_route_failure) {
 	if (path == NULL || path->routes == NULL || destination == NULL ||
-		result == ESP_OK || path->resolve_transport == NULL) {
+		path->resolve_transport == NULL) {
 		return;
 	}
 
-	/*
-	 * The transport reports only a transport address. Resolve each active
-	 * logical next-hop through the existing routing integration boundary and
-	 * invalidate every route whose next-hop resolves to the failed address.
-	 * No transport or reliability policy is implemented here.
-	 */
 	for (size_t i = 0U; i < path->routes->count; ++i) {
 		enp_route_entry_t *entry = &path->routes->entries[i];
 
@@ -49,18 +41,46 @@ transport_send_result_callback(const enp_transport_address_t *destination,
 
 		enp_transport_address_t resolved = {0};
 		if (!path->resolve_transport(path->resolve_context, entry->next_hop,
-									 &resolved)) {
+								 &resolved)) {
 			continue;
 		}
 
 		if (transport_address_equal(&resolved, destination)) {
 			const enp_route_destination_t failed_next_hop = entry->next_hop;
 			if (enp_route_table_invalidate(path->routes, entry->destination) &&
-				path->route_failure != NULL) {
+				notify_route_failure && path->route_failure != NULL) {
 				path->route_failure(path->route_failure_context,
 									entry->destination, failed_next_hop);
 			}
 		}
+	}
+}
+
+static void
+transport_send_result_callback(const enp_transport_address_t *destination,
+							   esp_err_t result, void *context) {
+	enp_routing_data_path_t *path = (enp_routing_data_path_t *)context;
+	if (result == ESP_OK) {
+		return;
+	}
+	invalidate_routes_for_transport_failure(path, destination, true);
+}
+
+static void transport_send_result_callback_ex(
+	const enp_transport_address_t *destination, esp_err_t result,
+	enp_transport_correlation_id_t correlation_id, void *context) {
+	enp_routing_data_path_t *path = (enp_routing_data_path_t *)context;
+
+	if (result != ESP_OK) {
+		invalidate_routes_for_transport_failure(
+			path, destination,
+			correlation_id == ENP_TRANSPORT_INVALID_CORRELATION_ID);
+	}
+
+	if (path != NULL && path->correlated_failure != NULL &&
+		correlation_id != ENP_TRANSPORT_INVALID_CORRELATION_ID) {
+		path->correlated_failure(path->correlated_failure_context, destination,
+							 result, correlation_id);
 	}
 }
 
@@ -85,9 +105,28 @@ static bool lookup_active_route(const enp_routing_data_path_t *path,
 	return true;
 }
 
-static esp_err_t transmit_to_next_hop(const enp_routing_data_path_t *path,
-									  const enp_route_entry_t *route,
-									  const enp_packet_t *packet) {
+static esp_err_t transmit_to_next_hop_correlated(
+	const enp_routing_data_path_t *path, const enp_route_entry_t *route,
+	const enp_packet_t *packet, enp_transport_correlation_id_t correlation_id) {
+	if (path == NULL || route == NULL || packet == NULL ||
+		path->transport == NULL || path->resolve_transport == NULL) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	enp_transport_address_t transport_address = {0};
+	if (!path->resolve_transport(path->resolve_context, route->next_hop,
+								 &transport_address)) {
+		return ESP_ERR_NOT_FOUND;
+	}
+
+	return enp_transport_send_ex(path->transport, &transport_address,
+								 enp_packet_data_const(packet),
+								 enp_packet_length(packet), correlation_id);
+}
+
+static esp_err_t transmit_to_next_hop(
+	const enp_routing_data_path_t *path, const enp_route_entry_t *route,
+	const enp_packet_t *packet) {
 	if (path == NULL || route == NULL || packet == NULL ||
 		path->transport == NULL || path->resolve_transport == NULL) {
 		return ESP_ERR_INVALID_ARG;
@@ -113,17 +152,20 @@ bool enp_routing_data_path_init(
 		return false;
 	}
 
-	if (transport->set_send_result_callback == NULL) {
-		return false;
-	}
-
 	path->routes = routes;
 	path->transport = transport;
 	path->resolve_transport = resolve_transport;
 	path->resolve_context = resolve_context;
 
-	if (enp_transport_set_send_result_callback(
-			transport, transport_send_result_callback, path) != ESP_OK) {
+	const esp_err_t callback_err =
+		(transport->set_send_result_callback_ex != NULL &&
+		 transport->send_ex != NULL)
+			? enp_transport_set_send_result_callback_ex(
+				  transport, transport_send_result_callback_ex, path)
+			: enp_transport_set_send_result_callback(
+				  transport, transport_send_result_callback, path);
+
+	if (callback_err != ESP_OK) {
 		path->routes = NULL;
 		path->transport = NULL;
 		path->resolve_transport = NULL;
@@ -131,6 +173,55 @@ bool enp_routing_data_path_init(
 		return false;
 	}
 
+	return true;
+}
+
+bool enp_routing_data_path_get_next_hop(
+	const enp_routing_data_path_t *path, const enp_address_t *destination,
+	enp_route_destination_t *next_hop) {
+	if (next_hop == NULL) {
+		return false;
+	}
+
+	enp_route_entry_t route;
+	if (!lookup_active_route(path, destination, &route)) {
+		return false;
+	}
+
+	*next_hop = route.next_hop;
+	return true;
+}
+
+esp_err_t enp_routing_data_path_submit_correlated(
+	enp_routing_data_path_t *path, const enp_packet_t *packet,
+	enp_transport_correlation_id_t correlation_id) {
+	if (path == NULL || packet == NULL ||
+		correlation_id == ENP_TRANSPORT_INVALID_CORRELATION_ID) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	const enp_header_t *header = enp_packet_header_const(packet);
+	if (header == NULL || !enp_packet_verify(packet)) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	enp_route_entry_t route;
+	if (!lookup_active_route(path, &header->destination, &route)) {
+		return ESP_ERR_NOT_FOUND;
+	}
+
+	return transmit_to_next_hop_correlated(path, &route, packet, correlation_id);
+}
+
+bool enp_routing_data_path_set_correlated_failure_callback(
+	enp_routing_data_path_t *path, enp_routing_correlated_failure_fn callback,
+	void *context) {
+	if (path == NULL) {
+		return false;
+	}
+
+	path->correlated_failure = callback;
+	path->correlated_failure_context = context;
 	return true;
 }
 

@@ -282,13 +282,31 @@ static bool test_repair_identity_and_resume(void)
         return false;
     }
 
-    if (enp_reliability_repair_result(handle, REPAIR_A, true, 22000U) ||
+    /* The successful repair resumes through the normal Reliability retry
+     * path. The new ACK deadline is relative to the repair completion time. */
+    enp_reliability_tick(21999U);
+    if (s_submit_count != 2U ||
         !expect_state(handle, ENP_RELIABILITY_STATE_WAITING_FOR_ACK) ||
-        s_submit_count != 2U) {
+        !expect_retry_count(handle, 1U)) {
         return false;
     }
 
-    ESP_LOGI(TAG, "PASS: repair identity validation, resume and duplicate suppression");
+    enp_reliability_tick(22000U);
+    if (s_submit_count != 3U ||
+        !expect_state(handle, ENP_RELIABILITY_STATE_WAITING_FOR_ACK) ||
+        !expect_retry_count(handle, 2U)) {
+        return false;
+    }
+
+    /* The repair identity is cleared when the normal retransmission resumes,
+     * so a stale duplicate completion cannot affect the transaction. */
+    if (enp_reliability_repair_result(handle, REPAIR_A, true, 22001U) ||
+        !expect_state(handle, ENP_RELIABILITY_STATE_WAITING_FOR_ACK) ||
+        s_submit_count != 3U) {
+        return false;
+    }
+
+    ESP_LOGI(TAG, "PASS: repair identity validation, resume, fresh deadline and duplicate suppression");
     return true;
 }
 
@@ -319,7 +337,21 @@ static bool test_repair_failure_and_cancel(void)
         return false;
     }
 
-    ESP_LOGI(TAG, "PASS: repair failure and cancellation use existing completion boundary");
+    /* The handle is slot-derived and can be reused. An old repair completion
+     * must not affect the newly created transaction using the same handle. */
+    enp_reliability_handle_t reused_handle = ENP_RELIABILITY_INVALID_HANDLE;
+    if (!enp_reliability_send(&data, 32000U, &reused_handle) ||
+        reused_handle != cancel_handle ||
+        !enp_reliability_begin_repair(reused_handle, REPAIR_B) ||
+        !expect_state(reused_handle, ENP_RELIABILITY_STATE_REPAIR_PENDING) ||
+        enp_reliability_repair_result(reused_handle, REPAIR_A, true, 32100U) ||
+        !expect_state(reused_handle, ENP_RELIABILITY_STATE_REPAIR_PENDING) ||
+        !expect_retry_count(reused_handle, 0U) ||
+        s_result_count != 2U) {
+        return false;
+    }
+
+    ESP_LOGI(TAG, "PASS: repair failure, cancellation and stale completion isolation");
     return true;
 }
 

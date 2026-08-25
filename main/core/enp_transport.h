@@ -96,6 +96,15 @@ typedef void (*enp_transport_send_result_callback_t)(
 	const enp_transport_address_t *destination, esp_err_t result,
 	void *context);
 
+/** Opaque per-transmission correlation identifier. Zero means uncorrelated. */
+typedef uint32_t enp_transport_correlation_id_t;
+#define ENP_TRANSPORT_INVALID_CORRELATION_ID ((enp_transport_correlation_id_t)0U)
+
+/** Send-result callback carrying the opaque per-transmission correlation. */
+typedef void (*enp_transport_send_result_ex_callback_t)(
+	const enp_transport_address_t *destination, esp_err_t result,
+	enp_transport_correlation_id_t correlation_id, void *context);
+
 /*----------------------------------------------------------
  * Transport Interface
  *---------------------------------------------------------*/
@@ -137,6 +146,13 @@ typedef struct {
 	 */
 	esp_err_t (*set_send_result_callback)(
 		enp_transport_send_result_callback_t callback, void *context);
+
+	esp_err_t (*set_send_result_callback_ex)(
+		enp_transport_send_result_ex_callback_t callback, void *context);
+
+	esp_err_t (*send_ex)(const enp_transport_address_t *destination,
+					 const void *data, size_t length,
+					 enp_transport_correlation_id_t correlation_id);
 
 } enp_transport_t;
 
@@ -216,6 +232,14 @@ enp_transport_set_receive_callback(enp_transport_t *transport,
 esp_err_t enp_transport_set_send_result_callback(
 	enp_transport_t *transport, enp_transport_send_result_callback_t callback,
 	void *context);
+
+esp_err_t enp_transport_set_send_result_callback_ex(
+	enp_transport_t *transport, enp_transport_send_result_ex_callback_t callback,
+	void *context);
+
+esp_err_t enp_transport_send_ex(
+	enp_transport_t *transport, const enp_transport_address_t *destination,
+	const void *data, size_t length, enp_transport_correlation_id_t correlation_id);
 
 #ifdef __cplusplus
 }

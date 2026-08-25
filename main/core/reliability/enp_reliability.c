@@ -50,6 +50,7 @@ static bool s_initialized;
 static bool s_started;
 
 static enp_reliability_submit_fn s_submit;
+static enp_reliability_submit_ex_fn s_submit_ex;
 static void *s_submit_context;
 
 static enp_reliability_result_fn s_result;
@@ -193,6 +194,7 @@ bool enp_reliability_init(void) {
 	s_started = false;
 
 	s_submit = NULL;
+	s_submit_ex = NULL;
 	s_submit_context = NULL;
 	s_result = NULL;
 	s_result_context = NULL;
@@ -216,6 +218,7 @@ void enp_reliability_deinit(void) {
 	memset(s_transactions, 0, sizeof(s_transactions));
 
 	s_submit = NULL;
+	s_submit_ex = NULL;
 	s_submit_context = NULL;
 	s_result = NULL;
 	s_result_context = NULL;
@@ -232,6 +235,19 @@ bool enp_reliability_set_submit_callback(enp_reliability_submit_fn submit,
 	}
 
 	s_submit = submit;
+	s_submit_ex = NULL;
+	s_submit_context = user_context;
+	return true;
+}
+
+bool enp_reliability_set_submit_callback_ex(
+	enp_reliability_submit_ex_fn submit, void *user_context) {
+	if (!s_initialized || (submit == NULL)) {
+		return false;
+	}
+
+	s_submit_ex = submit;
+	s_submit = NULL;
 	s_submit_context = user_context;
 	return true;
 }
@@ -251,10 +267,29 @@ bool enp_reliability_set_result_callback(enp_reliability_result_fn result,
  * Transaction API
  * -------------------------------------------------------------------------- */
 
+static esp_err_t submit_transaction(
+	const enp_reliability_transaction_t *transaction) {
+	if (transaction == NULL) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	if (s_submit_ex != NULL) {
+		return s_submit_ex(&transaction->packet, transaction->handle,
+						s_submit_context);
+	}
+
+	if (s_submit != NULL) {
+		return s_submit(&transaction->packet, s_submit_context);
+	}
+
+	return ESP_ERR_INVALID_STATE;
+}
+
 bool enp_reliability_send(const enp_packet_t *packet, uint32_t now_ms,
 						  enp_reliability_handle_t *handle) {
 	if ((handle == NULL) || !s_initialized || !s_started ||
-		(s_submit == NULL) || !packet_is_reliable_data(packet)) {
+		(s_submit == NULL && s_submit_ex == NULL) ||
+		!packet_is_reliable_data(packet)) {
 		return false;
 	}
 
@@ -287,18 +322,23 @@ bool enp_reliability_send(const enp_packet_t *packet, uint32_t now_ms,
 	transaction->retry_count = 0U;
 	transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
 
+	/* Publish the handle/state before submission. The transport result is
+	 * asynchronous and may be delivered before submit_transaction() returns. */
+	transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
+	*handle = transaction->handle;
+
 	/* The initial submission is not a retry. */
-	const esp_err_t err = s_submit(&transaction->packet, s_submit_context);
+	const esp_err_t err = submit_transaction(transaction);
 
 	if (err != ESP_OK) {
-		transaction->active = false;
-		transaction->state = ENP_RELIABILITY_STATE_FAILED;
+		complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
+						 ENP_RELIABILITY_RESULT_FAILED);
 		return false;
 	}
 
-	transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
-
-	*handle = transaction->handle;
+	/* Do not rewrite state here: an asynchronous TX failure may already have
+	 * moved the transaction to REPAIR_PENDING while submit_transaction() was
+	 * executing. */
 	return true;
 }
 
@@ -406,9 +446,11 @@ bool enp_reliability_repair_result(
 	}
 
 	transaction->retry_count++;
-	transaction->state = ENP_RELIABILITY_STATE_RETRYING;
+	transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
+	transaction->repair_id = ENP_RELIABILITY_INVALID_REPAIR_ID;
+	transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
 
-	const esp_err_t err = s_submit(&transaction->packet, s_submit_context);
+	const esp_err_t err = submit_transaction(transaction);
 
 	if (err != ESP_OK) {
 		complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
@@ -416,15 +458,14 @@ bool enp_reliability_repair_result(
 		return true;
 	}
 
-	transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
-	transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
-	transaction->repair_id = ENP_RELIABILITY_INVALID_REPAIR_ID;
-
+	/* Preserve any REPAIR_PENDING transition caused by an asynchronous TX
+	 * failure during submission. */
 	return true;
 }
 
 void enp_reliability_tick(uint32_t now_ms) {
-	if (!s_initialized || !s_started || (s_submit == NULL)) {
+	if (!s_initialized || !s_started ||
+		(s_submit == NULL && s_submit_ex == NULL)) {
 		return;
 	}
 
@@ -444,18 +485,20 @@ void enp_reliability_tick(uint32_t now_ms) {
 		}
 
 		transaction->retry_count++;
-		transaction->state = ENP_RELIABILITY_STATE_RETRYING;
+		transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
+		transaction->repair_id = ENP_RELIABILITY_INVALID_REPAIR_ID;
+		transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
 
-		const esp_err_t err = s_submit(&transaction->packet, s_submit_context);
+		const esp_err_t err = submit_transaction(transaction);
 
 		if (err != ESP_OK) {
 			complete_transaction(transaction, ENP_RELIABILITY_STATE_FAILED,
-								 ENP_RELIABILITY_RESULT_FAILED);
+							 ENP_RELIABILITY_RESULT_FAILED);
 			continue;
 		}
 
-		transaction->deadline_ms = now_ms + ENP_RELIABILITY_ACK_TIMEOUT_MS;
-		transaction->state = ENP_RELIABILITY_STATE_WAITING_FOR_ACK;
+		/* Preserve any REPAIR_PENDING transition caused by an asynchronous TX
+		 * failure during submission. */
 	}
 }
 

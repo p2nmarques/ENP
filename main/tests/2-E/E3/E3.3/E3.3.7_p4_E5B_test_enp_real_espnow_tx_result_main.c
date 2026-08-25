@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <string.h>
 
 #include "esp_err.h"
@@ -71,6 +72,7 @@
 #define P4_E5B_WAIT_MS 10000U
 
 #define P4_E5B_PAYLOAD "ENP-P4-E5B-TX-RESULT"
+#define P4_E5B_CORRELATION_ID ((enp_transport_correlation_id_t)0xE5B001U)
 
 /*----------------------------------------------------------
  * Logging
@@ -91,6 +93,7 @@ static volatile bool s_test_complete = false;
 static volatile unsigned s_callback_count = 0U;
 
 static volatile esp_err_t s_callback_result = ESP_OK;
+static volatile enp_transport_correlation_id_t s_callback_correlation_id = ENP_TRANSPORT_INVALID_CORRELATION_ID;
 
 static enp_transport_address_t s_callback_destination;
 
@@ -209,6 +212,16 @@ static void send_result_callback(const enp_transport_address_t *destination,
 	log_address("TX-result destination", destination);
 }
 
+static void send_result_ex_callback(
+	const enp_transport_address_t *destination, esp_err_t result,
+	enp_transport_correlation_id_t correlation_id, void *context) {
+	(void)context;
+	if (destination != NULL) s_callback_destination = *destination;
+	s_callback_correlation_id = correlation_id;
+	ESP_LOGI(TAG, "Correlated TX-result: result=%s correlation=0x%08" PRIX32,
+			esp_err_to_name(result), correlation_id);
+}
+
 /*----------------------------------------------------------
  * Test
  *---------------------------------------------------------*/
@@ -299,10 +312,21 @@ void app_main(void) {
 	}
 
 	if (pass) {
+		if (enp_transport_set_send_result_callback_ex(
+			s_context.transport, send_result_ex_callback, NULL) != ESP_OK) {
+			ESP_LOGE(TAG, "FAIL: correlated send-result callback registration");
+			pass = false;
+		} else {
+			ESP_LOGI(TAG, "PASS: correlated send-result callback registered");
+		}
+	}
+
+	if (pass) {
 		static const uint8_t payload[] = P4_E5B_PAYLOAD;
 
-		const esp_err_t submit_result = enp_transport_send(
-			s_context.transport, &unreachable, payload, sizeof(payload) - 1U);
+		const esp_err_t submit_result = enp_transport_send_ex(
+			s_context.transport, &unreachable, payload, sizeof(payload) - 1U,
+			P4_E5B_CORRELATION_ID);
 
 		if (submit_result != ESP_OK) {
 			/*
@@ -333,6 +357,16 @@ void app_main(void) {
 			pass = false;
 		} else {
 			ESP_LOGI(TAG, "PASS: real ESP-NOW TX-result callback was observed");
+		}
+	}
+
+	if (pass) {
+		if (s_callback_correlation_id != P4_E5B_CORRELATION_ID) {
+			ESP_LOGE(TAG, "FAIL: correlation mismatch expected=0x%08" PRIX32 " actual=0x%08" PRIX32,
+					(uint32_t)P4_E5B_CORRELATION_ID, (uint32_t)s_callback_correlation_id);
+			pass = false;
+		} else {
+			ESP_LOGI(TAG, "PASS: transport correlation preserved through ESP-NOW callback");
 		}
 	}
 

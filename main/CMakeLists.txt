@@ -4,7 +4,7 @@
 idf_component_register(
     SRCS
     	#"main.c"
-    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5E_gate2_reliability_controlled_main.c"
+    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5E_I33_test_real_repair_resume_main.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -18,6 +18,8 @@ idf_component_register(
         "core/protocol/enp_packet.c"
         "core/protocol/payloads/enp_data.c"
         "core/protocol/payloads/enp_routing.c"
+        "core/reliability/enp_e5e.c"
+        "core/reliability/enp_e5e_integration.c"
         "core/reliability/enp_reliability.c"
         "core/reliability/enp_reliability_service.c"
         "core/routing/enp_routing_data_path.c"

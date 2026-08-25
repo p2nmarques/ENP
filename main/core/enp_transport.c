@@ -38,6 +38,27 @@ esp_err_t enp_transport_send(enp_transport_t *transport,
 	return transport->send(destination, data, length);
 }
 
+esp_err_t enp_transport_send_ex(
+	enp_transport_t *transport, const enp_transport_address_t *destination,
+	const void *data, size_t length,
+	enp_transport_correlation_id_t correlation_id) {
+	if ((transport == NULL) || (destination == NULL) || (data == NULL) ||
+		(length == 0U)) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	if (transport->send_ex != NULL) {
+		return transport->send_ex(destination, data, length, correlation_id);
+	}
+
+	if ((correlation_id != ENP_TRANSPORT_INVALID_CORRELATION_ID) ||
+		(transport->send == NULL)) {
+		return ESP_ERR_NOT_SUPPORTED;
+	}
+
+	return transport->send(destination, data, length);
+}
+
 esp_err_t
 enp_transport_set_receive_callback(enp_transport_t *transport,
 								   enp_transport_receive_callback_t callback) {
@@ -60,4 +81,17 @@ esp_err_t enp_transport_set_send_result_callback(
     }
 
     return transport->set_send_result_callback(callback, context);
+}
+
+esp_err_t enp_transport_set_send_result_callback_ex(
+	enp_transport_t *transport,
+	enp_transport_send_result_ex_callback_t callback,
+	void *context) {
+	if ((transport == NULL) ||
+		(transport->set_send_result_callback_ex == NULL) ||
+		(callback == NULL)) {
+		return ESP_ERR_INVALID_ARG;
+	}
+
+	return transport->set_send_result_callback_ex(callback, context);
 }

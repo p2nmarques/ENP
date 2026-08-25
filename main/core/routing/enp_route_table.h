@@ -21,10 +21,7 @@
 #include <stdint.h>
 
 #include "enp_route_metric.h"
-
-#ifndef ENP_MAX_ROUTES
-#define ENP_MAX_ROUTES 64U
-#endif
+#include "config/enp_defaults.h"
 
 typedef uint16_t enp_route_network_id_t;
 typedef uint16_t enp_route_node_id_t;
