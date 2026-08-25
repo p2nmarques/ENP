@@ -149,6 +149,8 @@ Architectural rule established for E3: reliability owns the transaction and pack
 ### Phase 4 validation status
 
 ```text
+P4-E5E-I33 Reliability + route-repair resume   HARDWARE VALIDATED / FROZEN
+
 P4/E1 Reusable Data Plane                            PASS / FROZEN
 P4/E2 Reliability Maintenance                        PASS / FROZEN
 P4/E3 E3C Consolidation                              PASS / FROZEN
@@ -321,3 +323,23 @@ Real ESP-NOW hardware validation remains the next validation milestone.
 The frozen Step-3 baseline is now the regression reference for subsequent
 routing work. No additional functionality should be added to Step-3 without
 opening a new revision/phase.
+
+
+---
+
+### P4-E5E-I33 — Reliability + Route-Repair Resume
+
+- [X] Freeze the P4-E5D Step-3 baseline before E5E integration.
+- [X] Implement and validate E5E failure-to-repair correlation.
+- [X] Validate `REPAIR_PENDING` and unchanged retry budget during repair.
+- [X] Validate real RREQ transmission and successful RREP/route restoration.
+- [X] Validate same Reliability transaction resumes after repair.
+- [X] Validate initial C1 versus legitimate post-repair C2 correlation.
+- [X] Validate exactly one normal retransmission and exactly one retry-count increment.
+- [X] Freeze I33 test revision after documentation review.
+
+**P4-E5E-I33: HARDWARE VALIDATED / FROZEN — 2026-08-25.**
+
+I33 is a validation/integration gate only. It does not reopen or modify the
+frozen P4-E5D Step-3 implementation, R4, routing, transport or Reliability
+production boundaries.

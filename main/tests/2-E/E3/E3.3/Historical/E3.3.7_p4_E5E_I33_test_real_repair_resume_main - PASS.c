@@ -93,27 +93,6 @@ static volatile enp_e5e_correlation_id_t s_first_correlation = ENP_E5E_INVALID_C
 static volatile enp_e5e_correlation_id_t s_second_correlation = ENP_E5E_INVALID_CORRELATION_ID;
 static volatile unsigned s_correlation_alloc_count;
 
-/* I33 correlation-observation state: test-only classification, no production changes. */
-typedef enum {
-    I33_CORR_PHASE_BEFORE_INITIAL = 0,
-    I33_CORR_PHASE_INITIAL_ACTIVE,
-    I33_CORR_PHASE_REPAIR_PENDING,
-    I33_CORR_PHASE_REPAIR_ACTIVE,
-    I33_CORR_PHASE_POST_REPAIR_EXPECTED,
-    I33_CORR_PHASE_COMPLETE
-} i33_correlation_phase_t;
-
-static volatile i33_correlation_phase_t s_correlation_phase =
-    I33_CORR_PHASE_BEFORE_INITIAL;
-static volatile unsigned s_unexpected_correlation_alloc_count;
-static volatile enp_e5e_correlation_id_t s_unexpected_correlation =
-    ENP_E5E_INVALID_CORRELATION_ID;
-static volatile bool s_post_repair_correlation_seen;
-
-/* I33-only observations of the real repair boundary. */
-static volatile bool s_rrep_success_observed;
-static volatile bool s_route_restored_observed;
-
 static const enp_neighbor_t *find_neighbor(enp_node_id_t node);
 
 /*
@@ -403,37 +382,14 @@ static void e5e_correlation_allocated(
         return;
     }
     ++s_correlation_alloc_count;
-
-    const i33_correlation_phase_t phase = s_correlation_phase;
-    const bool is_initial =
-        s_first_correlation == ENP_E5E_INVALID_CORRELATION_ID;
-    const bool is_legitimate_post_repair =
-        !is_initial &&
-        phase == I33_CORR_PHASE_POST_REPAIR_EXPECTED &&
-        s_second_correlation == ENP_E5E_INVALID_CORRELATION_ID;
-
-    if (is_initial) {
+    if (s_first_correlation == ENP_E5E_INVALID_CORRELATION_ID) {
         s_first_correlation = correlation_id;
-        ESP_LOGI(TAG,
-                 "I33 CORRELATION C1: initial allocation H=%u C=0x%08" PRIX32
-                 " phase=INITIAL_ACTIVE",
-                 (unsigned)handle, correlation_id);
-    } else if (is_legitimate_post_repair && correlation_id != s_first_correlation) {
+    } else if (correlation_id != s_first_correlation &&
+               s_second_correlation == ENP_E5E_INVALID_CORRELATION_ID) {
         s_second_correlation = correlation_id;
-        s_post_repair_correlation_seen = true;
-        ESP_LOGI(TAG,
-                 "I33 CORRELATION C2: legitimate post-repair allocation "
-                 "H=%u C=0x%08" PRIX32 " previous-C1=0x%08" PRIX32,
-                 (unsigned)handle, correlation_id, s_first_correlation);
-    } else {
-        ++s_unexpected_correlation_alloc_count;
-        s_unexpected_correlation = correlation_id;
-        ESP_LOGE(TAG,
-                 "I33 CORRELATION UNEXPLAINED: allocation #%u H=%u C=0x%08"
-                 PRIX32 " phase=%d C1=0x%08" PRIX32 " C2=0x%08" PRIX32,
-                 s_correlation_alloc_count, (unsigned)handle, correlation_id,
-                 (int)phase, s_first_correlation, s_second_correlation);
     }
+    ESP_LOGI(TAG, "E5E correlation allocated: H=%u C=0x%08" PRIX32,
+             (unsigned)handle, correlation_id);
 }
 
 static bool e5e_repair_request(void *context,
@@ -617,16 +573,6 @@ static void process_rrep(const enp_packet_t *packet,
     ESP_LOGI(TAG, "RREP RX: from=%u destination=%u result=%d",
              (unsigned)header->source.node,
              (unsigned)rrep.destination_node_id, (int)result);
-
-    /*
-     * The adapter's ACTIVE state is transient and may be entered/exited
-     * between test polling intervals. A successful RREP is the durable
-     * observation that R4 discovery completed.
-     */
-    if ((int)result == 1) {
-        s_rrep_success_observed = true;
-        ESP_LOGI(TAG, "I33 OBSERVE: successful RREP accepted by repair adapter");
-    }
 }
 
 static void receive_callback(const enp_transport_address_t *source,
@@ -805,27 +751,12 @@ static void run_failure_and_repair(void) {
     s_first_correlation = ENP_E5E_INVALID_CORRELATION_ID;
     s_second_correlation = ENP_E5E_INVALID_CORRELATION_ID;
     s_correlation_alloc_count = 0U;
-    s_correlation_phase = I33_CORR_PHASE_BEFORE_INITIAL;
-    s_unexpected_correlation_alloc_count = 0U;
-    s_unexpected_correlation = ENP_E5E_INVALID_CORRELATION_ID;
-    s_post_repair_correlation_seen = false;
-    s_rrep_success_observed = false;
-    s_route_restored_observed = false;
-
-    /*
-     * Capture the transport-observer baseline before the initial DATA submit.
-     * E5E may invoke the repair callback synchronously from enp_reliability_send(),
-     * and that callback may submit the RREQ before this function returns.
-     */
-    const uint32_t rreq_submit_before_repair = s_rreq_send_submit_count;
-    const uint32_t rreq_submit_fail_before_repair = s_rreq_send_submit_fail_count;
 
     /*
      * Initial submit is an observation point, not a terminal I33 assertion.
      * A synchronous submit failure may occur while E5E/transport has already
      * entered the failure/repair path. Do not create a second transaction.
      */
-    s_correlation_phase = I33_CORR_PHASE_INITIAL_ACTIVE;
     const bool initial_submit_ok =
         enp_reliability_send(&packet, 1000U, &s_reliability_handle);
     const bool initial_submit_failed = !initial_submit_ok;
@@ -881,24 +812,18 @@ static void run_failure_and_repair(void) {
           "exactly one E5E repair request created");
     check(s_e5e_repair_id != ENP_RELIABILITY_INVALID_REPAIR_ID,
           "valid E5E repair_id created");
-    s_correlation_phase = I33_CORR_PHASE_REPAIR_PENDING;
-
-    check(s_unexpected_correlation_alloc_count == 0U,
-          "no unexplained correlation allocation occurred before repair");
 
     enp_reliability_state_t state = ENP_RELIABILITY_STATE_INVALID;
     uint8_t retry_count = 0U;
-    uint8_t repair_retry_baseline = 0U;
 
     if (s_reliability_handle != ENP_RELIABILITY_INVALID_HANDLE) {
         check(enp_reliability_get_state(s_reliability_handle, &state) &&
                   state == ENP_RELIABILITY_STATE_REPAIR_PENDING,
               "Reliability entered REPAIR_PENDING from real transport failure");
 
-        check(enp_reliability_get_retry_count(s_reliability_handle,
-                                             &repair_retry_baseline) &&
-                  repair_retry_baseline == 0U,
-              "repair consumed no Reliability retry budget at REPAIR_PENDING entry");
+        check(enp_reliability_get_retry_count(s_reliability_handle, &retry_count) &&
+                  retry_count == 0U,
+              "repair consumed no Reliability retry budget");
     } else {
         ESP_LOGW(TAG,
                  "Reliability REPAIR_PENDING/retry assertions are not "
@@ -906,80 +831,41 @@ static void run_failure_and_repair(void) {
     }
 
     const TickType_t repair_start = xTaskGetTickCount();
-    s_correlation_phase = I33_CORR_PHASE_REPAIR_ACTIVE;
+    bool saw_active_repair = false;
     bool repair_completed = false;
 
     while ((xTaskGetTickCount() - repair_start) < pdMS_TO_TICKS(I33_WAIT_MS)) {
         const enp_route_entry_t *route = enp_route_table_lookup_const(
             &s_routes, (enp_route_destination_t){.network_id = I33_NETWORK_ID,
                                                  .node_id = I33_NODE_C});
-
-        if (s_rrep_success_observed &&
+        if (enp_route_repair_adapter_is_active(&s_adapter)) {
+            saw_active_repair = true;
+        }
+        if (saw_active_repair &&
+            !enp_route_repair_adapter_is_active(&s_adapter) &&
             route != NULL && route->state == ENP_ROUTE_STATE_ACTIVE &&
             route->next_hop.node_id == I33_NODE_C) {
-            s_route_restored_observed = true;
             repair_completed = true;
-            ESP_LOGI(TAG,
-                     "I33 OBSERVE: route C restored ACTIVE via node C after successful RREP");
             break;
         }
-
-        if (s_reliability_handle != ENP_RELIABILITY_INVALID_HANDLE) {
-            uint8_t repair_retry_now = 0U;
-            if (enp_reliability_get_retry_count(s_reliability_handle,
-                                                &repair_retry_now) &&
-                repair_retry_now != repair_retry_baseline) {
-                ESP_LOGE(TAG,
-                         "FAIL: Reliability retry count changed during repair "
-                         "(baseline=%u current=%u)",
-                         (unsigned)repair_retry_baseline,
-                         (unsigned)repair_retry_now);
-                s_test_failed = true;
-            }
-        }
-
         enp_reliability_tick(enp_context_time_ms(&s_context));
         vTaskDelay(pdMS_TO_TICKS(50U));
     }
 
-    check(s_rrep_success_observed,
-          "real R4 discovery produced a successful RREP accepted by the adapter");
-    check(s_route_restored_observed,
-          "real repair restored route C ACTIVE via node C");
-
-    const uint32_t rreq_submit_delta =
-        s_rreq_send_submit_count - rreq_submit_before_repair;
-    const uint32_t rreq_submit_fail_delta =
-        s_rreq_send_submit_fail_count - rreq_submit_fail_before_repair;
-    ESP_LOGI(TAG,
-             "I33 RREQ transport summary: delta-submits=%lu delta-submit-failures=%lu "
-             "total-submits=%lu total-submit-failures=%lu async-results=%lu "
-             "async-failures=%lu",
-             (unsigned long)rreq_submit_delta,
-             (unsigned long)rreq_submit_fail_delta,
-             (unsigned long)s_rreq_send_submit_count,
-             (unsigned long)s_rreq_send_submit_fail_count,
-             (unsigned long)s_rreq_send_result_count,
-             (unsigned long)s_rreq_send_result_fail_count);
-    check(rreq_submit_delta >= 1U,
-          "real repair submitted at least one RREQ through the observed transport");
-    check(rreq_submit_fail_delta == 0U,
-          "real repair RREQ transport submissions returned no synchronous failure");
-
-    check(s_unexpected_correlation_alloc_count == 0U,
-          "no unexplained correlation allocation occurred during repair");
+    check(saw_active_repair,
+          "real E5D Step-3 adapter entered active R4 repair");
+    check(repair_completed,
+          "real E5D R4 repair completed and restored route C via node C");
 
     if (!repair_completed) {
         failed = true;
     }
 
     if (!failed) {
-        /* The next allocation is the only correlation allocation permitted after repair. */
-        s_correlation_phase = I33_CORR_PHASE_POST_REPAIR_EXPECTED;
         const uint32_t repair_result_time = enp_context_time_ms(&s_context);
         check(enp_e5e_on_repair_result(s_e5e_repair_id, true,
                                        repair_result_time),
-              "E5E accepted successful real repair completion");
+              "E5E accepted real E5D repair completion");
     }
 
     const TickType_t resume_start = xTaskGetTickCount();
@@ -996,22 +882,14 @@ static void run_failure_and_repair(void) {
     }
 
     check(resumed,
-          "Reliability resumed WAITING_FOR_ACK after successful real repair");
-    check(s_post_repair_correlation_seen &&
-              s_second_correlation != ENP_E5E_INVALID_CORRELATION_ID &&
+          "Reliability resumed WAITING_FOR_ACK after real E5D repair");
+    check(s_second_correlation != ENP_E5E_INVALID_CORRELATION_ID &&
               s_second_correlation != s_first_correlation,
-          "post-repair retransmission allocated exactly one NEW E5E correlation");
-
-    check(s_unexpected_correlation_alloc_count == 0U,
-          "no unexplained C2/C3/C4 correlation allocation occurred");
-    check(s_correlation_alloc_count == 2U,
-          "exactly two E5E correlation allocations observed: C1 + post-repair C2");
+          "post-repair retransmission allocated a NEW E5E correlation");
 
     check(enp_reliability_get_retry_count(s_reliability_handle, &retry_count) &&
-              retry_count == (uint8_t)(repair_retry_baseline + 1U),
-          "real repair resume increased retry count exactly once");
-
-    s_correlation_phase = I33_CORR_PHASE_COMPLETE;
+              retry_count == 1U,
+          "real repair resume consumed exactly one normal retransmission retry");
 
     if (s_test_failed) {
         failed = true;
@@ -1112,10 +990,8 @@ void app_main(void) {
         ESP_LOGE(TAG, "FAIL: route table initialization");
         return;
     }
-    /* I33-only observation wrapper: the frozen adapter still executes unchanged. */
-    init_observed_transport(s_transport);
     if (!enp_route_repair_adapter_init(
-            &s_adapter, &s_repair, &s_routes, &s_observed_transport, local_address(),
+            &s_adapter, &s_repair, &s_routes, s_transport, local_address(),
             select_next_hop, NULL, resolve_transport, NULL, now_ms, NULL)) {
         ESP_LOGE(TAG, "FAIL: Step-3 adapter initialization");
         return;

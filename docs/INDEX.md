@@ -35,12 +35,14 @@ Contains the implementation audits, hardware validation records, and consolidati
 - `05_validation/E3.3.7_PHASE4_E4D_PRODUCTION_RUNTIME_HARDWARE_VALIDATION_IDF6.0.2.md` 
 - `05_validation/E3.3.7_PHASE4_P4-E5C_IMPLEMENTATION.md`
 - `05_validation/E3.3.7_PHASE4_P4-E5D_STEP3_HARDWARE_VALIDATION_RECORD.md`
+- `05_validation/E3.3.7_PHASE4_P4-E5E_I33_HARDWARE_VALIDATION_RECORD.md`
+- `05_validation/E3.3.7_PHASE4_P4-E5E_I33_DOCUMENTATION_SYNCHRONIZATION_RECORD.md`
 
 
 ## 99 — Historical
 Historical reviews and snapshots are preserved here and should not be interpreted as current project status.
 
 ## Documentation rule
-After each validated development stage, update the current-status documents and the relevant validation record. Historical review documents are preserved rather than rewritten.
+After each validated development stage, update the current-status documents, the relevant validation record, and the documentation synchronization record. Historical design/audit documents are preserved and explicitly marked when superseded; their technical content is not silently rewritten.
 
 

@@ -25,7 +25,7 @@ rediscovery.
 **Current baseline:** ENP v0.2-r5  
 **Target:** ESP-IDF 6.0.2  
 **Current transport:** ESP-NOW 2.0  
-**Overall status:** **Phase 4 P4-E5D Step-3 HARDWARE VALIDATED / FROZEN**
+**Overall status:** **Phase 4 P4-E5E-I33 HARDWARE VALIDATED / FROZEN — 2026-08-25**
 
 The current validated progression is:
 
@@ -63,7 +63,8 @@ HARDWARE VALIDATED / FROZEN
 | P4-E5A next-hop failure detection / propagation | 🔒 Validated / Frozen |
 | P4-E5B real ESP-NOW TX-result observation | 🔒 Hardware validated / Frozen |
 | P4-E5C transport failure → route invalidation | 🔒 Hardware validated / Frozen |
-| **P4-E5D Step-3 E5D → R4 route rediscovery** | **🔒 Hardware validated / Frozen** |
+| P4-E5D Step-3 E5D → R4 route rediscovery | 🔒 Hardware validated / Frozen |
+| **P4-E5E-I33 Reliability + route-repair resume** | **🔒 Hardware validated / Frozen — 2026-08-25** |
 
 The detailed evidence for each milestone is maintained under
 `docs/05_validation/`.
@@ -113,7 +114,8 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E5A next-hop failure detection | 🔒 Frozen / validated |
 | P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / hardware validated |
 | P4-E5C transport failure → route invalidation | 🔒 Frozen / hardware validated |
-| **P4-E5D Step-3 route repair / R4 rediscovery** | **🔒 Frozen / hardware validated** |
+| P4-E5D Step-3 route repair / R4 rediscovery | 🔒 Frozen / hardware validated |
+| **P4-E5E-I33 Reliability recovery across route repair** | **🔒 Frozen / hardware validated** |
 
 ### Status interpretation
 
@@ -343,6 +345,7 @@ P4-E4D  Production runtime hardware validation  HARDWARE VALIDATED / FROZEN
 P4-E5B  Real ESP-NOW TX-result observation      HARDWARE VALIDATED / FROZEN
 P4-E5C  Transport failure → route invalidation  HARDWARE VALIDATED / FROZEN
 P4-E5D  Step-3 route repair / R4 rediscovery    HARDWARE VALIDATED / FROZEN
+P4-E5E  Reliability + route-repair resume (I33) HARDWARE VALIDATED / FROZEN
 ```
 
 Detailed records are maintained under `docs/05_validation/`.
@@ -368,6 +371,7 @@ DATA retransmission / ACK recovery
 Next-hop failure detection
 Transport failure → route invalidation
 Route repair / R4 rediscovery through the frozen Step-3 adapter
+Reliability recovery across repaired route / E5E-I33
 ```
 
 The E3.3.7 reliability subsystem uses static transaction storage, ACK
@@ -380,10 +384,9 @@ failure/repair boundaries.
 
 ### Explicitly outside the current frozen Step-3 scope
 
-The following are **not claimed as validated by P4-E5D Step-3**:
+The following are **not claimed as validated by P4-E5D Step-3 alone**:
 
 ```text
-Reliability recovery during route repair
 RERR integration
 Multi-hop RREQ forwarding through a relay
 Multi-hop RREP forwarding through a relay
@@ -483,11 +486,9 @@ current project-status source. Current status is maintained in
 
 ## 9. Repository Baseline
 
-This README describes the project baseline supplied as **ENP-0.2-r5** on
-2026-08-23.
+This README describes the project baseline **ENP-0.2-r5**, synchronized through the **P4-E5E-I33 freeze on 2026-08-25**.
 
-The current baseline includes the validated P4-E5D Step-3 source and its
-corresponding audit, controlled-validation and hardware-validation records.
+The current baseline includes the validated P4-E5D Step-3 source, the validated P4-E5E-I33 integration test, and their corresponding audit, controlled-validation and hardware-validation records.
 
 The Step-3 freeze is a project-process boundary as well as an implementation
 boundary: future routing work should build on this baseline rather than modify
