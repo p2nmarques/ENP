@@ -165,15 +165,43 @@ specification.
 
 ## 10. RERR
 
-A node may generate RERR when an installed next hop becomes unusable,
-including:
+RERR uses the frozen ENP v0.2 reason-code contract defined by the canonical
+routing wire source `enp_routing.h/.c`:
 
-- next hop becomes stale;
-- transport transmission failure;
-- route expiration;
-- failed local repair.
+```text
+1 = NO_ROUTE
+2 = NEXT_HOP_UNREACHABLE
+3 = ROUTE_EXPIRED
+4 = LOCAL_REPAIR_FAILED
+5 = TTL_EXPIRED
+```
 
-The route is invalidated locally before route-error propagation.
+Reason `0` (`UNKNOWN`) is not valid for an accepted RERR.
+
+RERR generation triggers and their exact mapping to these frozen reasons are
+defined by the RERR Generation & Propagation architecture gate. This section
+does not authorize a transport failure, route expiration, TTL expiration, or
+any other observation to generate an RERR by itself.
+
+The route is invalidated locally according to the existing route-table/E5C
+contract before route-error propagation where the applicable generation
+policy requires it.
+
+### 10.1 Historical / superseded reason-code vocabulary
+
+An older protocol-document draft used:
+
+```text
+1 = next hop unavailable
+2 = transport transmission failure
+3 = route expired
+4 = local repair failed
+5 = route invalidated by protocol policy
+```
+
+**HISTORICAL / SUPERSEDED:** this older protocol contract is retained only as
+historical documentation. It is not authoritative. The frozen
+`enp_routing.h/.c` contract above is authoritative for ENP v0.2.
 
 ## 11. Local Repair
 

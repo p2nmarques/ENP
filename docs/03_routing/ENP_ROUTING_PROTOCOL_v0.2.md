@@ -405,7 +405,27 @@ Total payload size:
 16 bytes
 ```
 
-### 9.2 Reason codes
+### 9.2 Reason codes — FROZEN CONTRACT
+
+The authoritative ENP v0.2 RERR reason-code contract is the canonical routing
+wire definition in `main/core/protocol/payloads/enp_routing.h/.c`. The frozen
+contract is:
+
+```text
+0 = UNKNOWN
+1 = NO_ROUTE
+2 = NEXT_HOP_UNREACHABLE
+3 = ROUTE_EXPIRED
+4 = LOCAL_REPAIR_FAILED
+5 = TTL_EXPIRED
+```
+
+Reason `0` is not a valid accepted RERR reason. Values outside `1..5` are
+invalid/reserved.
+
+#### Historical / superseded contract
+
+An older protocol-document draft used the following reason-code vocabulary:
 
 ```text
 1 = next hop unavailable
@@ -415,7 +435,10 @@ Total payload size:
 5 = route invalidated by protocol policy
 ```
 
-Other values are reserved.
+**HISTORICAL / SUPERSEDED:** this older protocol contract is retained only as
+historical documentation. It is not authoritative and must not be used by
+production code, tests, or new protocol documentation. The authoritative
+contract is the frozen `enp_routing.h/.c` mapping above.
 
 ### 9.3 RERR processing
 
