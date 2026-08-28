@@ -51,6 +51,7 @@
 #include "core/protocol/payloads/enp_routing.h"
 #include "core/network/enp_neighbor.h"
 #include "core/routing/enp_route_repair.h"
+#include "core/routing/enp_route_failure_coalescer.h"
 #include "core/routing/enp_route_repair_adapter.h"
 #include "core/routing/enp_route_table.h"
 #include "core/routing/enp_route_metric.h"
@@ -79,6 +80,7 @@ static const char *TAG = "E3_3_7_P4_E5D";
 static enp_context_t s_context;
 static enp_route_table_t s_routes;
 static enp_route_repair_t s_repair;
+static enp_route_failure_coalescer_t s_failure_coalescer;
 static enp_route_repair_adapter_t s_adapter;
 static enp_routing_data_path_t s_data_path;
 static enp_transport_t *s_transport;
@@ -367,13 +369,20 @@ static uint32_t now_ms(void *context) {
 static void route_failure(void *context,
                           enp_route_destination_t destination,
                           enp_route_destination_t failed_next_hop) {
-    (void)context;
+    enp_route_failure_coalescer_t *coalescer = context;
+
+    if (coalescer == NULL) {
+        return;
+    }
+
     ESP_LOGI(TAG,
-             "E5C route failure: destination=%u failed-next-hop=%u -> E5D request",
+             "E5C route failure: destination=%u failed-next-hop=%u -> IG-D coalescer",
              (unsigned)destination.node_id,
              (unsigned)failed_next_hop.node_id);
-    if (!enp_route_repair_request(&s_repair, destination, failed_next_hop)) {
-        ESP_LOGE(TAG, "E5D repair request rejected");
+
+    if (!enp_route_failure_coalescer_observe(
+            coalescer, destination, failed_next_hop)) {
+        ESP_LOGE(TAG, "IG-D failure event rejected");
         s_test_failed = true;
     }
 }
@@ -873,13 +882,17 @@ void app_main(void) {
         ESP_LOGE(TAG, "FAIL: E5D repair coordinator initialization");
         return;
     }
+    if (!enp_route_failure_coalescer_init(&s_failure_coalescer, &s_repair)) {
+        ESP_LOGE(TAG, "FAIL: IG-D failure coalescer initialization");
+        return;
+    }
     if (!enp_routing_data_path_init(&s_data_path, &s_routes, s_transport,
                                     resolve_transport, NULL)) {
         ESP_LOGE(TAG, "FAIL: routing data path initialization");
         return;
     }
     if (!enp_routing_data_path_set_route_failure_callback(
-            &s_data_path, route_failure, NULL)) {
+            &s_data_path, route_failure, &s_failure_coalescer)) {
         ESP_LOGE(TAG, "FAIL: E5C route-failure callback registration");
         return;
     }
