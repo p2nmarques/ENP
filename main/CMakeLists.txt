@@ -23,6 +23,7 @@ idf_component_register(
         "core/reliability/enp_reliability.c"
         "core/reliability/enp_reliability_service.c"
         "core/routing/enp_routing_data_path.c"
+        "core/routing/enp_route_failure_coalescer.c"
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
         "core/routing/enp_route_repair.c"
