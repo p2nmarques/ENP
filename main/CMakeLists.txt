@@ -3,8 +3,8 @@
 
 idf_component_register(
     SRCS
-    	#"main.c"
-    	"tests/2-E/E3/E3.3/E3.3.7_p4_E5D_hardware_validation_main_v3.4.c"
+    	"main.c"
+    	#"tests/2-E/E3/E3.3/E3.3.7_p4_E5D_hardware_validation_main_v3.4.c"
         "core/enp_address.c"
         "core/enp_context.c"
         "core/enp_duplicate.c"
@@ -23,6 +23,7 @@ idf_component_register(
         "core/reliability/enp_reliability.c"
         "core/reliability/enp_reliability_service.c"
         "core/routing/enp_routing_data_path.c"
+        "core/routing/enp_routing_runtime.c"
         "core/routing/enp_route_failure_coalescer.c"
         "core/routing/enp_route_discovery.c"
         "core/routing/enp_route_metric.c"
