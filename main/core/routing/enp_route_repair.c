@@ -119,24 +119,25 @@ bool enp_route_repair_init(enp_route_repair_t *repair,
 	return true;
 }
 
-bool enp_route_repair_request(enp_route_repair_t *repair,
-							  enp_route_destination_t destination,
-							  enp_route_destination_t failed_next_hop) {
+enp_route_repair_request_result_t
+enp_route_repair_request_ex(enp_route_repair_t *repair,
+							enp_route_destination_t destination,
+							enp_route_destination_t failed_next_hop) {
 	if (repair == NULL || !repair->initialized ||
 		destination.network_id == 0U || destination.node_id == 0U ||
 		failed_next_hop.network_id == 0U || failed_next_hop.node_id == 0U) {
-		return false;
+		return ENP_ROUTE_REPAIR_REQUEST_INVALID;
 	}
 
 	++repair->request_count;
 
 	if (find_pending(repair, destination) >= 0) {
 		++repair->suppressed_count;
-		return false;
+		return ENP_ROUTE_REPAIR_REQUEST_DUPLICATE;
 	}
 
 	if (repair->pending_count >= ENP_ROUTE_REPAIR_MAX_PENDING) {
-		return false;
+		return ENP_ROUTE_REPAIR_REQUEST_CAPACITY;
 	}
 
 	enp_route_repair_request_t request = {
@@ -144,19 +145,22 @@ bool enp_route_repair_request(enp_route_repair_t *repair,
 		.failed_next_hop = failed_next_hop,
 	};
 
-	/*
-	 * Reserve the destination before publishing the queue item. The repair
-	 * task may run immediately after xQueueSend(), so publishing first could
-	 * let it remove a request that has not yet been recorded as pending.
-	 */
+	/* Reserve before publishing because the worker may run immediately. */
 	repair->pending[repair->pending_count++] = request;
 
 	if (xQueueSend(repair->queue, &request, 0) != pdTRUE) {
 		remove_pending(repair, destination);
-		return false;
+		return ENP_ROUTE_REPAIR_REQUEST_QUEUE_FAILURE;
 	}
 
-	return true;
+	return ENP_ROUTE_REPAIR_REQUEST_ACCEPTED;
+}
+
+bool enp_route_repair_request(enp_route_repair_t *repair,
+							  enp_route_destination_t destination,
+							  enp_route_destination_t failed_next_hop) {
+	return enp_route_repair_request_ex(repair, destination, failed_next_hop) ==
+		ENP_ROUTE_REPAIR_REQUEST_ACCEPTED;
 }
 
 bool enp_route_repair_is_pending(const enp_route_repair_t *repair,

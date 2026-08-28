@@ -50,6 +50,15 @@ typedef struct {
 	enp_route_destination_t failed_next_hop;
 } enp_route_repair_request_t;
 
+/* Explicit result of an E5D repair-request admission attempt. */
+typedef enum {
+	ENP_ROUTE_REPAIR_REQUEST_ACCEPTED = 0,
+	ENP_ROUTE_REPAIR_REQUEST_DUPLICATE,
+	ENP_ROUTE_REPAIR_REQUEST_CAPACITY,
+	ENP_ROUTE_REPAIR_REQUEST_INVALID,
+	ENP_ROUTE_REPAIR_REQUEST_QUEUE_FAILURE,
+} enp_route_repair_request_result_t;
+
 /*
  * Invoked from the dedicated E5D repair task, never from the caller of
  * enp_route_repair_request().
@@ -96,6 +105,13 @@ bool enp_route_repair_init(enp_route_repair_t *repair,
 						   enp_route_repair_consume_fn consume,
 						   void *consume_context);
 
+/* Extended admission API with explicit B.3.27/B.3.30 classification. */
+enp_route_repair_request_result_t
+enp_route_repair_request_ex(enp_route_repair_t *repair,
+							enp_route_destination_t destination,
+							enp_route_destination_t failed_next_hop);
+
+/* Compatibility wrapper: true only when the request is accepted. */
 bool enp_route_repair_request(enp_route_repair_t *repair,
 							  enp_route_destination_t destination,
 							  enp_route_destination_t failed_next_hop);
