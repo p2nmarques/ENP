@@ -70,6 +70,18 @@ typedef void (*enp_route_repair_consume_fn)(
 	const enp_route_repair_request_t *request, void *context);
 
 /*
+ * Notification-only hook invoked by the dedicated E5D repair task after a
+ * pending destination is authoritatively removed and one admission slot has
+ * therefore become available.
+ *
+ * The callback does not transfer route-table ownership, does not perform route
+ * discovery, and does not itself request another repair. Its purpose is only to
+ * wake an external handoff owner that may have retained work because E5D
+ * previously reported CAPACITY.
+ */
+typedef void (*enp_route_repair_capacity_available_fn)(void *context);
+
+/*
  * Lifetime: the caller must provide storage that remains valid for the entire
  * lifetime of the E5D repair task. In production this should normally be
  * static/global storage; automatic (stack) storage is not permitted.
@@ -96,6 +108,9 @@ typedef struct {
 	enp_route_repair_consume_fn consume;
 	void *consume_context;
 
+	enp_route_repair_capacity_available_fn capacity_available;
+	void *capacity_available_context;
+
 	uint32_t request_count;
 	uint32_t suppressed_count;
 	uint32_t consumed_count;
@@ -104,6 +119,17 @@ typedef struct {
 bool enp_route_repair_init(enp_route_repair_t *repair,
 						   enp_route_repair_consume_fn consume,
 						   void *consume_context);
+
+/*
+ * Installs or replaces the notification-only capacity-release hook.
+ *
+ * Passing NULL disables notification. This function does not invoke the
+ * callback and does not change E5D admission, consumption, or route ownership.
+ */
+bool enp_route_repair_set_capacity_available_callback(
+	enp_route_repair_t *repair,
+	enp_route_repair_capacity_available_fn callback,
+	void *context);
 
 /* Extended admission API with explicit B.3.27/B.3.30 classification. */
 enp_route_repair_request_result_t

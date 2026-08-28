@@ -75,6 +75,15 @@ static void repair_task(void *arg) {
 
 		remove_pending(repair, request.destination);
 		++repair->consumed_count;
+
+		/*
+		 * A pending admission slot has been authoritatively released.
+		 * This is notification-only: the external handoff owner decides
+		 * whether any retained failure event should be retried.
+		 */
+		if (repair->capacity_available != NULL) {
+			repair->capacity_available(repair->capacity_available_context);
+		}
 	}
 }
 
@@ -116,6 +125,19 @@ bool enp_route_repair_init(enp_route_repair_t *repair,
 	}
 
 	repair->initialized = true;
+	return true;
+}
+
+bool enp_route_repair_set_capacity_available_callback(
+	enp_route_repair_t *repair,
+	enp_route_repair_capacity_available_fn callback,
+	void *context) {
+	if (repair == NULL || !repair->initialized) {
+		return false;
+	}
+
+	repair->capacity_available = callback;
+	repair->capacity_available_context = context;
 	return true;
 }
 
