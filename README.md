@@ -25,7 +25,7 @@ rediscovery.
 **Current baseline:** ENP v0.2-r5  
 **Target:** ESP-IDF 6.0.2  
 **Current transport:** ESP-NOW 2.0  
-**Overall status:** **Phase 4 P4-E5E-I33 HARDWARE VALIDATED / FROZEN — 2026-08-25**
+**Overall status:** **Phase 4 P4-E5E-I33 HARDWARE VALIDATED / FROZEN, with IG-F.7.8 end-to-end multi-hop application delivery HARDWARE VALIDATED — 2026-09-01**
 
 The current validated progression is:
 
@@ -64,10 +64,24 @@ HARDWARE VALIDATED / FROZEN
 | P4-E5B real ESP-NOW TX-result observation | 🔒 Hardware validated / Frozen |
 | P4-E5C transport failure → route invalidation | 🔒 Hardware validated / Frozen |
 | P4-E5D Step-3 E5D → R4 route rediscovery | 🔒 Hardware validated / Frozen |
-| **P4-E5E-I33 Reliability + route-repair resume** | **🔒 Hardware validated / Frozen — 2026-08-25** |
+| P4-E5E-I33 Reliability + route-repair resume | 🔒 Hardware validated / Frozen |
+| **IG-F.7.8 multi-hop application delivery** | **✅ Hardware validated / PASS — 2026-09-01** |
 
 The detailed evidence for each milestone is maintained under
 `docs/05_validation/`.
+
+### IG-F.7.8 — Multi-Hop Application Delivery
+
+**HARDWARE VALIDATED / PASS — 2026-09-01**
+
+IG-F.7.8 validated a production application packet from Gateway Node 1 through
+Relay Node 2 to Sensor Node 3. The validation closed three integration gaps:
+Discovery now synchronizes direct neighbours into one-hop ACTIVE routes,
+ESP-NOW send results are observable after `esp_now_send()`, and a minimal local
+application service consumes packet type `6` at the destination.
+
+See `docs/05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md`.
+
 
 ---
 
@@ -115,7 +129,8 @@ implementation, and **HARDWARE VALIDATED** behavior.
 | P4-E5B real ESP-NOW TX-result observation | 🔒 Frozen / hardware validated |
 | P4-E5C transport failure → route invalidation | 🔒 Frozen / hardware validated |
 | P4-E5D Step-3 route repair / R4 rediscovery | 🔒 Frozen / hardware validated |
-| **P4-E5E-I33 Reliability recovery across route repair** | **🔒 Frozen / hardware validated** |
+| P4-E5E-I33 Reliability recovery across route repair | 🔒 Frozen / hardware validated |
+| **IG-F.7.8 Gateway → Relay → Sensor application delivery** | **✅ Hardware validated / PASS** |
 
 ### Status interpretation
 

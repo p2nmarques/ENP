@@ -564,3 +564,17 @@ E1 is complete only when a hardware-independent test can demonstrate:
 12. stale RERR does not invalidate a newer route;
 13. no test depends on ESP-NOW APIs.
 
+
+
+## IG-F.7.8 Production Integration Addendum
+
+A discovered direct neighbour is not, by itself, a route-table entry. The
+production integration therefore synchronizes successful direct-neighbour
+discovery/update into the routing table as a one-hop ACTIVE route. Routing retains
+ownership of route validity and lookup.
+
+This integration was hardware validated in the Gateway → Relay → Sensor
+IG-F.7.8 path.
+
+
+> **Current project status note (2026-09-01):** IG-F.7.8 multi-hop application delivery is hardware validated. Current integration status is maintained in `docs/05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md` and the documentation synchronization record in `docs/00_project/IG-F.7.8_DOCUMENTATION_SYNCHRONIZATION_RECORD.md`.

@@ -402,3 +402,18 @@ existing routing or transport abstraction.
 ## Current production bootstrap boundary — P4-E4C
 
 P4-E4C validates the composition of the production runtime bootstrap. The production application composes the ENP context, dispatcher, discovery service, route table, routing data path, production receive path, and transport receive callback using the already validated interfaces. This is **PASS / FROZEN**.
+
+
+## IG-F.7.8 Integration Status
+
+The current production architecture includes a Discovery → Routing integration
+boundary for direct neighbours: successful neighbour discovery/update may
+synchronize the directly reachable neighbour into the route table as an ACTIVE
+one-hop route. This does not transfer route-table ownership to Discovery; routing
+remains authoritative for route state.
+
+Local application delivery remains dispatcher-owned. Packet type `6` is consumed
+only when a corresponding application service is registered.
+
+IG-F.7.8 hardware validated the resulting Gateway → Relay → Sensor path.
+See `docs/05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md`.

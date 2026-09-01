@@ -774,3 +774,15 @@ exact CMake component dependency list
 ```
 
 These implementation details must remain compatible with ESP-IDF 6.0.2 and the existing ENP architecture.
+
+
+## IG-F.7.8 Application Delivery Integration Note
+
+IG-F.7.8 validated the non-reliability application delivery path across three
+nodes. It does not change reliability transaction ownership or the frozen
+reliability contracts. It confirms that application packets can traverse the
+production routing/transport path and be consumed by a registered local
+application service at the destination.
+
+
+> **Current project status note (2026-09-01):** IG-F.7.8 multi-hop application delivery is hardware validated. Current integration status is maintained in `docs/05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md` and the documentation synchronization record in `docs/00_project/IG-F.7.8_DOCUMENTATION_SYNCHRONIZATION_RECORD.md`.

@@ -569,7 +569,14 @@ static esp_err_t enp_transport_espnow_add_peer(const uint8_t *mac) {
 		return ESP_ERR_INVALID_ARG;
 	}
 
-	if (esp_now_is_peer_exist(mac)) {
+	const bool peer_exists = esp_now_is_peer_exist(mac);
+
+	ESP_LOGI(TAG,
+			 "ESP-NOW peer diagnostic: mac=%02X:%02X:%02X:%02X:%02X:%02X exists=%d",
+			 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+			 (int)peer_exists);
+
+	if (peer_exists) {
 		return ESP_OK;
 	}
 
@@ -592,6 +599,11 @@ static esp_err_t enp_transport_espnow_add_peer(const uint8_t *mac) {
 	peer.encrypt = false;
 
 	esp_err_t err = esp_now_add_peer(&peer);
+
+	ESP_LOGI(TAG,
+			 "ESP-NOW peer diagnostic: add mac=%02X:%02X:%02X:%02X:%02X:%02X result=%s",
+			 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+			 esp_err_to_name(err));
 
 	if (err == ESP_ERR_ESPNOW_EXIST) {
 		return ESP_OK;
@@ -738,7 +750,22 @@ enp_transport_espnow_receive_callback(const esp_now_recv_info_t *info,
 	 * dropped. ENP reliability/retry mechanisms belong
 	 * above this transport layer.
 	 */
-	(void)xQueueSend(s_queue, &event, 0);
+	if (xQueueSend(s_queue, &event, 0) != pdTRUE) {
+		ESP_LOGW(TAG,
+				 "ESP-NOW RX diagnostic: queue rejected %d bytes from "
+				 "%02X:%02X:%02X:%02X:%02X:%02X",
+				 data_len, info->src_addr[0], info->src_addr[1],
+				 info->src_addr[2], info->src_addr[3],
+				 info->src_addr[4], info->src_addr[5]);
+		return;
+	}
+
+	ESP_LOGI(TAG,
+			 "ESP-NOW RX diagnostic: queue accepted %d bytes from "
+			 "%02X:%02X:%02X:%02X:%02X:%02X",
+			 data_len, info->src_addr[0], info->src_addr[1],
+			 info->src_addr[2], info->src_addr[3],
+			 info->src_addr[4], info->src_addr[5]);
 }
 
 /*----------------------------------------------------------
@@ -798,8 +825,19 @@ static void enp_transport_espnow_tx_task(void *argument) {
 			? s_broadcast_mac
 			: request.destination.value;
 
+		ESP_LOGI(TAG,
+				 "ESP-NOW TX diagnostic: esp_now_send mac=%02X:%02X:%02X:%02X:%02X:%02X length=%u",
+				 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+				 (unsigned)request.length);
+
 		const esp_err_t submit_result =
 			esp_now_send(mac, request.data, request.length);
+
+		ESP_LOGI(TAG,
+				 "ESP-NOW TX diagnostic: result=%s mac=%02X:%02X:%02X:%02X:%02X:%02X length=%u",
+				 esp_err_to_name(submit_result),
+				 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+				 (unsigned)request.length);
 
 		if (submit_result != ESP_OK) {
 			enp_espnow_event_t event;

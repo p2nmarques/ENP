@@ -343,3 +343,21 @@ opening a new revision/phase.
 I33 is a validation/integration gate only. It does not reopen or modify the
 frozen P4-E5D Step-3 implementation, R4, routing, transport or Reliability
 production boundaries.
+
+
+## Current Integration Validation — IG-F.7.8
+
+- [X] Validate Gateway Node 1 → Relay Node 2 → Sensor Node 3 application delivery.
+- [X] Synchronize discovered direct neighbours into ACTIVE one-hop routes.
+- [X] Validate Relay route lookup and forwarding.
+- [X] Observe immediate ESP-NOW `esp_now_send()` results.
+- [X] Register and validate local packet type `6` application dispatch.
+- [X] Validate end-to-end application consumption on the Sensor.
+
+**Status: HARDWARE VALIDATED / PASS — 2026-09-01.**
+
+IG-F.7.8 is an integration validation increment and does not reopen the frozen
+P4-E5E-I33 reliability and route-repair baseline.
+
+
+> **Current project status note (2026-09-01):** IG-F.7.8 multi-hop application delivery is hardware validated. Current integration status is maintained in `docs/05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md` and the documentation synchronization record in `docs/00_project/IG-F.7.8_DOCUMENTATION_SYNCHRONIZATION_RECORD.md`.

@@ -37,6 +37,7 @@ Contains the implementation audits, hardware validation records, and consolidati
 - `05_validation/E3.3.7_PHASE4_P4-E5D_STEP3_HARDWARE_VALIDATION_RECORD.md`
 - `05_validation/E3.3.7_PHASE4_P4-E5E_I33_HARDWARE_VALIDATION_RECORD.md`
 - `05_validation/E3.3.7_PHASE4_P4-E5E_I33_DOCUMENTATION_SYNCHRONIZATION_RECORD.md`
+- `05_validation/IG-F.7.8_MULTI_HOP_APPLICATION_DELIVERY_VALIDATION.md`
 
 
 ## 99 — Historical

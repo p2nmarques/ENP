@@ -19,6 +19,7 @@
 
 #include "core/protocol/enp_protocol.h"
 #include "core/service/discovery/enp_discovery.h"
+#include "core/routing/enp_routing_runtime.h"
 
 /*----------------------------------------------------------
  * Logging
@@ -44,6 +45,171 @@ typedef enum {
     ENP_DISCOVERY_NEIGHBOR_REACTIVATED
 
 } enp_discovery_neighbor_event_t;
+
+/*----------------------------------------------------------
+ * Neighbor Table Diagnostics
+ *---------------------------------------------------------*/
+
+/*
+ * Read back the neighbour-table entry immediately after the
+ * authoritative update operation.
+ *
+ * This helper is diagnostic-only. It does not modify the table
+ * and does not retain a pointer to an entry.
+ */
+static void
+enp_service_discovery_log_neighbor_state(
+    const enp_context_t *context,
+    const enp_address_t *address)
+{
+    if ((context == NULL) ||
+        (address == NULL)) {
+        return;
+    }
+
+    const enp_neighbor_t *neighbor =
+        enp_neighbor_find_const(
+            &context->neighbors,
+            address);
+
+    if (neighbor == NULL) {
+        ESP_LOGW(TAG,
+                 "Neighbor table verification failed: "
+                 "network=%u "
+                 "node=%lu "
+                 "not found after update",
+                 (unsigned)address->network,
+                 (unsigned long)address->node);
+
+        return;
+    }
+
+    const size_t neighbor_count =
+        enp_neighbor_count(
+            &context->neighbors);
+
+    ESP_LOGD(TAG,
+             "Neighbor table state: "
+             "network=%u "
+             "node=%lu "
+             "state=%u "
+             "role=%u "
+             "capabilities=0x%04X "
+             "sequence=%lu "
+             "rssi=%d "
+             "count=%u",
+             (unsigned)neighbor->address.network,
+             (unsigned long)neighbor->address.node,
+             (unsigned)neighbor->state,
+             (unsigned)neighbor->role,
+             (unsigned)neighbor->capabilities,
+             (unsigned long)neighbor->last_sequence,
+             (int)neighbor->rssi,
+             (unsigned)neighbor_count);
+}
+
+/*----------------------------------------------------------
+ * Direct-Neighbor Route Synchronization
+ *---------------------------------------------------------*/
+
+/*
+ * Discovery owns neighbour lifecycle. Routing remains the owner of route
+ * state. This integration promotes every successfully discovered direct
+ * neighbour into a one-hop ACTIVE route in the production route table.
+ *
+ * A discovery refresh also refreshes the route lifetime. The 6000 ms
+ * lifetime matches the current neighbour maintenance timeout used by the
+ * production configuration, so a route stops being refreshed when the
+ * corresponding neighbour stops being heard.
+ */
+#define ENP_DISCOVERY_DIRECT_ROUTE_LIFETIME_MS 6000U
+
+static bool
+enp_service_discovery_sync_direct_route(
+    enp_context_t *context,
+    const enp_address_t *neighbor_address,
+    enp_sequence_t sequence,
+    uint32_t now_ms)
+{
+    if ((context == NULL) ||
+        (neighbor_address == NULL)) {
+        ESP_LOGW(TAG,
+                 "Direct route sync: invalid arguments");
+        return false;
+    }
+
+    enp_route_table_t *const routes =
+        enp_routing_runtime_route_table();
+
+    if (routes == NULL) {
+        ESP_LOGW(TAG,
+                 "Direct route sync: route_table=unavailable "
+                 "destination=%u/%lu",
+                 (unsigned)neighbor_address->network,
+                 (unsigned long)neighbor_address->node);
+        return false;
+    }
+
+    enp_route_entry_t entry = {0};
+
+    entry.destination = (enp_route_destination_t) {
+        .network_id = neighbor_address->network,
+        .node_id = neighbor_address->node,
+    };
+
+    entry.next_hop = entry.destination;
+    entry.route_sequence = sequence;
+    entry.expires_at_ms =
+        now_ms + ENP_DISCOVERY_DIRECT_ROUTE_LIFETIME_MS;
+    entry.state = ENP_ROUTE_STATE_ACTIVE;
+
+    if (!enp_route_metric_init(
+            &entry.metric,
+            ENP_ROUTE_METRIC_HOP_COUNT)) {
+        ESP_LOGW(TAG,
+                 "Direct route sync: metric init failed "
+                 "destination=%u/%lu",
+                 (unsigned)entry.destination.network_id,
+                 (unsigned long)entry.destination.node_id);
+        return false;
+    }
+
+    entry.metric.value = 1U;
+    entry.metric.valid = true;
+
+    bool updated = false;
+    bool result = false;
+
+    for (size_t i = 0U; i < routes->count; ++i) {
+        if ((routes->entries[i].destination.network_id ==
+                 entry.destination.network_id) &&
+            (routes->entries[i].destination.node_id ==
+                 entry.destination.node_id)) {
+            updated = true;
+            result = enp_route_table_update(routes, &entry);
+            break;
+        }
+    }
+
+    if (!updated) {
+        result = enp_route_table_insert(routes, &entry);
+    }
+
+    ESP_LOGI(TAG,
+             "Direct route sync: destination=%u/%lu "
+             "operation=%s "
+             "result=%s "
+             "route_count=%u "
+             "active_route_count=%u",
+             (unsigned)entry.destination.network_id,
+             (unsigned long)entry.destination.node_id,
+             updated ? "UPDATE" : "INSERT",
+             result ? "SUCCESS" : "FAIL",
+             (unsigned)enp_route_table_count(routes),
+             (unsigned)enp_route_table_active_count(routes));
+
+    return result;
+}
 
 /*----------------------------------------------------------
  * Forward Declarations
@@ -378,6 +544,34 @@ enp_service_discovery_process(enp_context_t *context,
 
         return err;
     }
+
+    /*
+     * Promote the successfully updated direct neighbour into the production
+     * route table. Discovery does not mutate route state directly; the route
+     * table remains the authoritative route-state owner.
+     */
+    if (!enp_service_discovery_sync_direct_route(
+            context,
+            &header->source,
+            header->sequence,
+            now_ms)) {
+        ESP_LOGW(TAG,
+                 "Failed to synchronize direct route: "
+                 "network=%u node=%lu",
+                 (unsigned)header->source.network,
+                 (unsigned long)header->source.node);
+    }
+
+    /*
+     * Verify the resulting neighbour-table state after the
+     * authoritative update operation.
+     *
+     * This is diagnostic-only and does not modify lifecycle
+     * semantics.
+     */
+    enp_service_discovery_log_neighbor_state(
+        context,
+        &header->source);
 
     /*
      * Emit lifecycle-specific discovery logging.
