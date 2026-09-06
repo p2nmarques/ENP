@@ -145,6 +145,17 @@ enp_route_repair_request_result_t
 enp_route_repair_request_ex(enp_route_repair_t *repair,
 							enp_route_destination_t destination,
 							enp_route_destination_t failed_next_hop) {
+	return enp_route_repair_request_ex_with_upstream(
+		repair, destination, failed_next_hop,
+		(enp_route_destination_t){0});
+}
+
+enp_route_repair_request_result_t
+enp_route_repair_request_ex_with_upstream(
+	enp_route_repair_t *repair,
+	enp_route_destination_t destination,
+	enp_route_destination_t failed_next_hop,
+	enp_route_destination_t upstream) {
 	if (repair == NULL || !repair->initialized ||
 		destination.network_id == 0U || destination.node_id == 0U ||
 		failed_next_hop.network_id == 0U || failed_next_hop.node_id == 0U) {
@@ -165,6 +176,7 @@ enp_route_repair_request_ex(enp_route_repair_t *repair,
 	enp_route_repair_request_t request = {
 		.destination = destination,
 		.failed_next_hop = failed_next_hop,
+		.upstream = upstream,
 	};
 
 	/* Reserve before publishing because the worker may run immediately. */

@@ -48,6 +48,8 @@ extern "C" {
 typedef struct {
 	enp_route_destination_t destination;
 	enp_route_destination_t failed_next_hop;
+	/* Optional transient upstream evidence associated with the failed forward. */
+	enp_route_destination_t upstream;
 } enp_route_repair_request_t;
 
 /* Explicit result of an E5D repair-request admission attempt. */
@@ -136,6 +138,14 @@ enp_route_repair_request_result_t
 enp_route_repair_request_ex(enp_route_repair_t *repair,
 							enp_route_destination_t destination,
 							enp_route_destination_t failed_next_hop);
+
+/* Extended admission API carrying transient upstream evidence. */
+enp_route_repair_request_result_t
+enp_route_repair_request_ex_with_upstream(
+							 enp_route_repair_t *repair,
+							 enp_route_destination_t destination,
+							 enp_route_destination_t failed_next_hop,
+							 enp_route_destination_t upstream);
 
 /* Compatibility wrapper: true only when the request is accepted. */
 bool enp_route_repair_request(enp_route_repair_t *repair,

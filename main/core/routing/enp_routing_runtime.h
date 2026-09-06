@@ -4,7 +4,7 @@
  *  Created on: Aug 28, 2026
  *      Author: Pedro Marques
  *
- * ENP v0.3.1 — IG-F
+ * ENP v0.3.1 — IG-F; IG-G
  *
  * Dedicated production routing runtime owner.
  *
@@ -27,7 +27,8 @@
  #include "core/enp_address.h"
  #include "core/enp_transport.h"
 
- #include "core/routing/enp_route_repair_adapter.h"
+ #include "core/routing/enp_route_failure_coalescer.h"
+#include "core/routing/enp_route_repair_adapter.h"
  #include "core/routing/enp_route_table.h"
  #include "core/routing/enp_routing_data_path.h"
 
@@ -89,7 +90,13 @@
 
  enp_routing_data_path_t *enp_routing_runtime_data_path(void);
 
+esp_err_t enp_routing_runtime_submit_packet(
+    enp_route_destination_t recipient,
+    const enp_packet_t *packet);
+
  enp_route_repair_adapter_t *enp_routing_runtime_repair_adapter(void);
+
+enp_route_failure_coalescer_t *enp_routing_runtime_failure_coalescer(void);
 
  #ifdef __cplusplus
  }

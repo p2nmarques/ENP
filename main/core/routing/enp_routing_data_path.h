@@ -17,10 +17,15 @@
 #include <stdint.h>
 
 #include "esp_err.h"
+#include "freertos/FreeRTOS.h"
 
 #include "core/enp_transport.h"
 #include "core/protocol/enp_packet.h"
 #include "core/routing/enp_route_table.h"
+
+#ifndef ENP_ROUTING_DATA_PATH_MAX_FORWARD_EVIDENCE
+#define ENP_ROUTING_DATA_PATH_MAX_FORWARD_EVIDENCE 16U
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +46,16 @@ typedef void (*enp_routing_route_failure_fn)(
 	void *context, enp_route_destination_t destination,
 	enp_route_destination_t failed_next_hop);
 
+/*
+ * Extended E5C failure notification carrying transient upstream evidence
+ * captured when a packet was forwarded. The legacy callback above remains
+ * unchanged for existing integrations and tests.
+ */
+typedef void (*enp_routing_route_failure_ex_fn)(
+	void *context, enp_route_destination_t destination,
+	enp_route_destination_t failed_next_hop,
+	enp_route_destination_t upstream);
+
 typedef void (*enp_routing_correlated_failure_fn)(
 	void *context, const enp_transport_address_t *destination,
 	esp_err_t result, enp_transport_correlation_id_t correlation_id);
@@ -52,6 +67,16 @@ typedef struct {
 	void *resolve_context;
 	enp_routing_route_failure_fn route_failure;
 	void *route_failure_context;
+	enp_routing_route_failure_ex_fn route_failure_ex;
+	void *route_failure_ex_context;
+
+	struct {
+		bool valid;
+		enp_route_destination_t destination;
+		enp_route_destination_t failed_next_hop;
+		enp_route_destination_t upstream;
+	} forward_evidence[ENP_ROUTING_DATA_PATH_MAX_FORWARD_EVIDENCE];
+	portMUX_TYPE forward_evidence_lock;
 	enp_routing_correlated_failure_fn correlated_failure;
 	void *correlated_failure_context;
 } enp_routing_data_path_t;
@@ -69,6 +94,15 @@ bool enp_routing_data_path_init(
  */
 bool enp_routing_data_path_set_route_failure_callback(
 	enp_routing_data_path_t *path, enp_routing_route_failure_fn callback,
+	void *context);
+
+/*
+ * Register the extended route-failure notification carrying transient
+ * upstream evidence captured at forwarding time. The legacy callback remains
+ * available for existing E5D/test integrations.
+ */
+bool enp_routing_data_path_set_route_failure_callback_ex(
+	enp_routing_data_path_t *path, enp_routing_route_failure_ex_fn callback,
 	void *context);
 
 /* Register the correlated transport-failure observation boundary used by

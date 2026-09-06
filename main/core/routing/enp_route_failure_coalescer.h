@@ -54,6 +54,11 @@ typedef struct {
 } enp_route_failure_event_t;
 
 typedef struct {
+	uint32_t observed_count;
+	uint32_t accepted_count;
+} enp_route_failure_coalescer_stats_t;
+
+typedef struct {
 	StaticTask_t task_control;
 	TaskHandle_t task;
 	StackType_t task_stack[ENP_ROUTE_FAILURE_COALESCER_TASK_STACK_SIZE];
@@ -109,6 +114,15 @@ void enp_route_failure_coalescer_notify_capacity_available(void *context);
 
 size_t enp_route_failure_coalescer_event_count(
 	const enp_route_failure_coalescer_t *coalescer);
+
+/*
+ * Returns a read-only diagnostic snapshot of the IG-D observation/admission
+ * counters. The snapshot is taken under the existing coalescer lock and does
+ * not modify coalescer state, notify the worker, or perform E5D admission.
+ */
+bool enp_route_failure_coalescer_get_stats(
+	const enp_route_failure_coalescer_t *coalescer,
+	enp_route_failure_coalescer_stats_t *stats);
 
 #ifdef __cplusplus
 }

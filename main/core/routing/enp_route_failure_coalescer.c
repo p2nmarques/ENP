@@ -263,3 +263,18 @@ size_t enp_route_failure_coalescer_event_count(
 	portEXIT_CRITICAL((portMUX_TYPE *)&coalescer->lock);
 	return count;
 }
+
+bool enp_route_failure_coalescer_get_stats(
+	const enp_route_failure_coalescer_t *coalescer,
+	enp_route_failure_coalescer_stats_t *stats) {
+	if (coalescer == NULL || stats == NULL) {
+		return false;
+	}
+
+	portENTER_CRITICAL((portMUX_TYPE *)&coalescer->lock);
+	stats->observed_count = coalescer->observed_count;
+	stats->accepted_count = coalescer->accepted_count;
+	portEXIT_CRITICAL((portMUX_TYPE *)&coalescer->lock);
+
+	return true;
+}
